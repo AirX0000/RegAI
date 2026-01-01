@@ -1,0 +1,118 @@
+{
+  "format_type": "ifrs",
+  "transformed_data": {
+    "period": "2024-12-01T00:00:00",
+    "statement_of_financial_position": {
+      "assets": {
+        "non_current_assets": {
+          "property_plant_equipment": [],
+          "intangible_assets": [],
+          "financial_assets": [],
+          "other": [],
+          "total": 0.0
+        },
+        "current_assets": {
+          "inventories": [
+            {
+              "code": "1040",
+              "name": "Inventory",
+              "amount": 100000.0
+            }
+          ],
+          "trade_receivables": [
+            {
+              "code": "1030",
+              "name": "Accounts Receivable",
+              "amount": 75000.0
+            }
+          ],
+          "cash_and_equivalents": [
+            {
+              "code": "1010",
+              "name": "Cash on Hand",
+              "amount": 50000.0
+            }
+          ],
+          "other": [
+            {
+              "code": "1020",
+              "name": "Bank Account",
+              "amount": 150000.0
+            },
+            {
+              "code": "1510",
+              "name": "Property and Equipment",
+              "amount": 500000.0
+            },
+            {
+              "code": "1520",
+              "name": "Intangible Assets",
+              "amount": 50000.0
+            }
+          ],
+          "total": 925000.0
+        },
+        "total": 925000.0
+      },
+      "equity_and_liabilities": {
+        "equity": {
+          "share_capital": [
+            {
+              "code": "3010",
+              "name": "Share Capital",
+              "amount": 400000.0
+            }
+          ],
+          "retained_earnings": [
+            {
+              "code": "3020",
+              "name": "Retained Earnings",
+              "amount": 125000.0
+            }
+          ],
+          "other_reserves": [],
+          "total": 525000.0
+        },
+        "non_current_liabilities": {
+          "long_term_borrowings": [],
+          "deferred_tax": [],
+          "provisions": [],
+          "other": [],
+          "total": 0.0
+        },
+        "current_liabilities": {
+          "trade_payables": [
+            {
+              "code": "2010",
+              "name": "Accounts Payable",
+              "amount": 60000.0
+            }
+          ],
+          "short_term_borrowings": [
+            {
+              "code": "2020",
+              "name": "Short-term Borrowings",
+              "amount": 40000.0
+            },
+            {
+              "code": "2510",
+              "name": "Long-term Loan",
+              "amount": 300000.0
+            }
+          ],
+          "provisions": [],
+          "other": [],
+          "total": 400000.0
+        },
+        "total": 925000.0
+      }
+    }
+  },
+  "transformation_rules_applied": {
+    "version": "1.0",
+    "rules": "IFRS standard mapping"
+  },
+  "id": "d70e1669-1c6c-4139-9c2e-b047a1318131",
+  "balance_sheet_id": "1be35f62-4163-4bfd-974a-fb500281da22",
+  "created_at": "2025-11-27T09:24:17.265005"
+}

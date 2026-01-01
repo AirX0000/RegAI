@@ -1,0 +1,203 @@
+Attempting to create balance sheet via TestClient...
+2025-11-27 13:50:48,092 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/auth/login "HTTP/1.1 200 OK"
+2025-11-27 13:50:48,107 - httpx - INFO - HTTP Request: POST http://testserver/api/v1/balance-sheets/ "HTTP/1.1 201 Created"
+Traceback (most recent call last):
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2118, in _exec_insertmany_context
+    dialect.do_execute(
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.ProgrammingError: Error binding parameter 4: type 'dict' is not supported
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/air/Regai AI castone Project/regai/backend/debug_create_bs.py", line 43, in debug_create_bs
+    resp_trans = client.post(f"/api/v1/balance-sheets/{bs_id}/transform", headers=headers)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/testclient.py", line 636, in post
+    return super().post(
+           ^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 1145, in post
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/testclient.py", line 519, in request
+    return super().request(
+           ^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 827, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/httpx/_client.py", line 1015, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/testclient.py", line 401, in handle_request
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/testclient.py", line 398, in handle_request
+    portal.call(self.app, scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/anyio/from_thread.py", line 288, in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/anyio/from_thread.py", line 217, in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/applications.py", line 123, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 189, in __call__
+    with collapse_excgroups():
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_utils.py", line 93, in collapse_excgroups
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/Regai AI castone Project/regai/backend/app/main.py", line 70, in add_process_time_header
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 165, in call_next
+    raise app_exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 151, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 189, in __call__
+    with collapse_excgroups():
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_utils.py", line 93, in collapse_excgroups
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 191, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/Regai AI castone Project/regai/backend/app/main.py", line 62, in add_request_id
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 165, in call_next
+    raise app_exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/base.py", line 151, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 65, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/routing.py", line 756, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/routing.py", line 776, in app
+    await route.handle(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/routing.py", line 297, in handle
+    await self.app(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/routing.py", line 77, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_exception_handler.py", line 64, in wrapped_app
+    raise exc
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/routing.py", line 74, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/fastapi/routing.py", line 301, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/fastapi/routing.py", line 214, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/starlette/concurrency.py", line 42, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/anyio/to_thread.py", line 56, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 2144, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/anyio/_backends/_asyncio.py", line 851, in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/Regai AI castone Project/regai/backend/app/api/v1/balance_sheets.py", line 244, in transform_balance_sheet
+    result = transformation_service.transform(balance_sheet)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/Regai AI castone Project/regai/backend/app/services/transformation_service.py", line 41, in transform
+    self.db.commit()
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2028, in commit
+    trans.commit(_to_root=True)
+  File "<string>", line 2, in commit
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1313, in commit
+    self._prepare_impl()
+  File "<string>", line 2, in _prepare_impl
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/state_changes.py", line 139, in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 1288, in _prepare_impl
+    self.session.flush()
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4352, in flush
+    self._flush(objects)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4487, in _flush
+    with util.safe_reraise():
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 4448, in _flush
+    flush_context.execute()
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 466, in execute
+    rec.execute(self)
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/unitofwork.py", line 642, in execute
+    util.preloaded.orm_persistence.save_obj(
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 93, in save_obj
+    _emit_insert_statements(
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/orm/persistence.py", line 1143, in _emit_insert_statements
+    result = connection.execute(
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
+    return meth(
+           ^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 515, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1640, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1844, in _execute_context
+    return self._exec_insertmany_context(dialect, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2126, in _exec_insertmany_context
+    self._handle_dbapi_exception(
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2118, in _exec_insertmany_context
+    dialect.do_execute(
+  File "/Users/air/.pyenv/versions/3.11.9/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (sqlite3.ProgrammingError) Error binding parameter 4: type 'dict' is not supported
+[SQL: INSERT INTO transformed_statements (id, balance_sheet_id, format_type, transformed_data, transformation_rules_applied, created_at) VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)]
+[parameters: ('70b646be96344bdbb9d8017a96a44390', '21c5de2ed2c3457aa0729c262c2a41b3', 'MCFO', {'period': '2024-12-01T00:00:00', 'assets': {'current': [{'code': '1010', 'name': 'Cash', 'amount': 100.0, 'subcategory': 'Current'}], 'non_current':  ... (34 characters truncated) ... : {'current': [], 'non_current': [], 'total': 0.0}, 'equity': {'items': [], 'total': 0.0}, 'total_assets': 100.0, 'total_liabilities_and_equity': 0.0}, {'version': '1.0', 'rules': 'MCFO standard mapping'}, '2025-11-27 08:50:48.112753', '2119ba8c8b164399be4d0594ad0697fc', '21c5de2ed2c3457aa0729c262c2a41b3', 'IFRS', {'period': '2024-12-01T00:00:00', 'statement_of_financial_position': {'assets': {'non_current_assets': {'property_plant_equipment': [], 'intangible_as ... (479 characters truncated) ... total': 0.0}, 'current_liabilities': {'trade_payables': [], 'short_term_borrowings': [], 'provisions': [], 'other': [], 'total': 0.0}, 'total': 0.0}}}, {'version': '1.0', 'rules': 'IFRS standard mapping'}, '2025-11-27 08:50:48.112756')]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Status Code: 201
+Response Text: {"period":"2024-12-01T00:00:00","notes":"Debug BS","id":"21c5de2e-d2c3-457a-a072-9c262c2a41b3","company_id":"2727830e-a39d-470c-917f-1a1544ed5d0f","status":"draft","created_at":"2025-11-27T08:50:48.098289","updated_at":"2025-11-27T08:50:48.098292","items":[{"account_code":"1010","account_name":"Cash","amount":"100.00","category":"assets","subcategory":"Current","id":"dffe5f73-4a2c-46f0-924b-baaef88c670a","balance_sheet_id":"21c5de2e-d2c3-457a-a072-9c262c2a41b3","created_at":"2025-11-27T08:50:48.101256"}],"adjustments":[]}
+Transforming BS 21c5de2e-d2c3-457a-a072-9c262c2a41b3...
+Exception caught: (sqlite3.ProgrammingError) Error binding parameter 4: type 'dict' is not supported
+[SQL: INSERT INTO transformed_statements (id, balance_sheet_id, format_type, transformed_data, transformation_rules_applied, created_at) VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)]
+[parameters: ('70b646be96344bdbb9d8017a96a44390', '21c5de2ed2c3457aa0729c262c2a41b3', 'MCFO', {'period': '2024-12-01T00:00:00', 'assets': {'current': [{'code': '1010', 'name': 'Cash', 'amount': 100.0, 'subcategory': 'Current'}], 'non_current':  ... (34 characters truncated) ... : {'current': [], 'non_current': [], 'total': 0.0}, 'equity': {'items': [], 'total': 0.0}, 'total_assets': 100.0, 'total_liabilities_and_equity': 0.0}, {'version': '1.0', 'rules': 'MCFO standard mapping'}, '2025-11-27 08:50:48.112753', '2119ba8c8b164399be4d0594ad0697fc', '21c5de2ed2c3457aa0729c262c2a41b3', 'IFRS', {'period': '2024-12-01T00:00:00', 'statement_of_financial_position': {'assets': {'non_current_assets': {'property_plant_equipment': [], 'intangible_as ... (479 characters truncated) ... total': 0.0}, 'current_liabilities': {'trade_payables': [], 'short_term_borrowings': [], 'provisions': [], 'other': [], 'total': 0.0}, 'total': 0.0}}}, {'version': '1.0', 'rules': 'IFRS standard mapping'}, '2025-11-27 08:50:48.112756')]
+(Background on this error at: https://sqlalche.me/e/20/f405)

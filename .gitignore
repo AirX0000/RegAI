@@ -1,0 +1,29 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.env
+*.egg-info/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+.next/
+
+# IDE
+.vscode/
+.idea/
+
+# Local DB
+*.db
+*.sqlite3
+regai.db

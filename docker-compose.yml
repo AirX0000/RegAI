@@ -1,0 +1,5 @@
+version: '3.8'
+
+# Symlink-like behavior or just pointing to the dev one
+include:
+  - ops/compose/docker-compose.dev.yml

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: ops/docker/backend.Dockerfile
+    environment:
+      - DATABASE_URL=sqlite:///./regai.db
+      - CHROMA_DIR=./chroma_db
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: ops/docker/frontend.Dockerfile
+    ports:
+      - "80:80"

@@ -1,0 +1,22 @@
+
+FINANCIAL REPORT 2024
+Company: Test Corp Ltd
+Country: United Kingdom
+
+REVENUE
+Sales Revenue: £1,000,000
+VAT Collected (20%): £200,000
+Total Revenue: £1,200,000
+
+EXPENSES
+Cost of Goods Sold: £500,000
+Operating Expenses: £200,000
+Net Profit Before Tax: £300,000
+
+TAX CALCULATION
+Corporate Tax (25%): £75,000
+Net Profit After Tax: £225,000
+
+NOTES
+1. VAT is calculated at standard rate of 20%.
+2. Corporate tax is calculated at 25%.

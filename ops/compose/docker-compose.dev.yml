@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ../../
+      dockerfile: ops/docker/backend.Dockerfile
+    volumes:
+      - ../../backend/app:/app/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/regai
+      - CHROMA_DIR=/app/chroma_db
+      - CORS_ORIGINS=["http://localhost:5173","http://localhost:80"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - chroma
+
+  frontend:
+    build:
+      context: ../../
+      dockerfile: ops/docker/frontend.Dockerfile
+      target: builder # Use builder stage for dev if we wanted live reload, but for simplicity we use node directly or just run locally.
+                      # Actually, for dev, we usually run `npm run dev` locally.
+                      # But if we want to run in compose, we can use a dev image.
+                      # For this prompt, let's stick to the production build serving via nginx or a dev server.
+                      # Let's use a standard node image for dev to allow volume mounting.
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ../../frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host"
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000/api/v1
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=regai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  chroma:
+    image: chromadb/chroma:0.5.23
+    volumes:
+      - chroma_data:/chroma/chroma
+    ports:
+      - "8001:8000"
+    environment:
+      - IS_PERSISTENT=TRUE
+
+volumes:
+  postgres_data:
+  chroma_data:
