@@ -6,6 +6,7 @@ alembic
 psycopg[binary]
 asyncpg
 python-jose[cryptography]
+cryptography>=42.0.0
 passlib[bcrypt]
 python-multipart
 httpx
