@@ -25,58 +25,31 @@ if root_path not in sys.path:
 
 from sqlalchemy.orm import Session
 
-try:
-    from app.db.session import SessionLocal, engine
-    from app.db.base import Base
-    from app.core.security import get_password_hash
-    from app.core.crypto import encrypt_secret
-    from app.db.models.tenant import Tenant
-    from app.db.models.company import Company
-    from app.db.models.user import User
-    from app.db.models.onec_connection import OneCConnection
-    from app.db.models.balance_sheet import (
-        BalanceSheet, 
-        BalanceSheetItem, 
-        BalanceSheetStatus, 
-        BalanceSheetCategory,
-        TransformationAdjustment
-    )
-    from app.db.models.alert import Alert, AlertStatus, AlertSeverity
-    from app.db.models.report import Report
-    from app.db.models.report_template import ReportTemplate
-    from app.db.models.report_analysis import ReportAnalysis
-    from app.db.models.report_comment import ReportComment
-    from app.db.models.document import Document, DocumentType, DocumentStatus
-    from app.db.models.audit_log import AuditLog
-    from app.db.models.onec_sync_log import OneCSyncLog
-    from app.db.models.regulation import Regulation
-    from app.db.models.tax_rate import TaxRate
-except ImportError:
-    from backend.app.db.session import SessionLocal, engine  # type: ignore
-    from backend.app.db.base import Base  # type: ignore
-    from backend.app.core.security import get_password_hash  # type: ignore
-    from backend.app.core.crypto import encrypt_secret  # type: ignore
-    from backend.app.db.models.tenant import Tenant  # type: ignore
-    from backend.app.db.models.company import Company  # type: ignore
-    from backend.app.db.models.user import User  # type: ignore
-    from backend.app.db.models.onec_connection import OneCConnection  # type: ignore
-    from backend.app.db.models.balance_sheet import (  # type: ignore
-        BalanceSheet, 
-        BalanceSheetItem, 
-        BalanceSheetStatus, 
-        BalanceSheetCategory,
-        TransformationAdjustment
-    )
-    from backend.app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
-    from backend.app.db.models.report import Report  # type: ignore
-    from backend.app.db.models.report_template import ReportTemplate  # type: ignore
-    from backend.app.db.models.report_analysis import ReportAnalysis  # type: ignore
-    from backend.app.db.models.report_comment import ReportComment  # type: ignore
-    from backend.app.db.models.document import Document, DocumentType, DocumentStatus  # type: ignore
-    from backend.app.db.models.audit_log import AuditLog  # type: ignore
-    from backend.app.db.models.onec_sync_log import OneCSyncLog  # type: ignore
-    from backend.app.db.models.regulation import Regulation  # type: ignore
-    from backend.app.db.models.tax_rate import TaxRate  # type: ignore
+from app.db.session import SessionLocal, engine  # type: ignore
+from app.db.base import Base  # type: ignore
+from app.core.security import get_password_hash  # type: ignore
+from app.core.crypto import encrypt_secret  # type: ignore
+from app.db.models.tenant import Tenant  # type: ignore
+from app.db.models.company import Company  # type: ignore
+from app.db.models.user import User  # type: ignore
+from app.db.models.onec_connection import OneCConnection  # type: ignore
+from app.db.models.balance_sheet import (  # type: ignore
+    BalanceSheet, 
+    BalanceSheetItem, 
+    BalanceSheetStatus, 
+    BalanceSheetCategory,
+    TransformationAdjustment
+)
+from app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
+from app.db.models.report import Report  # type: ignore
+from app.db.models.report_template import ReportTemplate  # type: ignore
+from app.db.models.report_analysis import ReportAnalysis  # type: ignore
+from app.db.models.report_comment import ReportComment  # type: ignore
+from app.db.models.document import Document, DocumentType, DocumentStatus  # type: ignore
+from app.db.models.audit_log import AuditLog  # type: ignore
+from app.db.models.onec_sync_log import OneCSyncLog  # type: ignore
+from app.db.models.regulation import Regulation  # type: ignore
+from app.db.models.tax_rate import TaxRate  # type: ignore
 
 def seed_demo():
     # 1. Guarantee all database tables exist
@@ -382,11 +355,11 @@ def seed_demo():
         print("\n📚 [7/8] Seeding Global Regulations across all categories...")
         regs_count = db.query(Regulation).count()
         if regs_count == 0:
-            from populate_regulations import REGULATIONS as COMPREHENSIVE_REGS
-            from app.db.seeds.banking_regulations_bilingual import banking_regulations_bilingual
-            from app.db.seeds.audit_standards_bilingual import audit_standards_bilingual
-            from app.db.seeds.uzbekistan_regulations import uzbekistan_regulations
-            from app.db.seeds.uzbekistan_laws import uzbekistan_laws
+            from populate_regulations import REGULATIONS as COMPREHENSIVE_REGS  # type: ignore
+            from app.db.seeds.banking_regulations_bilingual import banking_regulations_bilingual  # type: ignore
+            from app.db.seeds.audit_standards_bilingual import audit_standards_bilingual  # type: ignore
+            from app.db.seeds.uzbekistan_regulations import uzbekistan_regulations  # type: ignore
+            from app.db.seeds.uzbekistan_laws import uzbekistan_laws  # type: ignore
 
             # 1. Comprehensive multi-category regulations
             for rdata in COMPREHENSIVE_REGS:
