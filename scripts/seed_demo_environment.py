@@ -43,6 +43,12 @@ try:
     )
     from app.db.models.alert import Alert, AlertStatus, AlertSeverity
     from app.db.models.report import Report
+    from app.db.models.report_template import ReportTemplate
+    from app.db.models.report_analysis import ReportAnalysis
+    from app.db.models.report_comment import ReportComment
+    from app.db.models.document import Document, DocumentType, DocumentStatus
+    from app.db.models.audit_log import AuditLog
+    from app.db.models.onec_sync_log import OneCSyncLog
     from app.db.models.regulation import Regulation
     from app.db.models.tax_rate import TaxRate
 except ImportError:
@@ -63,6 +69,12 @@ except ImportError:
     )
     from backend.app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
     from backend.app.db.models.report import Report  # type: ignore
+    from backend.app.db.models.report_template import ReportTemplate  # type: ignore
+    from backend.app.db.models.report_analysis import ReportAnalysis  # type: ignore
+    from backend.app.db.models.report_comment import ReportComment  # type: ignore
+    from backend.app.db.models.document import Document, DocumentType, DocumentStatus  # type: ignore
+    from backend.app.db.models.audit_log import AuditLog  # type: ignore
+    from backend.app.db.models.onec_sync_log import OneCSyncLog  # type: ignore
     from backend.app.db.models.regulation import Regulation  # type: ignore
     from backend.app.db.models.tax_rate import TaxRate  # type: ignore
 
@@ -241,6 +253,11 @@ def seed_demo():
         primary_company.owner_id = users["owner@techcorp.com"].id
         primary_company.created_by_id = users["admin@techcorp.com"].id
         db.commit()
+
+        admin_user = users["admin@techcorp.com"]
+        owner_user = users["owner@techcorp.com"]
+        accountant_user = users["accountant@techcorp.com"]
+        auditor_user = users["auditor@techcorp.com"]
 
         print("\n🔌 [4/6] Seeding 1C:Enterprise Integration Connection...")
         onec = db.query(OneCConnection).filter(OneCConnection.company_id == primary_company.id).first()
@@ -458,6 +475,251 @@ def seed_demo():
             print("   ✅ Seeded international and regional tax rates")
         else:
             print(f"   ℹ️ Tax rates already seeded ({tax_count} found)")
+
+        print("\n📋 [9/12] Seeding Report Templates...")
+        tmpl_count = db.query(ReportTemplate).count()
+        if tmpl_count == 0:
+            templates = [
+                ("IFRS 16 Lease Recognition & Disclosure Pack", "Standard valuation template for capital leases under IFRS 16", "financial", "US", ["corporate", "vat"]),
+                ("Corporate Profit Tax & VAT Declaration Form", "Quarterly reconciliation form for tax authorities", "compliance", "UZ", ["vat", "corporate"]),
+                ("1C:Enterprise General Ledger & Trial Balance Audit", "Trial balance reconciliation pack between 1C and IFRS chart of accounts", "audit", "EU", ["vat"]),
+                ("Executive ESG & Carbon Accounting Summary", "Scope 1, 2, and 3 emissions reporting and governance matrix", "risk_assessment", "Global", []),
+            ]
+            for t_name, t_desc, t_type, t_cc, t_taxes in templates:
+                tmpl = ReportTemplate(
+                    id=uuid.uuid4(),
+                    name=t_name,
+                    description=t_desc,
+                    report_type=t_type,
+                    country_code=t_cc,
+                    tax_types=t_taxes,
+                    is_recurring=True,
+                    recurrence_pattern="quarterly",
+                    created_by=admin_user.id,
+                    company_id=primary_company.id,
+                    tenant_id=tenant.id
+                )
+                db.add(tmpl)
+            db.commit()
+            print("   ✅ Seeded 4 industry-standard report templates")
+        else:
+            print(f"   ℹ️ Templates already exist ({tmpl_count} found)")
+
+        print("\n📑 [10/12] Seeding Reports, Analyses & Comments...")
+        reports_count = db.query(Report).count()
+        if reports_count == 0:
+            # Report 1
+            rep1 = Report(
+                id=uuid.uuid4(),
+                title="Annual Financial Convergence Report 2024",
+                description="Comprehensive IFRS 16 and IAS 1 financial transformation and balance convergence pack for TechCorp International.",
+                report_type="financial",
+                status="approved",
+                submitted_by=accountant_user.id,
+                reviewed_by=auditor_user.id,
+                company_id=primary_company.id,
+                tenant_id=tenant.id,
+                file_name="TechCorp_2024_IFRS_Convergence.xlsx",
+                file_size=245800,
+                submitted_at=datetime.utcnow() - timedelta(days=5),
+                reviewed_at=datetime.utcnow() - timedelta(days=2),
+                reviewer_comments="Verified against 1C General Ledger. Right-of-Use assets and Lease liabilities are perfectly balanced with 0 discrepancy."
+            )
+            db.add(rep1)
+            db.commit()
+
+            # Analysis for Report 1
+            analysis1 = ReportAnalysis(
+                id=uuid.uuid4(),
+                report_id=rep1.id,
+                country_code="US",
+                tax_types=["corporate", "vat"],
+                status="completed",
+                overall_score=98,
+                total_checks=18,
+                passed_checks=18,
+                warnings=0,
+                errors=0,
+                summary="Full compliance with IFRS 16 recognition criteria. All accounts converge with 100% precision.",
+                started_at=datetime.utcnow() - timedelta(days=3),
+                completed_at=datetime.utcnow() - timedelta(days=3, minutes=2)
+            )
+            db.add(analysis1)
+
+            # Comments for Report 1
+            c1 = ReportComment(
+                id=uuid.uuid4(),
+                report_id=rep1.id,
+                user_id=accountant_user.id,
+                comment="Synchronized directly from 1C:Enterprise OData. Lease adjustment of 12.5M ₽ applied.",
+                created_at=datetime.utcnow() - timedelta(days=5)
+            )
+            c2 = ReportComment(
+                id=uuid.uuid4(),
+                report_id=rep1.id,
+                user_id=auditor_user.id,
+                comment="Audit checks passed. Ready for submission to external auditors and stakeholders.",
+                created_at=datetime.utcnow() - timedelta(days=2)
+            )
+            db.add_all([c1, c2])
+
+            # Report 2
+            rep2 = Report(
+                id=uuid.uuid4(),
+                title="Q3 2024 Corporate Tax & VAT Reconciliation",
+                description="Quarterly tax reconciliation and calculation of effective corporate tax rate across jurisdictions.",
+                report_type="compliance",
+                status="submitted",
+                submitted_by=accountant_user.id,
+                company_id=primary_company.id,
+                tenant_id=tenant.id,
+                file_name="Q3_Tax_Reconciliation.pdf",
+                file_size=184000,
+                submitted_at=datetime.utcnow() - timedelta(days=1)
+            )
+            db.add(rep2)
+            db.commit()
+
+            analysis2 = ReportAnalysis(
+                id=uuid.uuid4(),
+                report_id=rep2.id,
+                country_code="UZ",
+                tax_types=["vat", "corporate"],
+                status="completed",
+                overall_score=94,
+                total_checks=14,
+                passed_checks=13,
+                warnings=1,
+                errors=0,
+                summary="VAT calculation verified. 1 minor timing difference on prepayments note.",
+                started_at=datetime.utcnow() - timedelta(hours=12),
+                completed_at=datetime.utcnow() - timedelta(hours=11, minutes=58)
+            )
+            db.add(analysis2)
+            db.commit()
+            print("   ✅ Seeded realistic financial reports, automated analyses, and discussion threads")
+        else:
+            print(f"   ℹ️ Reports already exist ({reports_count} found)")
+
+        print("\n📁 [11/12] Seeding OCR Documents Repository...")
+        docs_count = db.query(Document).count()
+        if docs_count == 0:
+            import json
+            docs = [
+                (
+                    "Invoice_2024_001_CloudHosting.pdf", 
+                    "uploads/documents/invoice_2024_001.pdf", 
+                    DocumentType.INVOICE, 
+                    DocumentStatus.COMPLETED,
+                    json.dumps({
+                        "invoice_number": "INV-2024-8841",
+                        "vendor_name": "Cloud Infrastructure LLC",
+                        "total_amount": 1250000.00,
+                        "currency": "RUB",
+                        "tax_amount": 250000.00,
+                        "vat_rate": "20%",
+                        "issue_date": "2024-11-15",
+                        "due_date": "2024-12-15"
+                    })
+                ),
+                (
+                    "Contract_Lease_HQ_Tower_2024.pdf", 
+                    "uploads/documents/contract_lease_hq.pdf", 
+                    DocumentType.CONTRACT, 
+                    DocumentStatus.COMPLETED,
+                    json.dumps({
+                        "contract_number": "LSE-2024-001",
+                        "parties": ["TechCorp International LLC", "Prime Real Estate JSC"],
+                        "contract_type": "Commercial Real Estate Lease (IFRS 16)",
+                        "annual_rent": 12500000.00,
+                        "lease_term_months": 60,
+                        "effective_date": "2024-01-01"
+                    })
+                ),
+                (
+                    "Bank_Statement_Q4_2024_Nov.pdf", 
+                    "uploads/documents/bank_statement_nov2024.pdf", 
+                    DocumentType.BANK_STATEMENT, 
+                    DocumentStatus.COMPLETED,
+                    json.dumps({
+                        "bank_name": "International Commerce Bank",
+                        "account_number": "40702810900000001234",
+                        "opening_balance": 8500000.00,
+                        "total_credits": 24000000.00,
+                        "total_debits": 14500000.00,
+                        "closing_balance": 18000000.00
+                    })
+                )
+            ]
+            for fn, fp, dt, ds, ed in docs:
+                doc = Document(
+                    id=uuid.uuid4(),
+                    company_id=primary_company.id,
+                    uploaded_by=accountant_user.id,
+                    filename=fn,
+                    file_path=fp,
+                    document_type=dt,
+                    status=ds,
+                    extracted_data=ed,
+                    created_at=datetime.utcnow() - timedelta(days=7),
+                    processed_at=datetime.utcnow() - timedelta(days=7, minutes=1)
+                )
+                db.add(doc)
+            db.commit()
+            print("   ✅ Seeded OCR parsed documents with structured JSON financial metadata")
+        else:
+            print(f"   ℹ️ Documents already exist ({docs_count} found)")
+
+        print("\n🛡️ [12/12] Seeding Audit Logs & 1C Sync History...")
+        logs_count = db.query(AuditLog).count()
+        if logs_count == 0:
+            audit_events = [
+                (admin_user.id, "login", "auth", "User admin@techcorp.com logged into system", "192.168.1.10", 6),
+                (owner_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-256 encryption", "192.168.1.25", 5),
+                (accountant_user.id, "sync", "1c_connector", "Synchronized 2024 Trial Balance (14 accounts, 120M ₽)", "192.168.1.40", 4),
+                (accountant_user.id, "transform", "balance_sheet", "Executed IFRS 16 lease capitalization adjustment (12.5M ₽)", "192.168.1.40", 3),
+                (auditor_user.id, "review", "report", "Approved Annual Financial Convergence Report 2024", "192.168.1.88", 2),
+                (admin_user.id, "update", "tax_rates", "Verified Uzbekistan and Kazakhstan VAT/Corporate tax rates", "192.168.1.10", 1),
+            ]
+            for u_id, act, res_type, det, ip, days_ago in audit_events:
+                alog = AuditLog(
+                    id=uuid.uuid4(),
+                    tenant_id=tenant.id,
+                    user_id=u_id,
+                    action=act,
+                    resource_type=res_type,
+                    resource_id=str(uuid.uuid4()),
+                    details=det,
+                    ip_address=ip,
+                    created_at=datetime.utcnow() - timedelta(days=days_ago)
+                )
+                db.add(alog)
+
+            # 1C Sync Logs
+            sync_events = [
+                ("sync_trial_balance", "SUCCESS", 142, 14, {"message": "Trial balance synchronized successfully via OData v4 REST API", "total_amount": 120000000.00}, 2),
+                ("export_adjustments", "SUCCESS", 210, 2, {"message": "Successfully exported 2 adjustment entries to 1C:Enterprise Document_ОперацияБух #REG-2024-001", "total_amount": 12500000.00}, 1),
+                ("test_connection", "SUCCESS", 65, 0, {"message": "Connection to 1C:Enterprise is healthy (Latency: 65ms)"}, 0),
+            ]
+            for s_type, s_stat, s_dur, s_rec, s_resp, s_days in sync_events:
+                slog = OneCSyncLog(
+                    id=uuid.uuid4(),
+                    company_id=primary_company.id,
+                    tenant_id=tenant.id,
+                    user_id=accountant_user.id,
+                    sync_type=s_type,
+                    status=s_stat,
+                    duration_ms=s_dur,
+                    records_processed=s_rec,
+                    response_summary=s_resp,
+                    created_at=datetime.utcnow() - timedelta(days=s_days)
+                )
+                db.add(slog)
+
+            db.commit()
+            print("   ✅ Seeded security audit trail and 1C synchronization logs")
+        else:
+            print(f"   ℹ️ Audit logs already exist ({logs_count} found)")
 
         print("\n" + "="*70)
         print("🎉 DEMO ENVIRONMENT SEEDED SUCCESSFULLY!")
