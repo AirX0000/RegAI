@@ -116,3 +116,28 @@ app.mount("/metrics", metrics_app)
 
 # API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# 4. Single-Container Frontend Serving (Production / Railway / Cloud PaaS fallback)
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+frontend_dist_candidates = [
+    "/app/frontend/dist",
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "dist")
+]
+
+for dist_dir in frontend_dist_candidates:
+    if os.path.exists(dist_dir) and os.path.isdir(dist_dir):
+        assets_dir = os.path.join(dist_dir, "assets")
+        if os.path.exists(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+        @app.get("/{full_path:path}")
+        async def serve_spa(full_path: str, _dist=dist_dir):
+            file_path = os.path.join(_dist, full_path)
+            if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
+                return FileResponse(file_path)
+            return FileResponse(os.path.join(_dist, "index.html"))
+        break
+
