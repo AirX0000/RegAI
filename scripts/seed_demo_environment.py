@@ -43,6 +43,8 @@ try:
     )
     from app.db.models.alert import Alert, AlertStatus, AlertSeverity
     from app.db.models.report import Report
+    from app.db.models.regulation import Regulation
+    from app.db.models.tax_rate import TaxRate
 except ImportError:
     from backend.app.db.session import SessionLocal, engine  # type: ignore
     from backend.app.db.base import Base  # type: ignore
@@ -61,6 +63,8 @@ except ImportError:
     )
     from backend.app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
     from backend.app.db.models.report import Report  # type: ignore
+    from backend.app.db.models.regulation import Regulation  # type: ignore
+    from backend.app.db.models.tax_rate import TaxRate  # type: ignore
 
 def seed_demo():
     # 1. Guarantee all database tables exist
@@ -357,6 +361,103 @@ def seed_demo():
             print("   ✅ Seeded compliance alerts")
         else:
             print("   ℹ️ Alerts already exist")
+
+        print("\n📚 [7/8] Seeding Global Regulations across all categories...")
+        regs_count = db.query(Regulation).count()
+        if regs_count == 0:
+            from populate_regulations import REGULATIONS as COMPREHENSIVE_REGS
+            from app.db.seeds.banking_regulations_bilingual import banking_regulations_bilingual
+            from app.db.seeds.audit_standards_bilingual import audit_standards_bilingual
+            from app.db.seeds.uzbekistan_regulations import uzbekistan_regulations
+            from app.db.seeds.uzbekistan_laws import uzbekistan_laws
+
+            # 1. Comprehensive multi-category regulations
+            for rdata in COMPREHENSIVE_REGS:
+                # generate clean code
+                title_words = rdata["title"].split()
+                if "(" in rdata["title"] and ")" in rdata["title"]:
+                    code = rdata["title"].split("(")[1].split(")")[0]
+                else:
+                    code = "-".join(word[:4].upper() for word in title_words[:2])
+
+                eff_date = None
+                if "effective_date" in rdata and rdata["effective_date"]:
+                    try:
+                        eff_date = datetime.strptime(rdata["effective_date"], "%Y-%m-%d")
+                    except Exception:
+                        pass
+
+                reg = Regulation(
+                    id=uuid.uuid4(),
+                    code=code,
+                    title=rdata["title"],
+                    category=rdata["category"],
+                    jurisdiction=rdata["jurisdiction"],
+                    content=rdata.get("description", "") + "\n\n" + rdata.get("summary", ""),
+                    source_url=rdata.get("source_url"),
+                    effective_date=eff_date,
+                    tenant_id=None
+                )
+                db.add(reg)
+
+            # 2. Banking and Audit Standards
+            for bdata in banking_regulations_bilingual + audit_standards_bilingual + uzbekistan_regulations + uzbekistan_laws:
+                existing_code = db.query(Regulation).filter(Regulation.code == bdata["code"]).first()
+                if existing_code:
+                    continue
+                eff_date = None
+                if "effective_date" in bdata and bdata["effective_date"]:
+                    try:
+                        eff_date = datetime.strptime(bdata["effective_date"], "%Y-%m-%d")
+                    except Exception:
+                        pass
+
+                breg = Regulation(
+                    id=uuid.uuid4(),
+                    code=bdata["code"],
+                    title=bdata["title"],
+                    category=bdata.get("category", "Finance"),
+                    jurisdiction=bdata.get("jurisdiction", "Global"),
+                    content=bdata.get("content", ""),
+                    source_url=bdata.get("source_url"),
+                    effective_date=eff_date,
+                    tenant_id=None
+                )
+                db.add(breg)
+
+            db.commit()
+            total_loaded = db.query(Regulation).count()
+            print(f"   ✅ Seeded {total_loaded} regulations across all categories (IFRS, Tax, ESG, Privacy, Security, Finance, AML, etc.)")
+        else:
+            print(f"   ℹ️ Regulations already seeded ({regs_count} found)")
+
+        print("\n💰 [8/8] Seeding Tax Rates...")
+        tax_count = db.query(TaxRate).count()
+        if tax_count == 0:
+            sample_taxes = [
+                ("US", "United States", "corporate", 21.0, "Federal Corporate Income Tax", "https://www.irs.gov"),
+                ("GB", "United Kingdom", "vat", 20.0, "Standard VAT", "https://www.gov.uk"),
+                ("DE", "Germany", "vat", 19.0, "Standard Umsatzsteuer (USt)", "https://www.bzst.de"),
+                ("UZ", "Uzbekistan", "vat", 12.0, "Стандартная ставка НДС Республики Узбекистан", "https://soliq.uz"),
+                ("UZ", "Uzbekistan", "corporate", 15.0, "Налог на прибыль юридических лиц РУз", "https://soliq.uz"),
+                ("KZ", "Kazakhstan", "vat", 12.0, "Ставка НДС Республики Казахстан", "https://kgd.gov.kz"),
+            ]
+            for c_code, c_name, t_type, rate, desc, src in sample_taxes:
+                tr = TaxRate(
+                    id=uuid.uuid4(),
+                    country_code=c_code,
+                    country_name=c_name,
+                    tax_type=t_type,
+                    rate=rate,
+                    description=desc,
+                    source_url=src,
+                    effective_from=datetime.now().date()
+                )
+                db.add(tr)
+            db.commit()
+            print("   ✅ Seeded international and regional tax rates")
+        else:
+            print(f"   ℹ️ Tax rates already seeded ({tax_count} found)")
 
         print("\n" + "="*70)
         print("🎉 DEMO ENVIRONMENT SEEDED SUCCESSFULLY!")

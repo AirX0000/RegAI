@@ -80,6 +80,45 @@ def search_regulations(
     try:
         results = retriever.search_regulations(str(current_user.tenant_id), query, limit)
         
+        # If RAG returns no results or is not yet indexed, fallback to querying SQL regulations table directly
+        if not results:
+            sql_query = db.query(Regulation)
+            if current_user.tenant_id:
+                sql_query = sql_query.filter(
+                    or_(
+                        Regulation.tenant_id == current_user.tenant_id,
+                        Regulation.tenant_id == None
+                    )
+                )
+            if query and query.strip():
+                q_like = f"%{query.strip()}%"
+                sql_query = sql_query.filter(
+                    or_(
+                        Regulation.title.ilike(q_like),
+                        Regulation.code.ilike(q_like),
+                        Regulation.category.ilike(q_like),
+                        Regulation.content.ilike(q_like)
+                    )
+                )
+            regs = sql_query.limit(limit).all()
+            results = []
+            for r in regs:
+                results.append({
+                    "id": str(r.id),
+                    "content": r.content or r.title or "",
+                    "metadata": {
+                        "id": str(r.id),
+                        "code": r.code or "",
+                        "title": r.title or "",
+                        "category": r.category or "General",
+                        "jurisdiction": r.jurisdiction or "Global",
+                        "effective_date": r.effective_date.strftime("%Y-%m-%d") if r.effective_date else "",
+                        "source_url": r.source_url or "",
+                        "summary": r.content[:300] if r.content else (r.title or ""),
+                        "description": r.content or r.title or ""
+                    }
+                })
+
         # Enrich with subscription status if user has a company
         if current_user.company_id and results:
             from app.db.models.link_company_regulation import LinkCompanyRegulation
@@ -89,13 +128,12 @@ def search_regulations(
             reg_ids = []
             for r in results:
                 try:
-                    reg_id_str = r.get("metadata", {}).get("id")
+                    reg_id_str = r.get("metadata", {}).get("id") or r.get("id")
                     if reg_id_str:
                         reg_ids.append(uuid.UUID(reg_id_str))
                 except (ValueError, TypeError):
                     continue
 
-            
             subscriptions = db.query(LinkCompanyRegulation).filter(
                 LinkCompanyRegulation.company_id == current_user.company_id,
                 LinkCompanyRegulation.regulation_id.in_(reg_ids)
@@ -104,7 +142,8 @@ def search_regulations(
             subscribed_ids = {str(s.regulation_id) for s in subscriptions}
             
             for r in results:
-                r["is_subscribed"] = r["id"] in subscribed_ids
+                r_id = r.get("metadata", {}).get("id") or r.get("id")
+                r["is_subscribed"] = r_id in subscribed_ids
         else:
             for r in results:
                 r["is_subscribed"] = False
