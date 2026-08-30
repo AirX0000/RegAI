@@ -1,9 +1,13 @@
 import time
 import uuid
 import logging
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from prometheus_client import make_asgi_app
 from alembic.config import Config
 from alembic import command
@@ -117,27 +121,31 @@ app.mount("/metrics", metrics_app)
 # API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-# 4. Single-Container Frontend Serving (Production / Railway / Cloud PaaS fallback)
-import os
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+# 4. Frontend SPA Serving (Full-Stack single container mode)
+dist_dir = "/app/frontend/dist"
+if not os.path.exists(dist_dir):
+    local_dist = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "dist")
+    if os.path.exists(local_dist):
+        dist_dir = local_dist
 
-frontend_dist_candidates = [
-    "/app/frontend/dist",
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend", "dist")
-]
+if os.path.exists(dist_dir):
+    logger.info(f"Mounting React Frontend SPA from {dist_dir}")
 
-for dist_dir in frontend_dist_candidates:
-    if os.path.exists(dist_dir) and os.path.isdir(dist_dir):
-        assets_dir = os.path.join(dist_dir, "assets")
-        if os.path.exists(assets_dir):
-            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+    # SPA Fallback for client-side routing
+    @app.exception_handler(404)
+    async def spa_404_fallback(request: Request, exc: StarletteHTTPException):
+        if not request.url.path.startswith("/api/v1") and not request.url.path.startswith("/metrics"):
+            index_path = os.path.join(dist_dir, "index.html")
+            if os.path.exists(index_path):
+                return FileResponse(index_path)
+        return Response(content='{"detail":"Not Found"}', status_code=404, media_type="application/json")
 
-        @app.get("/{full_path:path}")
-        async def serve_spa(full_path: str, _dist=dist_dir):
-            file_path = os.path.join(_dist, full_path)
-            if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
-                return FileResponse(file_path)
-            return FileResponse(os.path.join(_dist, "index.html"))
-        break
-
+    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="frontend")
+else:
+    @app.get("/")
+    def fallback_root():
+        return {
+            "message": "RegAI Platform API is Operational",
+            "docs": "/docs",
+            "api_v1": "/api/v1"
+        }
