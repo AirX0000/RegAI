@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Column, String, Text, DateTime, func, Boolean
-from sqlalchemy.dialects.postgresql import UUID, JSON
+from sqlalchemy import Uuid as UUID, JSON
 from app.db.session import Base
 
 class Regulation(Base):

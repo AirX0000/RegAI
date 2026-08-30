@@ -19,9 +19,9 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         'report_comments',
-        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column('report_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('reports.id'), nullable=False),
-        sa.Column('user_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=False),
+        sa.Column('id', sa.UUID(), primary_key=True),
+        sa.Column('report_id', sa.UUID(), sa.ForeignKey('reports.id'), nullable=False),
+        sa.Column('user_id', sa.UUID(), sa.ForeignKey('users.id'), nullable=False),
         sa.Column('comment', sa.Text(), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     )

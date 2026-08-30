@@ -20,8 +20,8 @@ def upgrade():
     # Create balance_sheets table
     op.create_table(
         'balance_sheets',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('company_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('company_id', sa.UUID(), nullable=False),
         sa.Column('period', sa.DateTime(), nullable=False),
         sa.Column('status', sa.Enum('draft', 'submitted', 'transformed', name='balancesheetstatus'), nullable=False),
         sa.Column('notes', sa.Text(), nullable=True),
@@ -36,8 +36,8 @@ def upgrade():
     # Create balance_sheet_items table
     op.create_table(
         'balance_sheet_items',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('balance_sheet_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('balance_sheet_id', sa.UUID(), nullable=False),
         sa.Column('account_code', sa.String(length=50), nullable=False),
         sa.Column('account_name', sa.String(length=255), nullable=False),
         sa.Column('amount', sa.Numeric(precision=15, scale=2), nullable=False),
@@ -53,8 +53,8 @@ def upgrade():
     # Create transformed_statements table
     op.create_table(
         'transformed_statements',
-        sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column('balance_sheet_id', postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column('id', sa.UUID(), nullable=False),
+        sa.Column('balance_sheet_id', sa.UUID(), nullable=False),
         sa.Column('format_type', sa.Enum('mcfo', 'ifrs', name='transformationformat'), nullable=False),
         sa.Column('transformed_data', sa.JSON(), nullable=False),
         sa.Column('transformation_rules_applied', sa.JSON(), nullable=True),

@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Column, String, ForeignKey, DateTime, Boolean, Integer, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from app.db.session import Base
 from app.core.crypto import encrypt_secret, decrypt_secret
 

@@ -1,6 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, DateTime, func, Uuid as UUID
 from app.db.session import Base
 
 class Tenant(Base):

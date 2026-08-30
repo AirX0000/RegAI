@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Column, ForeignKey, DateTime, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Uuid as UUID
 from app.db.session import Base
 
 class LinkCompanyRegulation(Base):

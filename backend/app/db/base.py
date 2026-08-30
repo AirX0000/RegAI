@@ -14,6 +14,8 @@ from app.db.models.report_analysis import ReportAnalysis  # noqa
 from app.db.models.report_comment import ReportComment  # noqa
 from app.db.models.report_template import ReportTemplate  # noqa
 from app.db.models.tax_rate import TaxRate  # noqa
+from app.db.models.alert import Alert  # noqa
 from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement, TransformationAdjustment  # noqa
 from app.db.models.onec_connection import OneCConnection  # noqa
+from app.db.models.onec_sync_log import OneCSyncLog  # noqa
 from app.db.session import Base  # noqa

@@ -19,7 +19,7 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         'report_templates',
-        sa.Column('id', postgresql.UUID(as_uuid=True), primary_key=True),
+        sa.Column('id', sa.UUID(), primary_key=True),
         sa.Column('name', sa.String(255), nullable=False),
         sa.Column('description', sa.Text(), nullable=True),
         sa.Column('report_type', sa.String(50), nullable=False),
@@ -27,9 +27,9 @@ def upgrade() -> None:
         sa.Column('tax_types', postgresql.JSON(), nullable=True),
         sa.Column('is_recurring', sa.Boolean(), default=False),
         sa.Column('recurrence_pattern', sa.String(50), nullable=True),
-        sa.Column('created_by', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=False),
-        sa.Column('company_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('companies.id'), nullable=False),
-        sa.Column('tenant_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('tenants.id'), nullable=False),
+        sa.Column('created_by', sa.UUID(), sa.ForeignKey('users.id'), nullable=False),
+        sa.Column('company_id', sa.UUID(), sa.ForeignKey('companies.id'), nullable=False),
+        sa.Column('tenant_id', sa.UUID(), sa.ForeignKey('tenants.id'), nullable=False),
         sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     )

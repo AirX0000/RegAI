@@ -26,7 +26,8 @@ if root_path not in sys.path:
 from sqlalchemy.orm import Session
 
 try:
-    from app.db.session import SessionLocal, engine, Base
+    from app.db.session import SessionLocal, engine
+    from app.db.base import Base
     from app.core.security import get_password_hash
     from app.core.crypto import encrypt_secret
     from app.db.models.tenant import Tenant
@@ -43,7 +44,8 @@ try:
     from app.db.models.alert import Alert, AlertStatus, AlertSeverity
     from app.db.models.report import Report
 except ImportError:
-    from backend.app.db.session import SessionLocal, engine, Base  # type: ignore
+    from backend.app.db.session import SessionLocal, engine  # type: ignore
+    from backend.app.db.base import Base  # type: ignore
     from backend.app.core.security import get_password_hash  # type: ignore
     from backend.app.core.crypto import encrypt_secret  # type: ignore
     from backend.app.db.models.tenant import Tenant  # type: ignore
@@ -61,7 +63,13 @@ except ImportError:
     from backend.app.db.models.report import Report  # type: ignore
 
 def seed_demo():
-    # 1. Run migrations / create tables
+    # 1. Guarantee all database tables exist
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Table creation notice: {e}")
+
+    # 2. Run migrations if applicable
     try:
         from alembic.config import Config
         from alembic import command
@@ -70,14 +78,12 @@ def seed_demo():
             alembic_ini_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend", "alembic.ini")
         if os.path.exists(alembic_ini_path):
             alembic_cfg = Config(alembic_ini_path)
+            script_dir = os.path.join(os.path.dirname(alembic_ini_path), "alembic")
+            if os.path.exists(script_dir):
+                alembic_cfg.set_main_option("script_location", script_dir)
             command.upgrade(alembic_cfg, "head")
     except Exception as e:
         print(f"Migration notice: {e}")
-
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as e:
-        pass
 
     db: Session = SessionLocal()
     try:

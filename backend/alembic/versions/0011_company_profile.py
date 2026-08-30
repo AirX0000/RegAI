@@ -16,34 +16,27 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add new columns to companies table
-    op.add_column('companies', sa.Column('description', sa.Text(), nullable=True))
-    op.add_column('companies', sa.Column('logo_url', sa.String(length=500), nullable=True))
-    op.add_column('companies', sa.Column('website', sa.String(length=255), nullable=True))
-    op.add_column('companies', sa.Column('industry', sa.String(length=100), nullable=True))
-    op.add_column('companies', sa.Column('employee_count', sa.Integer(), nullable=True))
-    op.add_column('companies', sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'))
-    
-    # Create indexes
-    op.create_index('ix_companies_industry', 'companies', ['industry'])
-    op.create_index('ix_companies_is_active', 'companies', ['is_active'])
-    
-    # Make name unique
-    op.create_unique_constraint('uq_companies_name', 'companies', ['name'])
+    # Add new columns to companies table with batch mode
+    with op.batch_alter_table('companies') as batch_op:
+        batch_op.add_column(sa.Column('description', sa.Text(), nullable=True))
+        batch_op.add_column(sa.Column('logo_url', sa.String(length=500), nullable=True))
+        batch_op.add_column(sa.Column('website', sa.String(length=255), nullable=True))
+        batch_op.add_column(sa.Column('industry', sa.String(length=100), nullable=True))
+        batch_op.add_column(sa.Column('employee_count', sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column('is_active', sa.Boolean(), nullable=False, server_default='1'))
+        batch_op.create_index('ix_companies_industry', ['industry'])
+        batch_op.create_index('ix_companies_is_active', ['is_active'])
+        batch_op.create_unique_constraint('uq_companies_name', ['name'])
 
 
 def downgrade() -> None:
-    # Drop unique constraint
-    op.drop_constraint('uq_companies_name', 'companies', type_='unique')
-    
-    # Drop indexes
-    op.drop_index('ix_companies_is_active', table_name='companies')
-    op.drop_index('ix_companies_industry', table_name='companies')
-    
-    # Drop columns
-    op.drop_column('companies', 'is_active')
-    op.drop_column('companies', 'employee_count')
-    op.drop_column('companies', 'industry')
-    op.drop_column('companies', 'website')
-    op.drop_column('companies', 'logo_url')
-    op.drop_column('companies', 'description')
+    with op.batch_alter_table('companies') as batch_op:
+        batch_op.drop_constraint('uq_companies_name', type_='unique')
+        batch_op.drop_index('ix_companies_is_active')
+        batch_op.drop_index('ix_companies_industry')
+        batch_op.drop_column('is_active')
+        batch_op.drop_column('employee_count')
+        batch_op.drop_column('industry')
+        batch_op.drop_column('website')
+        batch_op.drop_column('logo_url')
+        batch_op.drop_column('description')

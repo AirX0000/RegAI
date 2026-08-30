@@ -7,7 +7,6 @@ Create Date: 2025-11-23 19:14:00.000000
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID
 
 # revision identifiers, used by Alembic.
 revision = '0007'
@@ -19,7 +18,7 @@ depends_on = None
 def upgrade() -> None:
     op.create_table(
         'tax_rates',
-        sa.Column('id', UUID(as_uuid=True), primary_key=True),
+        sa.Column('id', sa.UUID(), primary_key=True),
         sa.Column('country_code', sa.String(2), nullable=False),
         sa.Column('country_name', sa.String(100), nullable=False),
         sa.Column('tax_type', sa.String(50), nullable=False),
