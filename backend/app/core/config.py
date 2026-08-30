@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = ""
     OIDC_CLIENT_SECRET: str = ""
     
-    RATE_LIMIT_PER_MINUTE: int = 60
+    RATE_LIMIT_PER_MINUTE: int = 600
     TENANT_DEFAULT_PLAN: str = "free"
     LOG_JSON: bool = False
 

@@ -25,7 +25,7 @@ def check_rate_limit(request: Request):
 
     now = time.time()
     window_seconds = 60
-    max_requests = getattr(settings, "RATE_LIMIT_PER_MINUTE", 120)
+    max_requests = getattr(settings, "RATE_LIMIT_PER_MINUTE", 600)
 
     # Clean old requests
     _ip_request_history[client_ip] = cleanup_old_requests(_ip_request_history[client_ip], window_seconds, now)

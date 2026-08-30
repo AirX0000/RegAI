@@ -72,9 +72,9 @@ async def security_and_size_middleware(request: Request, call_next):
             media_type="application/json"
         )
 
-    # General API Rate Limiting (exclude metrics and healthcheck)
+    # General API Rate Limiting (only on API endpoints, exclude assets/docs/metrics/health)
     path = request.url.path
-    if not path.startswith("/metrics") and not path.startswith("/health") and not path.startswith("/docs") and not path.startswith("/openapi"):
+    if path.startswith("/api/") and not path.startswith("/api/v1/health"):
         try:
             check_rate_limit(request)
         except HTTPException as he:
