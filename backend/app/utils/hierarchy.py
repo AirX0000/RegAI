@@ -14,6 +14,7 @@ HIERARCHY_USER = 5
 # Role to hierarchy level mapping
 ROLE_HIERARCHY_MAP = {
     "website_superadmin": HIERARCHY_WEBSITE_SUPERADMIN,
+    "superadmin": HIERARCHY_WEBSITE_SUPERADMIN,  # Support standard superadmin role
     "company_owner": HIERARCHY_COMPANY_OWNER,
     "company_superadmin": HIERARCHY_COMPANY_SUPERADMIN,
     "company_admin": HIERARCHY_COMPANY_ADMIN,
@@ -110,6 +111,7 @@ def get_role_display_name(role: str) -> str:
     """Get human-readable role name"""
     role_names = {
         "website_superadmin": "Website Super Admin",
+        "superadmin": "Super Admin",
         "company_owner": "Company Owner",
         "company_superadmin": "Company Super Admin",
         "company_admin": "Company Admin",

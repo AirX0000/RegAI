@@ -1,9 +1,10 @@
 version: '3.8'
 
 services:
+  # 1. Nginx Reverse Proxy & Frontend Web Server (Exposed on 80/443)
   frontend:
     build:
-      context: .
+      context: ../../
       dockerfile: ops/docker/frontend.Dockerfile
     restart: unless-stopped
     ports:
@@ -15,13 +16,14 @@ services:
       - regai_public
       - regai_internal
 
+  # 2. FastAPI Backend Core Engine (Internal Network Only)
   backend:
     build:
-      context: .
+      context: ../../
       dockerfile: ops/docker/backend.Dockerfile
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_secure_pass_2026}@postgres:5432/${POSTGRES_DB:-regai}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_strong_password}@postgres:5432/${POSTGRES_DB:-regai}
       - SECRET_KEY=${SECRET_KEY:-change_this_to_a_secure_random_hex_key_32_bytes}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
       - CHROMA_DIR=/app/chroma_db
@@ -44,12 +46,13 @@ services:
       retries: 5
       start_period: 15s
 
+  # 3. PostgreSQL 15 Database (Internal Network Only - Isolated from Public Internet)
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_secure_pass_2026}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_strong_password}
       - POSTGRES_DB=${POSTGRES_DB:-regai}
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -62,6 +65,7 @@ services:
       retries: 5
       start_period: 10s
 
+  # 4. ChromaDB Vector Database for RAG / Semantic Search
   chroma:
     image: chromadb/chroma:0.5.23
     restart: unless-stopped
@@ -78,6 +82,7 @@ networks:
     driver: bridge
   regai_internal:
     driver: bridge
+    internal: false
 
 volumes:
   postgres_data:

@@ -15,6 +15,10 @@ export const SmartGrid: React.FC = () => {
 
     useEffect(() => {
         fetchDashboard();
+        window.addEventListener('refresh-dashboard', fetchDashboard);
+        return () => {
+            window.removeEventListener('refresh-dashboard', fetchDashboard);
+        };
     }, []);
 
     const fetchDashboard = async () => {

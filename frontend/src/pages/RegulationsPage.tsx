@@ -48,6 +48,7 @@ export default function RegulationsPage() {
     const [relatedRegulations, setRelatedRegulations] = useState<any[]>([]);
     const [isLoadingRelated, setIsLoadingRelated] = useState(false);
 
+
     const { register, handleSubmit } = useForm();
     const { toast } = useToast();
 
@@ -880,7 +881,9 @@ export default function RegulationsPage() {
                                     </div>
                                 </div>
 
-                                {relatedRegulations.length > 0 && (
+                                {isLoadingRelated ? (
+                                    <div className="text-xs text-gray-500 animate-pulse py-2">Loading related regulations...</div>
+                                ) : relatedRegulations.length > 0 && (
                                     <div>
                                         <h4 className="font-semibold mb-2">{t('related_regulations') || 'Related Regulations'}</h4>
                                         <div className="grid grid-cols-1 gap-2">

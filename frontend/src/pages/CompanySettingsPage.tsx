@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Building2, Save, Loader2 } from 'lucide-react';
+import { OneCConfigModal } from '../components/onec/OneCConfigModal';
+import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
+import { OneCSyncLogsTable } from '../components/onec/OneCSyncLogsTable';
 
 export default function CompanySettingsPage() {
     const { user } = useAuth();
@@ -14,6 +17,8 @@ export default function CompanySettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [company, setCompany] = useState<any>(null);
+    const [oneCConfigOpen, setOneCConfigOpen] = useState(false);
+    const [oneCSyncOpen, setOneCSyncOpen] = useState(false);
     const [formData, setFormData] = useState({
         description: '',
         website: '',
@@ -270,6 +275,61 @@ export default function CompanySettingsPage() {
                 </CardContent>
             </Card>
 
+            {/* 1C:Enterprise 8.3 Integration Hub */}
+            <Card className="border-amber-200 bg-gradient-to-br from-white to-amber-50/20 shadow-sm">
+                <CardHeader className="border-b border-amber-100 pb-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-amber-100 text-amber-900 rounded-lg">
+                                <Building2 className="h-6 w-6 text-amber-700" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    1C:Enterprise 8.3 OData Integration
+                                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold border border-amber-300">
+                                        Two-Way Sync
+                                    </span>
+                                </CardTitle>
+                                <CardDescription className="text-xs text-gray-600">
+                                    Direct integration with 1C:Accounting (Хозрасчетный) via standard OData v4 & REST protocols.
+                                </CardDescription>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOneCConfigOpen(true)}
+                                className="border-amber-300 text-amber-900 hover:bg-amber-100/50 text-xs font-semibold"
+                            >
+                                ⚙️ Connection Settings
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={() => setOneCSyncOpen(true)}
+                                className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold"
+                            >
+                                ⚡ Open Sync Hub
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-5 space-y-6">
+                    <OneCSyncLogsTable />
+                </CardContent>
+            </Card>
+
+            {/* Modals */}
+            <OneCConfigModal
+                isOpen={oneCConfigOpen}
+                onClose={() => setOneCConfigOpen(false)}
+            />
+            <OneCSyncDrawer
+                isOpen={oneCSyncOpen}
+                onClose={() => setOneCSyncOpen(false)}
+            />
+
             {/* Additional Info Card */}
             <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
@@ -278,7 +338,7 @@ export default function CompanySettingsPage() {
                 <CardContent className="text-sm text-blue-900">
                     <ul className="list-disc ml-5 space-y-1">
                         <li>Changes to company information are visible to all users in your organization</li>
-                        <li>The company name is locked and cannot be changed via this interface</li>
+                        <li>1C connection credentials are securely stored encrypted with AES-GCM / Fernet</li>
                         <li>Logo images should be publicly accessible URLs (HTTPS recommended)</li>
                     </ul>
                 </CardContent>

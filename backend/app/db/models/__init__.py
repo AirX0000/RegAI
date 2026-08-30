@@ -8,6 +8,12 @@ from app.db.models.audit_log import AuditLog
 from app.db.models.link_company_regulation import LinkCompanyRegulation
 
 from app.db.models.tax_rate import TaxRate
-from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement
+from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement, TransformationAdjustment
+from app.db.models.onec_connection import OneCConnection
+from app.db.models.onec_sync_log import OneCSyncLog
 
-__all__ = ["Tenant", "User", "Company", "Regulation", "Alert", "AuditLog", "LinkCompanyRegulation", "TaxRate", "BalanceSheet", "BalanceSheetItem", "TransformedStatement"]
+__all__ = [
+    "Tenant", "User", "Company", "Regulation", "Alert", "AuditLog", 
+    "LinkCompanyRegulation", "TaxRate", "BalanceSheet", "BalanceSheetItem", 
+    "TransformedStatement", "TransformationAdjustment", "OneCConnection", "OneCSyncLog"
+]

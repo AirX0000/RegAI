@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileSpreadsheet, Plus, TrendingUp, Calendar, CheckCircle, Trash2, Upload, Download, FileUp } from 'lucide-react';
+import { FileSpreadsheet, Plus, TrendingUp, Calendar, CheckCircle, Trash2, Upload, Download, FileUp, Server } from 'lucide-react';
+import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { useToast } from '@/components/ui/use-toast';
 import {
     Dialog,
@@ -44,6 +45,7 @@ export default function TransformationDashboard() {
     const [uploading, setUploading] = useState(false);
     const [uploadPreview, setUploadPreview] = useState<any>(null);
     const [dragActive, setDragActive] = useState(false);
+    const [oneCSyncOpen, setOneCSyncOpen] = useState(false);
 
     useEffect(() => {
         fetchBalanceSheets();
@@ -187,7 +189,7 @@ export default function TransformationDashboard() {
 
         try {
             setUploading(true);
-            const response = await api.post('/balance-sheets/upload/confirm', {
+            await api.post('/balance-sheets/upload/confirm', {
                 items: uploadPreview.items,
                 period: new Date().toISOString(),
                 notes: `Uploaded from ${selectedFile?.name || 'file'}`
@@ -273,6 +275,15 @@ export default function TransformationDashboard() {
                     <p className="text-gray-500 mt-1">{t('transform_balance_sheets')}</p>
                 </div>
                 <div className="flex gap-2">
+                    <Button 
+                        onClick={() => setOneCSyncOpen(true)} 
+                        variant="outline" 
+                        size="lg"
+                        className="border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold"
+                    >
+                        <Server className="mr-2 h-4 w-4 text-amber-600" />
+                        1C:Enterprise Sync
+                    </Button>
                     <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg">
                         <Upload className="mr-2 h-4 w-4" />
                         Import from File
@@ -683,6 +694,15 @@ export default function TransformationDashboard() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* 1C:Enterprise Sync Drawer */}
+            <OneCSyncDrawer
+                isOpen={oneCSyncOpen}
+                onClose={() => setOneCSyncOpen(false)}
+                onSyncCompleted={() => {
+                    fetchBalanceSheets();
+                }}
+            />
         </div>
     );
 }

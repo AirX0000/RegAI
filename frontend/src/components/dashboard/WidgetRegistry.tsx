@@ -2,6 +2,7 @@ import { ComplianceWidget } from './widgets/ComplianceWidget';
 import { OneCSyncWidget } from './widgets/OneCSyncWidget';
 import { TransformationWidget } from './widgets/TransformationWidget';
 import { RecentActivityWidget } from './widgets/RecentActivityWidget';
+import { QuickActionsWidget } from './widgets/QuickActionsWidget';
 import { WidgetProps } from './types';
 
 export const WIDGET_REGISTRY: Record<string, React.FC<WidgetProps>> = {
@@ -9,7 +10,7 @@ export const WIDGET_REGISTRY: Record<string, React.FC<WidgetProps>> = {
     'one-c-sync': OneCSyncWidget,
     'transformation-stats': TransformationWidget,
     'recent-activity': RecentActivityWidget,
-    'quick-actions': () => <div className="p-4 border rounded">Quick Actions (Coming Soon)</div>
+    'quick-actions': QuickActionsWidget
 };
 
 export const AVAILABLE_WIDGETS = [

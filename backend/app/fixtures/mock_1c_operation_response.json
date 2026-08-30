@@ -1,0 +1,19 @@
+{
+  "odata.metadata": "http://localhost:8000/1c/odata/standard.odata/$metadata#Document_ОперацияБух/@Element",
+  "Ref_Key": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "Number": "REGAI-000042",
+  "Date": "2024-12-31T23:59:59",
+  "Posted": true,
+  "Organization_Key": "e1cib/data/Catalog_Организации/TechCorp",
+  "Comment": "IFRS Adjustment Entry from RegAI: Lease and Fixed Assets Reclassification",
+  "СуммаОперации": 150000.00,
+  "Хозрасчетный": [
+    {
+      "LineNumber": "1",
+      "AccountDr_Key": "e1cib/data/ChartOfAccounts_Хозрасчетный/01.03",
+      "AccountCr_Key": "e1cib/data/ChartOfAccounts_Хозрасчетный/76.07",
+      "Amount": 150000.00,
+      "Content": "IFRS 16 Right-of-Use Asset recognition"
+    }
+  ]
+}

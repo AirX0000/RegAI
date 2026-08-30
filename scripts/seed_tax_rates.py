@@ -10,8 +10,8 @@ from datetime import date
 from decimal import Decimal
 import uuid
 
-from backend.app.db.session import SessionLocal
-from backend.app.db.models.tax_rate import TaxRate
+from app.db.session import SessionLocal
+from app.db.models.tax_rate import TaxRate
 
 def seed_tax_rates():
     db = SessionLocal()

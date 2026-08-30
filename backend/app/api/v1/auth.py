@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.config import settings
 from app.core.deps import get_db
+from app.core.rate_limit import check_login_rate_limit
 from app.db.models.user import User
 from app.db.schemas import auth as auth_schemas
 
@@ -16,6 +17,7 @@ router = APIRouter()
 def login_access_token(
     db: Session = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
+    _: None = Depends(check_login_rate_limit),
 ) -> Any:
     """
     OAuth2 compatible token login, get an access token for future requests
@@ -51,6 +53,7 @@ def login_access_token(
 def login_access_token_json(
     login_req: auth_schemas.LoginRequest,
     db: Session = Depends(get_db),
+    _: None = Depends(check_login_rate_limit),
 ) -> Any:
     """
     JSON login endpoint

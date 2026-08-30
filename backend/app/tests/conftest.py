@@ -75,7 +75,7 @@ def superuser_token_headers(client):
     # Mock superuser authentication
     def override_get_current_active_superuser():
         import uuid
-        return User(id=uuid.uuid4(), email="admin@example.com", is_active=True, is_superuser=True, role="superadmin")
+        return User(id=uuid.uuid4(), email="admin@example.com", is_active=True, is_superuser=True, role="superadmin", hierarchy_level=1)
     
     app.dependency_overrides[get_current_active_superuser] = override_get_current_active_superuser
     app.dependency_overrides[get_current_active_user] = override_get_current_active_superuser
