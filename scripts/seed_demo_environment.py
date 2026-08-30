@@ -448,18 +448,81 @@ def seed_demo():
         else:
             print(f"   ℹ️ Regulations already seeded ({regs_count} found)")
 
-        print("\n💰 [8/8] Seeding Tax Rates...")
-        tax_count = db.query(TaxRate).count()
-        if tax_count == 0:
-            sample_taxes = [
-                ("US", "United States", "corporate", 21.0, "Federal Corporate Income Tax", "https://www.irs.gov"),
-                ("GB", "United Kingdom", "vat", 20.0, "Standard VAT", "https://www.gov.uk"),
-                ("DE", "Germany", "vat", 19.0, "Standard Umsatzsteuer (USt)", "https://www.bzst.de"),
-                ("UZ", "Uzbekistan", "vat", 12.0, "Стандартная ставка НДС Республики Узбекистан", "https://soliq.uz"),
-                ("UZ", "Uzbekistan", "corporate", 15.0, "Налог на прибыль юридических лиц РУз", "https://soliq.uz"),
-                ("KZ", "Kazakhstan", "vat", 12.0, "Ставка НДС Республики Казахстан", "https://kgd.gov.kz"),
-            ]
-            for c_code, c_name, t_type, rate, desc, src in sample_taxes:
+        print("\n💰 [8/8] Seeding Global and Regional Tax Rates...")
+        sample_taxes = [
+            # United States
+            ("US", "United States", "corporate", 21.0, "Federal Corporate Income Tax", "https://www.irs.gov"),
+            ("US", "United States", "income_top", 37.0, "Top Federal Individual Income Tax Bracket", "https://www.irs.gov"),
+            ("US", "United States", "withholding", 30.0, "Statutory Non-Resident Withholding Tax (WHT)", "https://www.irs.gov"),
+            
+            # United Kingdom
+            ("GB", "United Kingdom", "vat", 20.0, "Standard VAT (Value Added Tax)", "https://www.gov.uk/vat-rates"),
+            ("GB", "United Kingdom", "vat_reduced", 5.0, "Reduced VAT for Domestic Fuel & Power", "https://www.gov.uk/vat-rates"),
+            ("GB", "United Kingdom", "corporate", 25.0, "Corporation Tax Main Rate", "https://www.gov.uk/corporation-tax-rates"),
+            ("GB", "United Kingdom", "corporate_small", 19.0, "Small Profits Rate for Profits under £50,000", "https://www.gov.uk/corporation-tax-rates"),
+            
+            # Germany
+            ("DE", "Germany", "vat", 19.0, "Standard Umsatzsteuer (USt)", "https://www.bzst.de"),
+            ("DE", "Germany", "vat_reduced", 7.0, "Ermäßigter Steuersatz (Food & Books)", "https://www.bzst.de"),
+            ("DE", "Germany", "corporate", 15.0, "Körperschaftsteuer (Federal Corporate Tax)", "https://www.bzst.de"),
+            
+            # France
+            ("FR", "France", "vat", 20.0, "Taxe sur la valeur ajoutée (TVA normale)", "https://www.impots.gouv.fr"),
+            ("FR", "France", "vat_reduced", 5.5, "TVA taux réduit (Alimentation & Livres)", "https://www.impots.gouv.fr"),
+            ("FR", "France", "corporate", 25.0, "Impôt sur les sociétés (Taux normal)", "https://www.impots.gouv.fr"),
+            
+            # Uzbekistan (РУз)
+            ("UZ", "Uzbekistan", "vat", 12.0, "Стандартная ставка НДС (ст. 258 НК РУз)", "https://soliq.uz"),
+            ("UZ", "Uzbekistan", "corporate", 15.0, "Налог на прибыль юрлиц (ст. 337 НК РУз)", "https://soliq.uz"),
+            ("UZ", "Uzbekistan", "corporate_small", 20.0, "Налог на прибыль для банков и финорганизаций", "https://soliq.uz"),
+            ("UZ", "Uzbekistan", "income_top", 12.0, "Налог на доходы физических лиц (НДФЛ РУз)", "https://soliq.uz"),
+            ("UZ", "Uzbekistan", "withholding", 10.0, "Налог на доходы нерезидентов у источника выплаты", "https://soliq.uz"),
+            
+            # Kazakhstan (РК)
+            ("KZ", "Kazakhstan", "vat", 12.0, "Ставка НДС (ст. 422 НК РК)", "https://kgd.gov.kz"),
+            ("KZ", "Kazakhstan", "corporate", 20.0, "Корпоративный подоходный налог (КПН)", "https://kgd.gov.kz"),
+            ("KZ", "Kazakhstan", "income_top", 10.0, "Индивидуальный подоходный налог (ИПН)", "https://kgd.gov.kz"),
+            ("KZ", "Kazakhstan", "withholding", 15.0, "КПН у источника выплаты с доходов нерезидента", "https://kgd.gov.kz"),
+
+            # UAE
+            ("AE", "United Arab Emirates", "vat", 5.0, "Federal Standard VAT Rate", "https://tax.gov.ae"),
+            ("AE", "United Arab Emirates", "corporate", 9.0, "Corporate Tax on Taxable Income above AED 375,000", "https://tax.gov.ae"),
+            ("AE", "United Arab Emirates", "corporate_small", 0.0, "Qualifying Free Zone Person (QFZP) 0% Rate", "https://tax.gov.ae"),
+
+            # Singapore
+            ("SG", "Singapore", "gst", 9.0, "Goods and Services Tax (GST)", "https://www.iras.gov.sg"),
+            ("SG", "Singapore", "corporate", 17.0, "Headline Corporate Income Tax Rate", "https://www.iras.gov.sg"),
+
+            # Switzerland
+            ("CH", "Switzerland", "vat", 8.1, "Standard VAT (MWST/TVA)", "https://www.estv.admin.ch"),
+            ("CH", "Switzerland", "vat_reduced", 2.6, "Reduced VAT for Everyday Goods", "https://www.estv.admin.ch"),
+            ("CH", "Switzerland", "corporate", 8.5, "Direct Federal Corporate Income Tax", "https://www.estv.admin.ch"),
+
+            # Cyprus
+            ("CY", "Cyprus", "vat", 19.0, "Standard VAT Rate", "https://www.mof.gov.cy"),
+            ("CY", "Cyprus", "corporate", 12.5, "Corporate Income Tax (CIT)", "https://www.mof.gov.cy"),
+
+            # Japan
+            ("JP", "Japan", "consumption", 10.0, "Standard Japanese Consumption Tax (JCT)", "https://www.nta.go.jp"),
+            ("JP", "Japan", "corporate", 23.2, "National Corporation Tax Rate", "https://www.nta.go.jp"),
+
+            # Canada
+            ("CA", "Canada", "gst", 5.0, "Federal Goods and Services Tax (GST)", "https://www.canada.ca"),
+            ("CA", "Canada", "corporate", 15.0, "Federal General Corporate Tax Rate", "https://www.canada.ca"),
+
+            # Spain & Italy
+            ("ES", "Spain", "vat", 21.0, "Impuesto sobre el Valor Añadido (IVA general)", "https://sede.agenciatributaria.gob.es"),
+            ("ES", "Spain", "corporate", 25.0, "Impuesto sobre Sociedades (IS)", "https://sede.agenciatributaria.gob.es"),
+            ("IT", "Italy", "vat", 22.0, "Imposta sul Valore Aggiunto (IVA ordinaria)", "https://www.agenziaentrate.gov.it"),
+            ("IT", "Italy", "corporate", 24.0, "Imposta sul Reddito delle Società (IRES)", "https://www.agenziaentrate.gov.it"),
+        ]
+        seeded_tax_count = 0
+        for c_code, c_name, t_type, rate, desc, src in sample_taxes:
+            existing_tr = db.query(TaxRate).filter(
+                TaxRate.country_code == c_code,
+                TaxRate.tax_type == t_type
+            ).first()
+            if not existing_tr:
                 tr = TaxRate(
                     id=uuid.uuid4(),
                     country_code=c_code,
@@ -471,10 +534,10 @@ def seed_demo():
                     effective_from=datetime.now().date()
                 )
                 db.add(tr)
-            db.commit()
-            print("   ✅ Seeded international and regional tax rates")
-        else:
-            print(f"   ℹ️ Tax rates already seeded ({tax_count} found)")
+                seeded_tax_count += 1
+        db.commit()
+        total_taxes = db.query(TaxRate).count()
+        print(f"   ✅ Seeded/verified {total_taxes} tax rates across 15+ countries")
 
         print("\n📋 [9/12] Seeding Report Templates...")
         tmpl_count = db.query(ReportTemplate).count()
