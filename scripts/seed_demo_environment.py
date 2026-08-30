@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal, engine
+from app.db.session import SessionLocal, engine, Base
 from app.core.security import get_password_hash
 from app.core.crypto import encrypt_secret
 from app.db.models.tenant import Tenant
@@ -37,6 +37,24 @@ from app.db.models.alert import Alert, AlertStatus, AlertSeverity
 from app.db.models.report import Report
 
 def seed_demo():
+    # 1. Run migrations / create tables
+    try:
+        from alembic.config import Config
+        from alembic import command
+        alembic_ini_path = "alembic.ini"
+        if not os.path.exists(alembic_ini_path):
+            alembic_ini_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend", "alembic.ini")
+        if os.path.exists(alembic_ini_path):
+            alembic_cfg = Config(alembic_ini_path)
+            command.upgrade(alembic_cfg, "head")
+    except Exception as e:
+        print(f"Migration notice: {e}")
+
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        pass
+
     db: Session = SessionLocal()
     try:
         print("🌱 [1/6] Seeding Tenant...")
