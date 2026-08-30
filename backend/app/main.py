@@ -130,17 +130,24 @@ if not os.path.exists(dist_dir):
 
 if os.path.exists(dist_dir):
     logger.info(f"Mounting React Frontend SPA from {dist_dir}")
+    assets_path = os.path.join(dist_dir, "assets")
+    if os.path.exists(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
-    # SPA Fallback for client-side routing
-    @app.exception_handler(404)
-    async def spa_404_fallback(request: Request, exc: StarletteHTTPException):
-        if not request.url.path.startswith("/api/v1") and not request.url.path.startswith("/metrics"):
-            index_path = os.path.join(dist_dir, "index.html")
-            if os.path.exists(index_path):
-                return FileResponse(index_path)
-        return Response(content='{"detail":"Not Found"}', status_code=404, media_type="application/json")
-
-    app.mount("/", StaticFiles(directory=dist_dir, html=True), name="frontend")
+    @app.get("/{full_path:path}")
+    async def serve_spa_page(full_path: str):
+        # Exclude backend internal routes
+        if full_path.startswith("api/") or full_path.startswith("metrics") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API route not found")
+        
+        file_path = os.path.join(dist_dir, full_path)
+        if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
+            return FileResponse(file_path)
+        
+        index_file = os.path.join(dist_dir, "index.html")
+        if os.path.exists(index_file):
+            return FileResponse(index_file)
+        return Response(content='{"detail":"Frontend index.html not found"}', status_code=404, media_type="application/json")
 else:
     @app.get("/")
     def fallback_root():
