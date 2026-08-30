@@ -15,26 +15,50 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
-# Add backend directory to sys.path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
+# Add backend and project root directories to sys.path
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if root_path not in sys.path:
+    sys.path.insert(0, root_path)
 
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal, engine, Base
-from app.core.security import get_password_hash
-from app.core.crypto import encrypt_secret
-from app.db.models.tenant import Tenant
-from app.db.models.company import Company
-from app.db.models.user import User
-from app.db.models.onec_connection import OneCConnection
-from app.db.models.balance_sheet import (
-    BalanceSheet, 
-    BalanceSheetItem, 
-    BalanceSheetStatus, 
-    BalanceSheetCategory,
-    TransformationAdjustment
-)
-from app.db.models.alert import Alert, AlertStatus, AlertSeverity
-from app.db.models.report import Report
+
+try:
+    from app.db.session import SessionLocal, engine, Base
+    from app.core.security import get_password_hash
+    from app.core.crypto import encrypt_secret
+    from app.db.models.tenant import Tenant
+    from app.db.models.company import Company
+    from app.db.models.user import User
+    from app.db.models.onec_connection import OneCConnection
+    from app.db.models.balance_sheet import (
+        BalanceSheet, 
+        BalanceSheetItem, 
+        BalanceSheetStatus, 
+        BalanceSheetCategory,
+        TransformationAdjustment
+    )
+    from app.db.models.alert import Alert, AlertStatus, AlertSeverity
+    from app.db.models.report import Report
+except ImportError:
+    from backend.app.db.session import SessionLocal, engine, Base  # type: ignore
+    from backend.app.core.security import get_password_hash  # type: ignore
+    from backend.app.core.crypto import encrypt_secret  # type: ignore
+    from backend.app.db.models.tenant import Tenant  # type: ignore
+    from backend.app.db.models.company import Company  # type: ignore
+    from backend.app.db.models.user import User  # type: ignore
+    from backend.app.db.models.onec_connection import OneCConnection  # type: ignore
+    from backend.app.db.models.balance_sheet import (  # type: ignore
+        BalanceSheet, 
+        BalanceSheetItem, 
+        BalanceSheetStatus, 
+        BalanceSheetCategory,
+        TransformationAdjustment
+    )
+    from backend.app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
+    from backend.app.db.models.report import Report  # type: ignore
 
 def seed_demo():
     # 1. Run migrations / create tables
