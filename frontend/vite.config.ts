@@ -18,5 +18,36 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
-    }
+    },
+    build: {
+        chunkSizeWarningLimit: 600,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // React core
+                    "vendor-react": ["react", "react-dom", "react-router-dom"],
+                    // Available Radix UI components
+                    "vendor-radix": [
+                        "@radix-ui/react-dialog",
+                        "@radix-ui/react-dropdown-menu",
+                        "@radix-ui/react-label",
+                        "@radix-ui/react-tabs",
+                        "@radix-ui/react-slot",
+                        "@radix-ui/react-avatar",
+                        "@radix-ui/react-toast",
+                    ],
+                    // Charts
+                    "vendor-charts": ["recharts"],
+                    // Utilities
+                    "vendor-utils": ["clsx", "class-variance-authority", "tailwind-merge", "lucide-react"],
+                    // HTTP
+                    "vendor-http": ["axios"],
+                    // i18n
+                    "vendor-i18n": ["i18next", "react-i18next"],
+                    // Forms
+                    "vendor-forms": ["react-hook-form", "zod"],
+                },
+            },
+        },
+    },
 })

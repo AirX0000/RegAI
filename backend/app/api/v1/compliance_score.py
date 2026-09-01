@@ -2,6 +2,7 @@ from typing import Any
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from datetime import datetime, timedelta, timezone
 
 from app.core.deps import get_db, get_current_active_user
 from app.db.models.alert import Alert, AlertStatus
@@ -123,6 +124,33 @@ def get_compliance_score(
             "score": round(cat_score, 1)
         }
     
+    # ── Dynamic trend: compare last 7 days vs prior 7 days ──────────────────
+    now = datetime.now(timezone.utc)
+    week_ago = now - timedelta(days=7)
+    two_weeks_ago = now - timedelta(days=14)
+
+    try:
+        recent_count = db.query(Alert).filter(
+            Alert.tenant_id == current_user.tenant_id,
+            Alert.created_at >= week_ago,
+            Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS]),
+        ).count()
+        prior_count = db.query(Alert).filter(
+            Alert.tenant_id == current_user.tenant_id,
+            Alert.created_at >= two_weeks_ago,
+            Alert.created_at < week_ago,
+            Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS]),
+        ).count()
+
+        if recent_count < prior_count:
+            trend = "improving"
+        elif recent_count > prior_count:
+            trend = "degrading"
+        else:
+            trend = "stable"
+    except Exception:
+        trend = "stable"
+
     return {
         "overall_score": round(overall_score, 1),
         "total_regulations": total_regulations,
@@ -136,5 +164,5 @@ def get_compliance_score(
             "in_progress": status_counts["in_progress"]
         },
         "category_scores": category_scores,
-        "trend": "stable" 
+        "trend": trend
     }

@@ -96,6 +96,7 @@ async def create_report(
     # Here we just log it or would notify specific users if we had their IDs handy
     # For demo, we'll just assume we notify the current user (as confirmation) 
     NotificationService.create_notification(
+        db=db,
         user_id=current_user.id,
         title="Report Submitted",
         message=f"Your report '{report.title}' has been submitted successfully.",
@@ -217,6 +218,7 @@ def review_report(
     
     # Notify submitter
     NotificationService.create_notification(
+        db=db,
         user_id=report.submitted_by,
         title=f"Report {review.status.title()}",
         message=f"Your report '{report.title}' has been {review.status}.",

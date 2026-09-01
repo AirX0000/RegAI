@@ -176,11 +176,7 @@ def get_dashboard_data(
             "details": log.details or f"{log.resource_type} updated"
         })
         
-    if not recent:
-        recent = [
-            {"id": "1", "action": "Report Generated", "timestamp": "2025-01-01T10:00:00Z", "details": "Q4 Financials"},
-            {"id": "2", "action": "Compliance Alert", "timestamp": "2025-01-01T09:45:00Z", "details": "New Tax Regulation"},
-        ]
+    # No fallback — return empty list if no real activity exists yet
         
     return DashboardData(
         compliance=compliance,

@@ -298,71 +298,156 @@ def run_compliance_check(
     current_user = Depends(get_current_active_user),
 ) -> Any:
     """
-    Trigger a comprehensive compliance check.
-    Scans balance sheets and reports for anomalies and generates alerts.
+    Trigger a real compliance check.
+    Analyses actual balance sheets, reporting gaps, and regulation coverage
+    for the current tenant/company. Avoids creating duplicate open alerts.
     """
+    from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem
+    from app.db.models.regulation import Regulation
+    from app.db.models.company import Company
+    from app.db.models.report import Report
+    from datetime import date
+    import calendar
+
     new_alerts_count = 0
-    
-    # Create a Critical Alert if no balance sheet for current period
-    alert = Alert(
-        id=uuid.uuid4(),
-        tenant_id=current_user.tenant_id,
-        company_id=current_user.company_id,
-        severity=AlertSeverity.CRITICAL,  # Use enum, not string
-        status=AlertStatus.OPEN,  # Use enum, not string
-        message="Missing Financial Report for Q3 2025",
-        regulation="IFRS IAS 1",
-        notes="Financial statements must be presented at least annually. Q3 report is overdue.",
-        created_by=current_user.id
-    )
-    db.add(alert)
-    new_alerts_count += 1
-    
-    # Create a High Alert for "Cash" discrepancy
-    alert2 = Alert(
-        id=uuid.uuid4(),
-        tenant_id=current_user.tenant_id,
-        company_id=current_user.company_id,
-        severity=AlertSeverity.HIGH,  # Use enum, not string
-        status=AlertStatus.OPEN,  # Use enum, not string
-        message="Unusual Cash Flow Detected",
-        regulation="AML Directive 5",
-        notes="Cash outflow exceeds 50% of operating revenue in single transaction.",
-        created_by=current_user.id
-    )
-    db.add(alert2)
-    new_alerts_count += 1
-    
-    # Create a Medium Alert for documentation
-    alert3 = Alert(
-        id=uuid.uuid4(),
-        tenant_id=current_user.tenant_id,
-        company_id=current_user.company_id,
-        severity=AlertSeverity.MEDIUM,
-        status=AlertStatus.OPEN,
-        message="Incomplete Audit Trail Documentation",
-        regulation="SOX Section 404",
-        notes="Internal control documentation is missing for 3 key processes.",
-        created_by=current_user.id
-    )
-    db.add(alert3)
-    new_alerts_count += 1
-    
-    # Create a Low Alert
-    alert4 = Alert(
-        id=uuid.uuid4(),
-        tenant_id=current_user.tenant_id,
-        company_id=current_user.company_id,
-        severity=AlertSeverity.LOW,
-        status=AlertStatus.OPEN,
-        message="Policy Review Reminder",
-        regulation="ISO 27001",
-        notes="Annual information security policy review is due next month.",
-        created_by=current_user.id
-    )
-    db.add(alert4)
-    new_alerts_count += 1
-    
+
+    def _open_alert_exists(tenant_id, company_id, regulation: str, message_fragment: str) -> bool:
+        """Prevent duplicate open alerts for the same issue."""
+        return db.query(Alert).filter(
+            Alert.tenant_id == tenant_id,
+            Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS]),
+            Alert.regulation == regulation,
+            Alert.message.ilike(f"%{message_fragment}%"),
+        ).first() is not None
+
+    def _add_alert(severity, message, regulation, notes):
+        nonlocal new_alerts_count
+        if not _open_alert_exists(current_user.tenant_id, current_user.company_id, regulation, message[:30]):
+            alert = Alert(
+                id=uuid.uuid4(),
+                tenant_id=current_user.tenant_id,
+                company_id=current_user.company_id,
+                severity=severity,
+                status=AlertStatus.OPEN,
+                message=message,
+                regulation=regulation,
+                notes=notes,
+                created_by=current_user.id,
+            )
+            db.add(alert)
+            new_alerts_count += 1
+
+    # ── 1. Resolve company scope ──────────────────────────────────────────────
+    company_id = current_user.company_id
+    if not company_id:
+        company = db.query(Company).filter(
+            Company.tenant_id == current_user.tenant_id
+        ).first()
+        if company:
+            company_id = company.id
+
+    # ── 2. Check: missing balance sheet for current reporting period ──────────
+    today = date.today()
+    current_period_start = datetime(today.year, today.month, 1)
+    prev_month = today.month - 1 or 12
+    prev_year = today.year if today.month > 1 else today.year - 1
+    prev_period_start = datetime(prev_year, prev_month, 1)
+    prev_period_end = datetime(today.year, today.month, 1)
+
+    if company_id:
+        recent_bs = db.query(BalanceSheet).filter(
+            BalanceSheet.company_id == company_id,
+            BalanceSheet.period >= prev_period_start,
+            BalanceSheet.period < current_period_start,
+        ).first()
+
+        if not recent_bs:
+            _add_alert(
+                severity=AlertSeverity.HIGH,
+                message=f"Missing balance sheet for {prev_period_start.strftime('%B %Y')}",
+                regulation="IFRS IAS 1",
+                notes=(
+                    f"No balance sheet found for the period {prev_period_start.strftime('%Y-%m')}. "
+                    "Financial statements must be submitted at least monthly for IFRS compliance."
+                ),
+            )
+
+    # ── 3. Check: balance sheet mathematical integrity ────────────────────────
+    if company_id:
+        recent_sheets = db.query(BalanceSheet).filter(
+            BalanceSheet.company_id == company_id,
+        ).order_by(BalanceSheet.period.desc()).limit(3).all()
+
+        for bs in recent_sheets:
+            items = db.query(BalanceSheetItem).filter(
+                BalanceSheetItem.balance_sheet_id == bs.id
+            ).all()
+            total_assets = sum(
+                float(i.amount) for i in items if i.category and i.category.value == "assets"
+            )
+            total_liabilities = sum(
+                float(i.amount) for i in items if i.category and i.category.value == "liabilities"
+            )
+            total_equity = sum(
+                float(i.amount) for i in items if i.category and i.category.value == "equity"
+            )
+            diff = abs(total_assets - (total_liabilities + total_equity))
+            if diff > 1.0 and total_assets > 0:
+                _add_alert(
+                    severity=AlertSeverity.CRITICAL,
+                    message=f"Balance sheet equation violated ({bs.period.strftime('%Y-%m')})",
+                    regulation="IFRS IAS 1",
+                    notes=(
+                        f"Assets ({total_assets:,.2f}) ≠ Liabilities ({total_liabilities:,.2f}) + "
+                        f"Equity ({total_equity:,.2f}). Difference: {diff:,.2f}. "
+                        "Verify all account mappings and IFRS adjustments."
+                    ),
+                )
+
+    # ── 4. Check: regulations with no linked company ──────────────────────────
+    regulations = db.query(Regulation).filter(
+        Regulation.tenant_id == current_user.tenant_id
+    ).all()
+
+    if len(regulations) == 0:
+        _add_alert(
+            severity=AlertSeverity.MEDIUM,
+            message="No regulations configured for this tenant",
+            regulation="IFRS General",
+            notes=(
+                "The regulation knowledge base is empty. "
+                "Import IFRS standards and local regulations in the Regulations module "
+                "to enable AI-powered compliance monitoring."
+            ),
+        )
+
+    # ── 5. Check: reports submitted but not reviewed ──────────────────────────
+    if company_id:
+        try:
+            unreviewed = db.query(Report).filter(
+                Report.company_id == company_id,
+                Report.status == "submitted",
+            ).count()
+            if unreviewed > 0:
+                _add_alert(
+                    severity=AlertSeverity.LOW,
+                    message=f"{unreviewed} submitted report(s) awaiting review",
+                    regulation="SOX Section 302",
+                    notes=(
+                        f"{unreviewed} report(s) have been submitted but not yet reviewed or approved. "
+                        "Timely review is required to maintain an effective internal control environment."
+                    ),
+                )
+        except Exception:
+            pass  # Report model may not exist in all configurations
+
     db.commit()
-    
-    return {"message": "Compliance check completed", "new_alerts": new_alerts_count}
+
+    return {
+        "message": "Compliance check completed",
+        "new_alerts": new_alerts_count,
+        "details": (
+            f"Analysed balance sheets, reporting gaps, and regulation coverage. "
+            f"Created {new_alerts_count} new alert(s). Duplicate open alerts were skipped."
+        ),
+    }
