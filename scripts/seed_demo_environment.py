@@ -355,11 +355,38 @@ def seed_demo():
         print("\n📚 [7/8] Seeding Global Regulations across all categories...")
         regs_count = db.query(Regulation).count()
         if regs_count == 0:
-            from populate_regulations import REGULATIONS as COMPREHENSIVE_REGS  # type: ignore
-            from app.db.seeds.banking_regulations_bilingual import banking_regulations_bilingual  # type: ignore
-            from app.db.seeds.audit_standards_bilingual import audit_standards_bilingual  # type: ignore
-            from app.db.seeds.uzbekistan_regulations import uzbekistan_regulations  # type: ignore
-            from app.db.seeds.uzbekistan_laws import uzbekistan_laws  # type: ignore
+            # Try optional extra regulation sets; skip gracefully if missing
+            COMPREHENSIVE_REGS = []
+            try:
+                from populate_regulations import REGULATIONS as _comp_regs  # type: ignore
+                COMPREHENSIVE_REGS = _comp_regs
+            except ImportError:
+                pass  # Optional module — ai_populate_db.py will fill regulations via OpenAI
+
+            banking_regulations_bilingual = []
+            audit_standards_bilingual = []
+            uzbekistan_regulations = []
+            uzbekistan_laws = []
+            try:
+                from app.db.seeds.banking_regulations_bilingual import banking_regulations_bilingual as _b  # type: ignore
+                banking_regulations_bilingual = _b
+            except ImportError:
+                pass
+            try:
+                from app.db.seeds.audit_standards_bilingual import audit_standards_bilingual as _a  # type: ignore
+                audit_standards_bilingual = _a
+            except ImportError:
+                pass
+            try:
+                from app.db.seeds.uzbekistan_regulations import uzbekistan_regulations as _uz  # type: ignore
+                uzbekistan_regulations = _uz
+            except ImportError:
+                pass
+            try:
+                from app.db.seeds.uzbekistan_laws import uzbekistan_laws as _uzl  # type: ignore
+                uzbekistan_laws = _uzl
+            except ImportError:
+                pass
 
             # 1. Comprehensive multi-category regulations
             for rdata in COMPREHENSIVE_REGS:
