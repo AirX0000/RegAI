@@ -378,10 +378,24 @@ def get_db_status(
     """Database population status (superadmin only)."""
     _require_superadmin(current_user)
 
+    from sqlalchemy import func
+    from app.db.models.regulation import Regulation as RegModel
+
+    regs_total = db.query(RegModel).count()
+    regs_with_content = db.query(RegModel).filter(
+        RegModel.content.isnot(None), RegModel.content != ""
+    ).count()
+
     return {
+        "status": "ok",
         "tenants": db.query(Tenant).count(),
         "companies": db.query(Company).count(),
-        "regulations": db.query(Regulation).filter(Regulation.tenant_id == current_user.tenant_id).count(),
-        "tax_rates": db.query(TaxRate).filter(TaxRate.tenant_id == current_user.tenant_id).count(),
         "users": db.query(User).count(),
+        "regulations": {
+            "total": regs_total,
+            "with_content": regs_with_content,
+            "coverage_pct": round(regs_with_content / regs_total * 100, 1) if regs_total else 0,
+        },
+        "tax_rates": db.query(TaxRate).count(),
+        "data_ready": regs_with_content > 0,
     }
