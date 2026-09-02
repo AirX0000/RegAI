@@ -53,5 +53,15 @@ ENV CHROMA_DIR=/app/chroma_db
 
 EXPOSE 8000
 
-# Start command: runs migrations → demo seed → AI regulation population → uvicorn
-CMD ["sh", "-c", "python /app/scripts/seed_demo_environment.py || true; python /app/scripts/ai_populate_db.py || true; uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Start command: migrations → base seed → AI regulations → demo companies → uvicorn
+CMD ["sh", "-c", "\
+  echo '🚀 Running DB migrations...' && \
+  python -m alembic upgrade head && \
+  echo '🌱 Seeding base demo environment...' && \
+  python /app/scripts/seed_demo_environment.py || true && \
+  echo '🤖 Populating AI regulations content...' && \
+  python /app/scripts/ai_populate_db.py || true && \
+  echo '🏢 Creating demo companies & users...' && \
+  python /app/scripts/seed_demo_companies.py || true && \
+  echo '✅ Starting server...' && \
+  uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
