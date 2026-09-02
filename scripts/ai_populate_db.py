@@ -23,11 +23,11 @@ if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
 from sqlalchemy.orm import Session
-from app.db.session import SessionLocal, engine
-from app.db.base import Base
-from app.core.config import settings
-from app.core.security import get_password_hash
-from app.core.crypto import encrypt_secret
+from app.db.session import SessionLocal, engine  # type: ignore[import]
+from app.db.base import Base  # type: ignore[import]
+from app.core.config import settings  # type: ignore[import]
+from app.core.security import get_password_hash  # type: ignore[import]
+from app.core.crypto import encrypt_secret  # type: ignore[import]
 
 # ─── OpenAI Client ────────────────────────────────────────────────────────────
 import openai
@@ -182,8 +182,8 @@ TAX_RATES_DATA = [
 
 def seed_regulations(db: Session, tenant_id, user_id):
     """AI-generate content for all regulations and seed them."""
-    from app.db.models.regulation import Regulation
-    from app.rag.ingest import ingest_regulation, compute_content_hash
+    from app.db.models.regulation import Regulation  # type: ignore[import]
+    from app.rag.ingest import ingest_regulation, compute_content_hash  # type: ignore[import]
 
     print(f"\n📋 Seeding {len(REGULATIONS_TO_SEED)} regulations with AI-generated content...")
 
@@ -294,7 +294,7 @@ Include 5-7 practical workflow steps for a compliance officer.""",
 
 def seed_tax_rates(db: Session, tenant_id):
     """Seed comprehensive global tax rates."""
-    from app.db.models.tax_rate import TaxRate
+    from app.db.models.tax_rate import TaxRate  # type: ignore[import]
 
     print(f"\n💰 Seeding {len(TAX_RATES_DATA)} tax rates for {len(set(t['country_code'] for t in TAX_RATES_DATA))} countries...")
 
@@ -338,8 +338,8 @@ def main():
 
     db = SessionLocal()
     try:
-        from app.db.models.user import User
-        from app.db.models.tenant import Tenant
+        from app.db.models.user import User  # type: ignore[import]
+        from app.db.models.tenant import Tenant  # type: ignore[import]
 
         # Find superadmin for tenant context
         admin = db.query(User).filter(User.is_superuser == True).first()
@@ -356,8 +356,8 @@ def main():
         seed_regulations(db, tenant_id, user_id)
 
         # Final status
-        from app.db.models.regulation import Regulation
-        from app.db.models.tax_rate import TaxRate
+        from app.db.models.regulation import Regulation  # type: ignore[import]
+        from app.db.models.tax_rate import TaxRate  # type: ignore[import]
         reg_count = db.query(Regulation).count()
         tax_count = db.query(TaxRate).count()
         regs_with_content = db.query(Regulation).filter(Regulation.content != None, Regulation.content != "").count()
