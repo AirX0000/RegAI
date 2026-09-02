@@ -42,13 +42,22 @@ def seed_demo_data(
 
     # Find the seed script path
     possible_paths = [
-        "/app/scripts/seed_demo_environment.py",
-        os.path.join(os.path.dirname(__file__), "../../../../scripts/seed_demo_environment.py"),
+        "/app/scripts/ai_populate_db.py",
+        os.path.join(os.path.dirname(__file__), "../../../../scripts/ai_populate_db.py"),
     ]
     script_path = next((p for p in possible_paths if os.path.exists(p)), None)
 
     if not script_path:
+        # Fallback to original seed script
+        possible_paths = [
+            "/app/scripts/seed_demo_environment.py",
+            os.path.join(os.path.dirname(__file__), "../../../../scripts/seed_demo_environment.py"),
+        ]
+        script_path = next((p for p in possible_paths if os.path.exists(p)), None)
+
+    if not script_path:
         raise HTTPException(status_code=500, detail="Seed script not found on server")
+
 
     try:
         result = subprocess.run(

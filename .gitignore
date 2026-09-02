@@ -27,3 +27,9 @@ build/
 *.db
 *.sqlite3
 regai.db
+
+# Vector DB (local only — Railway uses ephemeral filesystem)
+backend/chroma_db/
+chroma_db/
+*.bin
+*.pkl
