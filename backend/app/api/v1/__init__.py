@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, tenants, regulations, companies, compliance, chat, compliance_score, reports, tax_rates, report_analysis, analytics, report_templates, report_comments, notifications, audit_logs, hierarchy, balance_sheets, documents, dashboard, onec
+from app.api.v1 import auth, users, tenants, regulations, companies, compliance, chat, compliance_score, reports, tax_rates, report_analysis, analytics, report_templates, report_comments, notifications, audit_logs, hierarchy, balance_sheets, documents, dashboard, onec, admin
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -24,4 +24,5 @@ api_router.include_router(documents.router, prefix="/documents", tags=["document
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(onec.router, prefix="/onec", tags=["onec"])
 api_router.include_router(onec.router, prefix="/integrations/1c", tags=["1c-integration"])
+api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 
