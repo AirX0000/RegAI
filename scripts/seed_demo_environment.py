@@ -161,11 +161,11 @@ def seed_demo():
             },
             {
                 "email": "admin@finbridge.demo",
-                "full_name": "Alexander Volkov (SuperAdmin)",
+                "full_name": "Alexander Volkov (Company Admin)",
                 "password": "FinBridge2026!",
-                "role": "superadmin",
-                "hierarchy_level": 1,
-                "is_superuser": True,
+                "role": "admin",
+                "hierarchy_level": 4,
+                "is_superuser": False,
                 "company_id": primary_company.id
             },
             {

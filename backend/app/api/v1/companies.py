@@ -25,9 +25,11 @@ def read_companies(
     """
     query = db.query(Company)
     
-    # Non-superadmins only see active companies
-    if current_user.role != "superadmin":
-        query = query.filter(Company.is_active == True)
+    # Superadmins see all companies. Company admins and regular users ONLY see their own company!
+    if current_user.role not in ["superadmin", "website_superadmin"] and not current_user.is_superuser:
+        if not current_user.company_id:
+            return []
+        query = query.filter(Company.id == current_user.company_id)
     elif is_active is not None:
         query = query.filter(Company.is_active == is_active)
     
@@ -105,9 +107,10 @@ def get_company(
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
     
-    # Non-superadmins can only see active companies
-    if current_user.role != "superadmin" and not company.is_active:
-        raise HTTPException(status_code=404, detail="Company not found")
+    # Non-superadmins can only access their own company
+    if current_user.role not in ["superadmin", "website_superadmin"] and not current_user.is_superuser:
+        if company.id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view other companies")
     
     return company
 

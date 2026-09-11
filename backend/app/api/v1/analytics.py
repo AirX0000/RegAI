@@ -20,11 +20,12 @@ def get_personal_analytics(
     Get personal analytics for accountant/auditor dashboard
     """
     # Base query depends on role
-    if current_user.role == "superadmin":
+    is_master_admin = (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser)
+    if is_master_admin:
         base_query = db.query(Report)
-    elif current_user.role == "admin":
+    elif current_user.role in ["admin", "company_admin", "company_owner", "company_superadmin"]:
         base_query = db.query(Report).filter(Report.company_id == current_user.company_id)
-    else:  # accountant, auditor
+    else:  # accountant, auditor, user
         base_query = db.query(Report).filter(Report.submitted_by == current_user.id)
     
     # Total reports
@@ -41,9 +42,13 @@ def get_personal_analytics(
     this_month = base_query.filter(Report.created_at >= month_start).count()
     
     # Average compliance score
-    analyses = db.query(ReportAnalysis).join(Report).filter(
-        Report.submitted_by == current_user.id if current_user.role not in ["admin", "superadmin"] else True
-    ).all()
+    analyses_query = db.query(ReportAnalysis).join(Report)
+    if not is_master_admin:
+        if current_user.role in ["admin", "company_admin", "company_owner", "company_superadmin"]:
+            analyses_query = analyses_query.filter(Report.company_id == current_user.company_id)
+        else:
+            analyses_query = analyses_query.filter(Report.submitted_by == current_user.id)
+    analyses = analyses_query.all()
     
     avg_score = 0
     if analyses:
@@ -54,11 +59,11 @@ def get_personal_analytics(
     action_items = []
     
     # Pending reviews (for admins)
-    if current_user.role in ["admin", "superadmin"]:
-        pending = db.query(Report).filter(
-            Report.status == "submitted",
-            Report.company_id == current_user.company_id if current_user.role == "admin" else True
-        ).limit(5).all()
+    if current_user.role in ["admin", "company_admin", "company_owner", "company_superadmin", "superadmin", "website_superadmin"] or current_user.is_superuser:
+        pending_query = db.query(Report).filter(Report.status == "submitted")
+        if not is_master_admin:
+            pending_query = pending_query.filter(Report.company_id == current_user.company_id)
+        pending = pending_query.limit(5).all()
         
         for report in pending:
             action_items.append({

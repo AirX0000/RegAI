@@ -29,12 +29,12 @@ async def analyze_report(
         raise HTTPException(status_code=404, detail="Report not found")
     
     # Check permissions
-    if current_user.role in ["accountant", "auditor"]:
-        if report.submitted_by != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
-    elif current_user.role == "admin":
-        if report.company_id != current_user.company_id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        if current_user.role in ["accountant", "auditor", "user"]:
+            if report.submitted_by != current_user.id:
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to analyze reports of another company")
     
     # Check if file exists
     if not report.file_path:
@@ -74,12 +74,12 @@ def get_analysis(
     
     # Check permissions
     report = db.query(Report).filter(Report.id == analysis.report_id).first()
-    if current_user.role in ["accountant", "auditor"]:
-        if report.submitted_by != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
-    elif current_user.role == "admin":
-        if report.company_id != current_user.company_id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        if current_user.role in ["accountant", "auditor", "user"]:
+            if report.submitted_by != current_user.id:
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view analysis of another company")
     
     return analysis
 
@@ -102,12 +102,12 @@ def get_analysis_errors(
     
     # Check permissions (same as above)
     report = db.query(Report).filter(Report.id == analysis.report_id).first()
-    if current_user.role in ["accountant", "auditor"]:
-        if report.submitted_by != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
-    elif current_user.role == "admin":
-        if report.company_id != current_user.company_id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        if current_user.role in ["accountant", "auditor", "user"]:
+            if report.submitted_by != current_user.id:
+                raise HTTPException(status_code=403, detail="Not authorized")
+        elif report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view analysis of another company")
     
     return {
         "analysis_id": analysis_id,

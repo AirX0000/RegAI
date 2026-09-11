@@ -119,14 +119,17 @@ def list_reports(
     query = db.query(Report)
     
     # Filter based on role
-    if current_user.role in ["accountant", "auditor"]:
-        # Only see own reports
+    if current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser:
+        # Global superadmins see all reports
+        pass
+    elif current_user.role in ["accountant", "auditor", "user"]:
+        # Accountants/auditors only see their own reports
         query = query.filter(Report.submitted_by == current_user.id)
-    elif current_user.role == "admin":
-        # See all company reports
-        if current_user.company_id:
-            query = query.filter(Report.company_id == current_user.company_id)
-    # Superadmins see all reports (no filter)
+    else:
+        # Company admins/owners only see reports for their own company
+        if not current_user.company_id:
+            return []
+        query = query.filter(Report.company_id == current_user.company_id)
     
     # Filter by status if provided
     if status:
@@ -149,12 +152,12 @@ def get_report(
         raise HTTPException(status_code=404, detail="Report not found")
     
     # Check permissions
-    if current_user.role in ["accountant", "auditor"]:
-        if report.submitted_by != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized to view this report")
-    elif current_user.role == "admin":
-        if report.company_id != current_user.company_id:
-            raise HTTPException(status_code=403, detail="Not authorized to view this report")
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        if current_user.role in ["accountant", "auditor", "user"]:
+            if report.submitted_by != current_user.id:
+                raise HTTPException(status_code=403, detail="Not authorized to view this report")
+        elif report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view reports of another company")
     
     return report
 
@@ -207,8 +210,9 @@ def review_report(
         raise HTTPException(status_code=404, detail="Report not found")
     
     # Check if admin is from same company
-    if current_user.role == "admin" and report.company_id != current_user.company_id:
-        raise HTTPException(status_code=403, detail="Not authorized to review this report")
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        if report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to review reports of another company")
     
     report.reviewed_by = current_user.id
     report.reviewed_at = datetime.now(timezone.utc)
@@ -333,12 +337,12 @@ def delete_report(
         print(f"[DELETE] Found report: {report.title} (status: {report.status}, company: {report.company_id})")
         
         # Check permissions
-        if current_user.role == "superadmin":
+        if current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser:
             print(f"[DELETE] Superadmin access granted")
-        elif current_user.role == "admin":
+        elif current_user.role in ["admin", "company_admin", "company_owner", "company_superadmin"]:
             if report.company_id != current_user.company_id:
                 print(f"[DELETE] Admin permission denied - different company")
-                raise HTTPException(status_code=403, detail="Not authorized to delete this report")
+                raise HTTPException(status_code=403, detail="Not authorized to delete reports of another company")
             print(f"[DELETE] Admin access granted for company {current_user.company_id}")
         elif report.submitted_by != current_user.id:
             print(f"[DELETE] User permission denied - not report owner")
