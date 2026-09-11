@@ -80,3 +80,71 @@ def calculate_ias36(data: IAS36Input) -> Any:
         "new_carrying_amount": round(data.carrying_amount - impairment_loss, 2),
         "is_impaired": is_impaired
     }
+
+# --- IFRS 9 (Expected Credit Loss - ECL) ---
+
+class IFRS9Input(BaseModel):
+    ead: float = Field(..., gt=0, description="Exposure at Default (Gross carrying amount of receivable/loan)")
+    pd_percentage: float = Field(..., ge=0, le=100, description="Probability of Default (%)")
+    lgd_percentage: float = Field(45.0, ge=0, le=100, description="Loss Given Default (%, default 45% Basel foundation)")
+    discount_rate_annual: float = Field(0.0, ge=0, description="Effective Interest Rate for discounting (annual %)")
+    days_past_due: int = Field(0, ge=0, description="Days past due / arrears")
+    horizon_years: float = Field(1.0, gt=0, description="Time horizon in years (1.0 for 12m ECL, or lifetime)")
+
+class IFRS9Result(BaseModel):
+    ecl_amount: float
+    stage: str
+    stage_description: str
+    discount_factor: float
+    net_carrying_amount: float
+    effective_loss_rate_pct: float
+
+@router.post("/ifrs9", response_model=IFRS9Result)
+def calculate_ifrs9(data: IFRS9Input) -> Any:
+    """
+    Calculate IFRS 9 Expected Credit Loss (ECL).
+    Formula: ECL = EAD * (PD / 100) * (LGD / 100) * DF
+    Determines staging based on Days Past Due:
+      - Stage 1 (0-30 days): 12-month ECL (Performing)
+      - Stage 2 (31-90 days): Lifetime ECL (Significant Increase in Credit Risk - SICR)
+      - Stage 3 (>90 days): Lifetime ECL (Credit-Impaired / Default)
+    """
+    # 1. Determine Stage
+    if data.days_past_due <= 30:
+        stage = "Stage 1"
+        stage_desc = "Performing: 12-Month Expected Credit Loss (Low credit risk, standard provisioning)"
+        horizon = min(data.horizon_years, 1.0)
+    elif data.days_past_due <= 90:
+        stage = "Stage 2"
+        stage_desc = "Underperforming (SICR): Lifetime Expected Credit Loss (Significant increase in credit risk)"
+        horizon = max(data.horizon_years, 2.0)
+    else:
+        stage = "Stage 3"
+        stage_desc = "Credit-Impaired (Default): Lifetime ECL with objective evidence of impairment"
+        horizon = max(data.horizon_years, 3.0)
+
+    # 2. Compute Discount Factor
+    r = data.discount_rate_annual / 100.0
+    if r > 0 and horizon > 0:
+        df = 1.0 / math.pow(1.0 + r, horizon)
+    else:
+        df = 1.0
+
+    # 3. Compute ECL = EAD * PD * LGD * DF
+    pd_dec = data.pd_percentage / 100.0
+    lgd_dec = data.lgd_percentage / 100.0
+    
+    ecl = data.ead * pd_dec * lgd_dec * df
+    ecl = round(min(ecl, data.ead), 2)
+    net_amount = round(data.ead - ecl, 2)
+    loss_rate = round((ecl / data.ead) * 100.0, 2) if data.ead > 0 else 0.0
+
+    return {
+        "ecl_amount": ecl,
+        "stage": stage,
+        "stage_description": stage_desc,
+        "discount_factor": round(df, 4),
+        "net_carrying_amount": net_amount,
+        "effective_loss_rate_pct": loss_rate
+    }
+

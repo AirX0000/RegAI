@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from 'react-i18next';
-import { ShieldCheck, Sparkles, Building2, UserCheck, FileSpreadsheet, Lock } from 'lucide-react';
+import { ShieldCheck, Sparkles, Building2, UserCheck, FileSpreadsheet, Eye, EyeOff } from 'lucide-react';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const DEMO_ACCOUNTS = [
     { role: 'superadmin', label: '👑 Master SuperAdmin', email: 'superadmin@finbridge.demo', badge: 'Global Access', color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' },
@@ -25,6 +26,7 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [activeDemo, setActiveDemo] = useState<string | null>(null);
     const ssoEnabled = import.meta.env.VITE_SSO_ENABLED === 'true';
 
@@ -69,6 +71,11 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+            {/* Top Bar Controls */}
+            <div className="absolute top-5 right-5 z-20">
+                <LanguageSwitcher className="bg-slate-900/90 border border-slate-700/80 text-slate-200 hover:text-white hover:bg-slate-800 shadow-md backdrop-blur-sm px-3 py-1.5 rounded-lg text-xs" />
+            </div>
+
             {/* Background Decorative Gradients */}
             <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] rounded-full bg-indigo-600/10 blur-[120px] pointer-events-none" />
@@ -96,7 +103,7 @@ export default function LoginPage() {
                                 <UserCheck className="w-3.5 h-3.5 text-blue-400" />
                                 1-Click Demo Profiles (Sandbox)
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono">FinBridge2026!</span>
+                            <span className="text-[11px] text-slate-400 font-mono bg-slate-900/70 px-2 py-0.5 rounded border border-slate-700/60">FinBridge2026!</span>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {DEMO_ACCOUNTS.map((acc) => {
@@ -144,12 +151,19 @@ export default function LoginPage() {
                             <div className="relative">
                                 <Input
                                     {...register('password')}
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     required
-                                    className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
+                                    className="bg-slate-950 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 pr-10"
                                 />
-                                <Lock className="w-4 h-4 text-slate-500 absolute right-3 top-3 pointer-events-none" />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 focus:outline-none transition-colors"
+                                    title={showPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
                             </div>
                         </div>
 

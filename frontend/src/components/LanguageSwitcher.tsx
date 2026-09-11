@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ className }: { className?: string } = {}) {
     const { i18n } = useTranslation();
 
     const toggleLanguage = () => {
@@ -15,11 +15,11 @@ export default function LanguageSwitcher() {
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="flex items-center gap-2"
+            className={`flex items-center gap-2 ${className || ''}`}
             title="Switch Language"
         >
             <Globe className="h-4 w-4" />
-            <span className="uppercase">{i18n.language === 'ru' ? 'RU' : 'EN'}</span>
+            <span className="uppercase font-semibold">{i18n.language === 'ru' ? 'RU' : 'EN'}</span>
         </Button>
     );
 }

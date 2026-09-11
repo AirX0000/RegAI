@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import IFRS16Calculator from '@/components/calculators/IFRS16Calculator';
 import IAS36Calculator from '@/components/calculators/IAS36Calculator';
+import IFRS9Calculator from '@/components/calculators/IFRS9Calculator';
 import {
     Dialog,
     DialogContent,
@@ -204,6 +205,10 @@ export default function TransformationAdjustmentsPage() {
                     <IAS36Calculator onCalculate={(loss) => handleGlobalAdjustment([
                         { adjustment_type: 'debit', adjustment_amount: loss, description: 'IAS 36: Impairment Loss' },
                         { adjustment_type: 'credit', adjustment_amount: loss, description: 'IAS 36: Accumulated Impairment' }
+                    ])} />
+                    <IFRS9Calculator onCalculate={(ecl, stage) => handleGlobalAdjustment([
+                        { adjustment_type: 'debit', adjustment_amount: ecl, description: `IFRS 9: ECL Provision Expense (${stage})` },
+                        { adjustment_type: 'credit', adjustment_amount: ecl, description: `IFRS 9: Allowance for Expected Credit Losses (${stage})` }
                     ])} />
                     <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/transformation/results/${id}`)}>
                         Finalize Transformation
