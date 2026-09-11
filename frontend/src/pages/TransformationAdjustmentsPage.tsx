@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, ArrowRight, Trash2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import IFRS16Calculator from '@/components/calculators/IFRS16Calculator';
+import IAS36Calculator from '@/components/calculators/IAS36Calculator';
 import {
     Dialog,
     DialogContent,
@@ -74,6 +76,27 @@ export default function TransformationAdjustmentsPage() {
             });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    
+    const handleGlobalAdjustment = async (adjustments: any[]) => {
+        try {
+            await api.post(`/balance-sheets/${id}/adjustments`, adjustments.map(adj => ({
+                ...adj,
+                balance_sheet_id: id
+            })));
+            toast({
+                title: "Success",
+                description: "Adjustments applied successfully"
+            });
+            fetchBalanceSheet();
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to apply adjustments"
+            });
         }
     };
 
@@ -173,6 +196,15 @@ export default function TransformationAdjustmentsPage() {
                     <Button variant="outline" onClick={() => fetchBalanceSheet()}>
                         Refresh
                     </Button>
+                    
+                    <IFRS16Calculator onCalculate={(rou, liab) => handleGlobalAdjustment([
+                        { adjustment_type: 'debit', adjustment_amount: rou, description: 'IFRS 16: Right-of-Use Asset Recognition' },
+                        { adjustment_type: 'credit', adjustment_amount: liab, description: 'IFRS 16: Lease Liability Recognition' }
+                    ])} />
+                    <IAS36Calculator onCalculate={(loss) => handleGlobalAdjustment([
+                        { adjustment_type: 'debit', adjustment_amount: loss, description: 'IAS 36: Impairment Loss' },
+                        { adjustment_type: 'credit', adjustment_amount: loss, description: 'IAS 36: Accumulated Impairment' }
+                    ])} />
                     <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => navigate(`/transformation/results/${id}`)}>
                         Finalize Transformation
                         <ArrowRight className="ml-2 h-4 w-4" />
@@ -231,7 +263,34 @@ export default function TransformationAdjustmentsPage() {
                                     </div>
                                 );
                             })}
-                        </div>
+                        
+                        {balanceSheet.adjustments.filter(adj => !adj.balance_sheet_item_id).length > 0 && (
+                            <>
+                                <div className="grid grid-cols-12 gap-4 p-4 bg-gray-100 border-b font-medium text-sm text-gray-700">
+                                    <div className="col-span-12">Global / Standard Adjustments</div>
+                                </div>
+                                {balanceSheet.adjustments.filter(adj => !adj.balance_sheet_item_id).map(adj => (
+                                    <div key={adj.id} className="grid grid-cols-12 gap-4 p-4 items-center bg-white border-b text-sm">
+                                        <div className="col-span-4 font-medium text-gray-600">{adj.description}</div>
+                                        <div className="col-span-2 text-right font-mono font-bold">
+                                            {adj.adjustment_type === 'debit' ? (
+                                                <span className="text-green-600">DR {Number(adj.adjustment_amount).toLocaleString()}</span>
+                                            ) : (
+                                                <span className="text-red-600">CR {Number(adj.adjustment_amount).toLocaleString()}</span>
+                                            )}
+                                        </div>
+                                        <div className="col-span-5"></div>
+                                        <div className="col-span-1 text-right">
+                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-red-500" onClick={() => handleDeleteAdjustment(adj.id!)}>
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+</div>
                     </div>
                 </CardContent>
             </Card>

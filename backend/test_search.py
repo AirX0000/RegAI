@@ -3,7 +3,7 @@ from app.db.session import SessionLocal
 from app.db.models.user import User
 from app.core.config import settings
 
-def test_search():
+def run_search():
     db = SessionLocal()
     try:
         # Get superuser for tenant_id

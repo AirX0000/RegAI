@@ -2,7 +2,7 @@ import requests
 
 BASE_URL = "http://localhost:8000/api/v1"
 
-def test_refresh():
+def run_refresh():
     # Login first
     print("Logging in...")
     login_data = {

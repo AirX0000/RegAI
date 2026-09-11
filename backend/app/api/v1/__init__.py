@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, tenants, regulations, companies, compliance, chat, compliance_score, reports, tax_rates, report_analysis, analytics, report_templates, report_comments, notifications, audit_logs, hierarchy, balance_sheets, documents, dashboard, onec, admin
+from app.api.v1 import auth, users, tenants, regulations, companies, compliance, chat, compliance_score, reports, tax_rates, report_analysis, analytics, report_templates, report_comments, notifications, audit_logs, hierarchy, balance_sheets, documents, dashboard, onec, admin, calculators
 
 api_router = APIRouter()
+api_router.include_router(calculators.router, prefix="/calculators", tags=["calculators"])
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])

@@ -43,7 +43,7 @@ def create_sample_excel():
     output.seek(0)
     return output
 
-def test_template_download(token):
+def run_template_download(token):
     """Test template download endpoint"""
     headers = {"Authorization": f"Bearer {token}"}
     print("\n📥 Testing Template Download...")
@@ -65,7 +65,7 @@ def test_template_download(token):
         print(response.text)
         return False
 
-def test_file_upload(token):
+def run_file_upload(token):
     """Test file upload endpoint"""
     headers = {"Authorization": f"Bearer {token}"}
     print("\n📤 Testing File Upload...")
@@ -92,7 +92,7 @@ def test_file_upload(token):
         print(response.text)
         return None
 
-def test_confirm_upload(token, items):
+def run_confirm_upload(token, items):
     """Test confirm upload endpoint"""
     headers = {"Authorization": f"Bearer {token}"}
     print("\n💾 Testing Save Uploaded Data...")

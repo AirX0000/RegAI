@@ -1,0 +1,11 @@
+**/*/.env
+**/*/.env.local
+**/*/.env.*.local
+.env
+.env.local
+.env.*.local
+node_modules
+backend/venv
+frontend/dist
+.git
+.DS_Store
