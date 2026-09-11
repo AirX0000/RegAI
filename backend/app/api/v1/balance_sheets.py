@@ -63,16 +63,14 @@ def list_balance_sheets(
     current_user: User = Depends(deps.get_current_user)
 ):
     """List all balance sheets for the user's company"""
-    if not current_user.company_id:
-        return []
-    
-    query = db.query(BalanceSheet).filter(
-        BalanceSheet.company_id == current_user.company_id
-    )
-    
-    # Superadmin can see all balance sheets
-    if current_user.role == "superadmin":
+    if current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser:
         query = db.query(BalanceSheet)
+    elif not current_user.company_id:
+        return []
+    else:
+        query = db.query(BalanceSheet).filter(
+            BalanceSheet.company_id == current_user.company_id
+        )
     
     balance_sheets = query.offset(skip).limit(limit).all()
     return balance_sheets

@@ -106,14 +106,16 @@ def list_documents(
     limit: int = 50,
 ) -> Any:
     """
-    List all documents for the current user's company.
+    List all documents for the current user's company (or all documents for superadmin).
     """
-    if not current_user.company_id:
-        raise HTTPException(status_code=400, detail="User must be associated with a company")
-    
-    documents = db.query(Document).filter(
-        Document.company_id == current_user.company_id
-    ).order_by(Document.created_at.desc()).offset(skip).limit(limit).all()
+    if current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser:
+        documents = db.query(Document).order_by(Document.created_at.desc()).offset(skip).limit(limit).all()
+    elif not current_user.company_id:
+        documents = []
+    else:
+        documents = db.query(Document).filter(
+            Document.company_id == current_user.company_id
+        ).order_by(Document.created_at.desc()).offset(skip).limit(limit).all()
     
     return [
         {
@@ -136,10 +138,11 @@ def get_document(
     """
     Get a specific document with extracted data.
     """
-    document = db.query(Document).filter(
-        Document.id == document_id,
-        Document.company_id == current_user.company_id
-    ).first()
+    query = db.query(Document).filter(Document.id == document_id)
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        query = query.filter(Document.company_id == current_user.company_id)
+    
+    document = query.first()
     
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -164,10 +167,11 @@ def delete_document(
     """
     Delete a document.
     """
-    document = db.query(Document).filter(
-        Document.id == document_id,
-        Document.company_id == current_user.company_id
-    ).first()
+    query = db.query(Document).filter(Document.id == document_id)
+    if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
+        query = query.filter(Document.company_id == current_user.company_id)
+    
+    document = query.first()
     
     if not document:
         raise HTTPException(status_code=404, detail="Document not found")

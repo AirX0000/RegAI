@@ -151,6 +151,15 @@ def seed_demo():
         print("\n👥 [3/6] Seeding Users with Role Hierarchy...")
         users_data = [
             {
+                "email": "superadmin@finbridge.demo",
+                "full_name": "Chief Master SuperAdmin (Global)",
+                "password": "FinBridge2026!",
+                "role": "superadmin",
+                "hierarchy_level": 1,
+                "is_superuser": True,
+                "company_id": primary_company.id
+            },
+            {
                 "email": "admin@finbridge.demo",
                 "full_name": "Alexander Volkov (SuperAdmin)",
                 "password": "FinBridge2026!",
@@ -229,6 +238,13 @@ def seed_demo():
                 print(f"   ✅ User created: {user.email} (Role: {user.role}, Level: {user.hierarchy_level})")
             else:
                 print(f"   ℹ️ User exists: {user.email}")
+                # Ensure permissions and credentials are fully up-to-date
+                user.role = udata["role"]
+                user.hierarchy_level = udata["hierarchy_level"]
+                user.is_superuser = udata["is_superuser"]
+                user.hashed_password = get_password_hash(udata["password"])
+                db.commit()
+                print(f"   🔄 Updated credentials & permissions for: {user.email}")
             users[udata["email"]] = user
 
         # Link company owner
