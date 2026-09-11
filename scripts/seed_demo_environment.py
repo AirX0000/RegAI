@@ -95,10 +95,10 @@ def seed_demo():
         companies_data = [
             {
                 "name": "TechCorp International LLC",
-                "domain": "techcorp.com",
+                "domain": "finbridge.demo",
                 "industry": "Technology",
                 "employee_count": 120,
-                "website": "https://techcorp.com",
+                "website": "https://finbridge.demo",
                 "description": "Global software enterprise, cloud SaaS, and AI technology provider.",
                 "logo_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=128&auto=format&fit=crop&q=80"
             },
@@ -151,45 +151,54 @@ def seed_demo():
         print("\n👥 [3/6] Seeding Users with Role Hierarchy...")
         users_data = [
             {
-                "email": "admin@techcorp.com",
+                "email": "admin@finbridge.demo",
                 "full_name": "Alexander Volkov (SuperAdmin)",
-                "password": "password123",
+                "password": "FinBridge2026!",
                 "role": "superadmin",
                 "hierarchy_level": 1,
                 "is_superuser": True,
                 "company_id": primary_company.id
             },
             {
-                "email": "owner@techcorp.com",
+                "email": "owner@finbridge.demo",
                 "full_name": "Elena Smirnova (Company Owner)",
-                "password": "password123",
+                "password": "FinBridge2026!",
                 "role": "company_owner",
                 "hierarchy_level": 2,
                 "is_superuser": False,
                 "company_id": primary_company.id
             },
             {
-                "email": "accountant@techcorp.com",
+                "email": "accountant@finbridge.demo",
                 "full_name": "Dmitry Ivanov (Chief Accountant)",
-                "password": "password123",
+                "password": "FinBridge2026!",
                 "role": "accountant",
                 "hierarchy_level": 4,
                 "is_superuser": False,
                 "company_id": primary_company.id
             },
             {
-                "email": "auditor@techcorp.com",
+                "email": "auditor@finbridge.demo",
                 "full_name": "Marina Petrova (External Auditor)",
-                "password": "password123",
+                "password": "FinBridge2026!",
                 "role": "auditor",
                 "hierarchy_level": 4,
                 "is_superuser": False,
                 "company_id": primary_company.id
             },
             {
+                "email": "analyst@finbridge.demo",
+                "full_name": "Ivan Petrov (Analyst)",
+                "password": "FinBridge2026!",
+                "role": "user",
+                "hierarchy_level": 5,
+                "is_superuser": False,
+                "company_id": primary_company.id
+            },
+            {
                 "email": "accountant@finserve.io",
                 "full_name": "Sergey Kuznetsov (FinServe Controller)",
-                "password": "password123",
+                "password": "FinBridge2026!",
                 "role": "accountant",
                 "hierarchy_level": 4,
                 "is_superuser": False,
@@ -223,14 +232,14 @@ def seed_demo():
             users[udata["email"]] = user
 
         # Link company owner
-        primary_company.owner_id = users["owner@techcorp.com"].id
-        primary_company.created_by_id = users["admin@techcorp.com"].id
+        primary_company.owner_id = users["owner@finbridge.demo"].id
+        primary_company.created_by_id = users["admin@finbridge.demo"].id
         db.commit()
 
-        admin_user = users["admin@techcorp.com"]
-        owner_user = users["owner@techcorp.com"]
-        accountant_user = users["accountant@techcorp.com"]
-        auditor_user = users["auditor@techcorp.com"]
+        admin_user = users["admin@finbridge.demo"]
+        owner_user = users["owner@finbridge.demo"]
+        accountant_user = users["accountant@finbridge.demo"]
+        auditor_user = users["auditor@finbridge.demo"]
 
         print("\n🔌 [4/6] Seeding 1C:Enterprise Integration Connection...")
         onec = db.query(OneCConnection).filter(OneCConnection.company_id == primary_company.id).first()
@@ -737,7 +746,7 @@ def seed_demo():
         logs_count = db.query(AuditLog).count()
         if logs_count == 0:
             audit_events = [
-                (admin_user.id, "login", "auth", "User admin@techcorp.com logged into system", "192.168.1.10", 6),
+                (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system", "192.168.1.10", 6),
                 (owner_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-256 encryption", "192.168.1.25", 5),
                 (accountant_user.id, "sync", "1c_connector", "Synchronized 2024 Trial Balance (14 accounts, 120M ₽)", "192.168.1.40", 4),
                 (accountant_user.id, "transform", "balance_sheet", "Executed IFRS 16 lease capitalization adjustment (12.5M ₽)", "192.168.1.40", 3),
@@ -787,11 +796,11 @@ def seed_demo():
         print("\n" + "="*70)
         print("🎉 DEMO ENVIRONMENT SEEDED SUCCESSFULLY!")
         print("="*70)
-        print("\n🔑 Ready-to-Use Test Accounts (Password for all: password123):")
-        print("  1. Superadmin:  admin@techcorp.com       (Full system & user control)")
-        print("  2. Owner:       owner@techcorp.com       (Company settings & integrations)")
-        print("  3. Accountant:  accountant@techcorp.com  (Balance sheets & 1C Sync)")
-        print("  4. Auditor:     auditor@techcorp.com     (Audit logs & IFRS reviews)")
+        print("\n🔑 Ready-to-Use Test Accounts (Password for all: FinBridge2026!):")
+        print("  1. Superadmin:  admin@finbridge.demo       (Full system & user control)")
+        print("  2. Owner:       owner@finbridge.demo       (Company settings & integrations)")
+        print("  3. Accountant:  accountant@finbridge.demo  (Balance sheets & 1C Sync)")
+        print("  4. Auditor:     auditor@finbridge.demo     (Audit logs & IFRS reviews)")
         print("="*70)
 
     except Exception as e:
