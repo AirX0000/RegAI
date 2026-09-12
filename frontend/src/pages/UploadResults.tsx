@@ -7,7 +7,6 @@ import { SpreadsheetViewer } from '@/components/SpreadsheetViewer';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Save, Upload as UploadIcon } from 'lucide-react';
-import { Topbar } from '@/components/Topbar';
 import { useTranslation } from 'react-i18next';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
@@ -141,67 +140,64 @@ export default function UploadResults() {
     };
 
     return (
-        <div className="min-h-screen bg-background">
-            <Topbar />
-            <main className="container mx-auto py-8 px-4">
-                <div className="mb-8 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                            <ArrowLeft className="w-4 h-4" />
-                        </Button>
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight">{t('upload_balance_sheet')}</h1>
-                            <p className="text-muted-foreground">
-                                {t('upload_balance_sheet')}
-                            </p>
-                        </div>
+        <div className="max-w-6xl mx-auto space-y-8 pb-12">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+                        <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">{t('upload_balance_sheet')}</h1>
+                        <p className="text-muted-foreground text-sm mt-1">
+                            {t('upload_balance_sheet_subtitle')}
+                        </p>
                     </div>
-                    {data.length > 0 && (
-                        <div className="flex gap-2">
-                            <Button variant="outline" onClick={handleReset}>
-                                <UploadIcon className="w-4 h-4 mr-2" />
-                                {t('upload_new')}
-                            </Button>
-                            <Button onClick={handleSave}>
-                                <Save className="w-4 h-4 mr-2" />
-                                {t('process_data')}
-                            </Button>
-                        </div>
-                    )}
                 </div>
-
-                {data.length === 0 ? (
-                    <div className="mt-12">
-                        {isProcessing ? (
-                            <div className="text-center py-12">
-                                <p className="text-lg text-muted-foreground animate-pulse">Processing file...</p>
-                            </div>
-                        ) : (
-                            <FileUpload onFileSelect={handleFileSelect} />
-                        )}
-                    </div>
-                ) : (
-                    <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg font-medium flex items-center justify-between">
-                                    <span>Preview: {fileName}</span>
-                                    <span className="text-sm font-normal text-muted-foreground">
-                                        {data.length} rows
-                                    </span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <SpreadsheetViewer
-                                    data={data}
-                                    onChange={setData}
-                                    columns={columns}
-                                />
-                            </CardContent>
-                        </Card>
+                {data.length > 0 && (
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={handleReset}>
+                            <UploadIcon className="w-4 h-4 mr-2" />
+                            {t('upload_new')}
+                        </Button>
+                        <Button onClick={handleSave}>
+                            <Save className="w-4 h-4 mr-2" />
+                            {t('process_data')}
+                        </Button>
                     </div>
                 )}
-            </main>
+            </div>
+
+            {data.length === 0 ? (
+                <div className="mt-8">
+                    {isProcessing ? (
+                        <div className="text-center py-12">
+                            <p className="text-lg text-muted-foreground animate-pulse">Processing file...</p>
+                        </div>
+                    ) : (
+                        <FileUpload onFileSelect={handleFileSelect} />
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg font-medium flex items-center justify-between">
+                                <span>Preview: {fileName}</span>
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    {data.length} rows
+                                </span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <SpreadsheetViewer
+                                data={data}
+                                onChange={setData}
+                                columns={columns}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
         </div>
     );
 }

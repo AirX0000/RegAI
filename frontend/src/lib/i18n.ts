@@ -223,6 +223,7 @@ const resources = {
             "action_cannot_be_undone": "This action cannot be undone.",
             // Upload & Banking
             "upload_balance_sheet": "Upload Balance Sheet",
+            "upload_balance_sheet_subtitle": "Upload NAS (НСБУ) trial balance or financial statement in Excel (.xlsx) or CSV format for automatic IFRS transformation",
             "processing_file": "Processing file...",
             "preview": "Preview",
             "process_data": "Process Data",
@@ -833,6 +834,7 @@ const resources = {
             "action_cannot_be_undone": "Это действие нельзя отменить.",
             // Upload & Banking
             "upload_balance_sheet": "Загрузить баланс",
+            "upload_balance_sheet_subtitle": "Загрузите оборотно-сальдовую ведомость или баланс НСБУ в формате Excel (.xlsx) или CSV для автоматической трансформации в МСФО",
             "processing_file": "Обработка файла...",
             "preview": "Предпросмотр",
             "process_data": "Обработать данные",
