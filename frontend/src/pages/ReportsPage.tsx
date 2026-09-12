@@ -55,6 +55,24 @@ export default function ReportsPage() {
             // Navigate back to /reports to clean up URL
             navigate('/reports', { replace: true });
         }
+
+        // Check for templateData in localStorage (from template use)
+        const savedTemplate = localStorage.getItem('templateData');
+        if (savedTemplate) {
+            try {
+                const parsed = JSON.parse(savedTemplate);
+                setFormData({
+                    title: parsed.title || '',
+                    description: parsed.description || '',
+                    report_type: parsed.report_type || 'compliance',
+                    company_id: parsed.company_id || (user as any)?.company_id || ''
+                });
+                setIsSubmitOpen(true);
+                localStorage.removeItem('templateData');
+            } catch (e) {
+                console.error("Failed to parse templateData", e);
+            }
+        }
     }, []);
 
     const fetchReports = async () => {
@@ -329,7 +347,15 @@ export default function ReportsPage() {
             )}
 
             {/* Templates Section */}
-            <TemplatesSection />
+            <TemplatesSection onSelectTemplate={(tmplData) => {
+                setFormData({
+                    title: tmplData.title || '',
+                    description: tmplData.description || '',
+                    report_type: tmplData.report_type || 'compliance',
+                    company_id: tmplData.company_id || (user as any)?.company_id || ''
+                });
+                setIsSubmitOpen(true);
+            }} />
 
             {/* Reports Table */}
             <div className="rounded-lg border bg-white shadow-sm">

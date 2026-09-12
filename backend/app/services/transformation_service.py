@@ -275,34 +275,65 @@ class TransformationService:
                     ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["other_reserves"].append(mapped_item)
 
         # Apply global adjustments (e.g. from IFRS 16, IAS 36, IFRS 9 calculators)
-        for adj in (balance_sheet.transformations or []):
-            if not adj.balance_sheet_item_id:
-                adj_desc = (adj.description or "").lower()
-                adj_amt = float(adj.adjustment_amount)
-                item_entry = {
-                    "code": "ADJ",
-                    "name": adj.description,
-                    "amount": adj_amt
-                }
-                if "ifrs 16" in adj_desc or "lease" in adj_desc:
-                    if "asset" in adj_desc or "rou" in adj_desc or "right-of-use" in adj_desc:
-                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
-                    elif "liab" in adj_desc:
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(item_entry)
-                elif "ias 36" in adj_desc or "impairment" in adj_desc:
-                    if adj.adjustment_type == "credit":
-                        item_entry["amount"] = -abs(adj_amt)
-                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
-                    else:
-                        item_entry["amount"] = -abs(adj_amt)
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
-                elif "ifrs 9" in adj_desc or "ecl" in adj_desc:
-                    if adj.adjustment_type == "credit":
-                        item_entry["amount"] = -abs(adj_amt)
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(item_entry)
-                    else:
-                        item_entry["amount"] = -abs(adj_amt)
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
+        global_adjs = [adj for adj in (balance_sheet.transformations or []) if not adj.balance_sheet_item_id]
+        has_ias36_debit = any(
+            ("ias 36" in (adj.description or "").lower() or "impairment" in (adj.description or "").lower())
+            and adj.adjustment_type == "debit"
+            for adj in global_adjs
+        )
+        has_ifrs9_debit = any(
+            ("ifrs 9" in (adj.description or "").lower() or "ecl" in (adj.description or "").lower())
+            and adj.adjustment_type == "debit"
+            for adj in global_adjs
+        )
+
+        for adj in global_adjs:
+            adj_desc = (adj.description or "").lower()
+            adj_amt = float(adj.adjustment_amount)
+            item_entry = {
+                "code": "ADJ",
+                "name": adj.description,
+                "amount": adj_amt
+            }
+            if "ifrs 16" in adj_desc or "lease" in adj_desc:
+                if "asset" in adj_desc or "rou" in adj_desc or "right-of-use" in adj_desc:
+                    ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
+                elif "liab" in adj_desc:
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(item_entry)
+            elif "ias 36" in adj_desc or "impairment" in adj_desc:
+                if adj.adjustment_type == "credit":
+                    item_entry["amount"] = -abs(adj_amt)
+                    ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
+                    # Double-entry balance: if no separate P&L debit adjustment exists, reflect the impairment loss against Retained Earnings
+                    if not has_ias36_debit:
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append({
+                            "code": "ADJ",
+                            "name": f"IAS 36 Impairment Loss recognized in P&L (Retained Earnings reduction)",
+                            "amount": -abs(adj_amt)
+                        })
+                else:
+                    item_entry["amount"] = -abs(adj_amt)
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
+            elif "ifrs 9" in adj_desc or "ecl" in adj_desc:
+                if adj.adjustment_type == "credit":
+                    item_entry["amount"] = -abs(adj_amt)
+                    ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(item_entry)
+                    # Double-entry balance: if no separate P&L debit adjustment exists, reflect the credit loss against Retained Earnings
+                    if not has_ifrs9_debit:
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append({
+                            "code": "ADJ",
+                            "name": f"IFRS 9 ECL Provision Expense recognized in P&L (Retained Earnings reduction)",
+                            "amount": -abs(adj_amt)
+                        })
+                else:
+                    item_entry["amount"] = -abs(adj_amt)
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
+            else:
+                # Other generic global adjustments
+                if adj.adjustment_type == "debit":
+                    ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["other"].append(item_entry)
+                else:
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["other"].append(item_entry)
 
         # Calculate section totals directly from items
         def sum_items(lst):
@@ -325,6 +356,13 @@ class TransformationService:
         c_liab["total"] = sum_items(c_liab["trade_payables"]) + sum_items(c_liab["short_term_borrowings"]) + sum_items(c_liab["provisions"]) + sum_items(c_liab["other"])
 
         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] = eq["total"] + nc_liab["total"] + c_liab["total"]
+
+        # Track balance status and discrepancy
+        assets_tot = ifrs_structure["statement_of_financial_position"]["assets"]["total"]
+        eq_liab_tot = ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"]
+        diff = assets_tot - eq_liab_tot
+        ifrs_structure["statement_of_financial_position"]["is_balanced"] = bool(abs(diff) < Decimal("0.01"))
+        ifrs_structure["statement_of_financial_position"]["discrepancy"] = float(diff)
 
 
         

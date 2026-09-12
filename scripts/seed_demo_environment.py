@@ -348,7 +348,7 @@ def seed_demo():
                 )
                 db.add(item)
 
-            # Add IFRS Adjustments (IFRS 16 Lease, IAS 36 Impairment, IFRS 9 ECL)
+            # Add IFRS Adjustments (IFRS 16 Lease, IAS 36 Impairment, IFRS 9 ECL) - Full Double-Entry Pairs
             adj1 = TransformationAdjustment(
                 id=uuid.uuid4(),
                 balance_sheet_id=bs_2024.id,
@@ -381,26 +381,42 @@ def seed_demo():
                 adjustment_type="credit",
                 ifrs_category="IFRS 9 (Financial Instruments)"
             )
+            adj5 = TransformationAdjustment(
+                id=uuid.uuid4(),
+                balance_sheet_id=bs_2024.id,
+                description="IAS 36 Impairment Loss recognized in Profit or Loss (Retained Earnings reduction)",
+                adjustment_amount=2300000.00,
+                adjustment_type="debit",
+                ifrs_category="IAS 36 (Impairment)"
+            )
+            adj6 = TransformationAdjustment(
+                id=uuid.uuid4(),
+                balance_sheet_id=bs_2024.id,
+                description="IFRS 9 ECL Provision Expense recognized in Profit or Loss (Retained Earnings reduction)",
+                adjustment_amount=3250000.00,
+                adjustment_type="debit",
+                ifrs_category="IFRS 9 (Financial Instruments)"
+            )
             ts = TransformedStatement(
                 id=uuid.uuid4(),
                 balance_sheet_id=bs_2024.id,
                 format_type=TransformationFormat.IFRS,
                 transformed_data={
-                    "total_assets_ifrs": 132500000.00,
+                    "total_assets_ifrs": 126950000.00,
                     "total_liabilities_ifrs": 82500000.00,
-                    "total_equity_ifrs": 50000000.00,
+                    "total_equity_ifrs": 44450000.00,
                     "status": "balanced",
-                    "adjustments_count": 4
+                    "adjustments_count": 6
                 },
                 transformation_rules_applied=[
-                    {"standard": "IFRS 16", "impact": "+12,500,000 ROU Asset"},
-                    {"standard": "IAS 36", "impact": "-2,300,000 Impairment"},
-                    {"standard": "IFRS 9", "impact": "-3,250,000 ECL Provision"}
+                    {"standard": "IFRS 16", "impact": "+12,500,000 ROU Asset / +12,500,000 Lease Liability"},
+                    {"standard": "IAS 36", "impact": "-2,300,000 Asset Impairment / -2,300,000 Retained Earnings (P&L)"},
+                    {"standard": "IFRS 9", "impact": "-3,250,000 ECL Provision / -3,250,000 Retained Earnings (P&L)"}
                 ]
             )
-            db.add_all([adj1, adj2, adj3, adj4, ts])
+            db.add_all([adj1, adj2, adj3, adj4, adj5, adj6, ts])
             db.commit()
-            print(f"   ✅ Seeded 2024 Balanced Sheet with 14 accounts and IFRS 16 / IAS 36 / IFRS 9 adjustments")
+            print(f"   ✅ Seeded 2024 Balanced Sheet with 14 accounts and 6 IFRS double-entry adjustments ($126.95M equilibrium)")
 
         # 2025 FY / H1 Untransformed NAS Balance Sheet
         bs_2025 = db.query(BalanceSheet).filter(

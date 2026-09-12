@@ -446,16 +446,16 @@ def ensure_demo_data():
                     balance_sheet_id=bs_2024.id,
                     format_type=TransformationFormat.IFRS,
                     transformed_data={
-                        "total_assets_ifrs": 132500000.00,
+                        "total_assets_ifrs": 126950000.00,
                         "total_liabilities_ifrs": 82500000.00,
-                        "total_equity_ifrs": 50000000.00,
+                        "total_equity_ifrs": 44450000.00,
                         "status": "balanced",
-                        "adjustments_count": 3
+                        "adjustments_count": 6
                     },
                     transformation_rules_applied=[
-                        {"standard": "IFRS 16", "impact": "+12,500,000 ROU Asset"},
-                        {"standard": "IAS 36", "impact": "-2,300,000 Impairment"},
-                        {"standard": "IFRS 9", "impact": "-3,250,000 ECL Provision"}
+                        {"standard": "IFRS 16", "impact": "+12,500,000 ROU Asset / +12,500,000 Lease Liability"},
+                        {"standard": "IAS 36", "impact": "-2,300,000 Asset Impairment / -2,300,000 Retained Earnings (P&L)"},
+                        {"standard": "IFRS 9", "impact": "-3,250,000 ECL Provision / -3,250,000 Retained Earnings (P&L)"}
                     ]
                 )
                 db.add(ts)
@@ -476,11 +476,29 @@ def ensure_demo_data():
                     TransformationAdjustment(
                         id=uuid.uuid4(),
                         balance_sheet_id=bs_2024.id,
+                        description="IFRS 16: Lease Liability Recognition",
+                        adjustment_amount=12500000.00,
+                        adjustment_type="credit",
+                        ifrs_category="IFRS 16 (Leases)",
+                        balance_sheet_item_id=None
+                    ),
+                    TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
                         description="IAS 36: Impairment of obsolete server infrastructure to recoverable amount",
                         adjustment_amount=2300000.00,
                         adjustment_type="credit",
                         ifrs_category="IAS 36 (Impairment)",
                         balance_sheet_item_id=fa_item.id if fa_item else None
+                    ),
+                    TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
+                        description="IAS 36: Impairment Loss recognized in Profit & Loss (Retained Earnings reduction)",
+                        adjustment_amount=2300000.00,
+                        adjustment_type="debit",
+                        ifrs_category="IAS 36 (Impairment)",
+                        balance_sheet_item_id=None
                     ),
                     TransformationAdjustment(
                         id=uuid.uuid4(),
@@ -491,12 +509,70 @@ def ensure_demo_data():
                         ifrs_category="IFRS 9 (Financial Instruments)",
                         balance_sheet_item_id=ar_item.id if ar_item else None
                     ),
+                    TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
+                        description="IFRS 9: ECL Provision Expense recognized in Profit & Loss (Retained Earnings reduction)",
+                        adjustment_amount=3250000.00,
+                        adjustment_type="debit",
+                        ifrs_category="IFRS 9 (Financial Instruments)",
+                        balance_sheet_item_id=None
+                    ),
                 ]
                 for adj in adjustments:
                     db.add(adj)
 
                 db.commit()
-                logger.info("Seeded balanced 2024 trial balance and IFRS 16 / IAS 36 / IFRS 9 transformation adjustments")
+                logger.info("Seeded balanced 2024 trial balance and 6 IFRS 16 / IAS 36 / IFRS 9 transformation adjustments")
+
+            # Ensure double-entry completeness and balance synchronization for bs_2024
+            if bs_2024:
+                existing_adjs = db.query(TransformationAdjustment).filter(
+                    TransformationAdjustment.balance_sheet_id == bs_2024.id
+                ).all()
+                existing_desc_type = {(a.description or "", a.adjustment_type) for a in existing_adjs}
+
+                missing_adjs = []
+                if not any("lease liability" in d.lower() for d, t in existing_desc_type):
+                    missing_adjs.append(TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
+                        description="IFRS 16: Lease Liability Recognition",
+                        adjustment_amount=12500000.00,
+                        adjustment_type="credit",
+                        ifrs_category="IFRS 16 (Leases)"
+                    ))
+                if not any(("ias 36" in d.lower() or "impairment" in d.lower()) and t == "debit" for d, t in existing_desc_type):
+                    missing_adjs.append(TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
+                        description="IAS 36: Impairment Loss recognized in Profit & Loss (Retained Earnings reduction)",
+                        adjustment_amount=2300000.00,
+                        adjustment_type="debit",
+                        ifrs_category="IAS 36 (Impairment)"
+                    ))
+                if not any(("ifrs 9" in d.lower() or "ecl" in d.lower()) and t == "debit" for d, t in existing_desc_type):
+                    missing_adjs.append(TransformationAdjustment(
+                        id=uuid.uuid4(),
+                        balance_sheet_id=bs_2024.id,
+                        description="IFRS 9: ECL Provision Expense recognized in Profit & Loss (Retained Earnings reduction)",
+                        adjustment_amount=3250000.00,
+                        adjustment_type="debit",
+                        ifrs_category="IFRS 9 (Financial Instruments)"
+                    ))
+                if missing_adjs:
+                    for madj in missing_adjs:
+                        db.add(madj)
+                    db.commit()
+
+                # Refresh IFRS TransformedStatement so it is perfectly balanced
+                try:
+                    from app.services.transformation_service import TransformationService
+                    ts_service = TransformationService(db)
+                    ts_service.transform_balance_sheet(bs_2024.id)
+                    logger.info("Successfully synchronized bs_2024 with complete double-entry adjustments ($126.95M equilibrium)")
+                except Exception as t_err:
+                    logger.warning(f"Notice auto-transforming bs_2024 on startup: {t_err}")
 
             # 6b. Untransformed 2025 National Accounting Standards (НАС / НСБУ) Balance Sheet Ready for Transformation
             bs_2025 = db.query(BalanceSheet).filter(

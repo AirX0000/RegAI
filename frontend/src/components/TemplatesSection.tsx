@@ -5,7 +5,11 @@ import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
 import { Plus, Trash2, Edit } from 'lucide-react';
 
-export default function TemplatesSection() {
+interface TemplatesSectionProps {
+    onSelectTemplate?: (templateData: any) => void;
+}
+
+export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionProps = {}) {
     const [templates, setTemplates] = useState<any[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<any>(null);
@@ -97,14 +101,16 @@ export default function TemplatesSection() {
     const handleUseTemplate = async (id: string) => {
         try {
             const res = await api.post(`/templates/${id}/use`);
-            // Store template data in localStorage for Reports page to use
-            localStorage.setItem('templateData', JSON.stringify(res.data));
             toast({
-                title: "Template loaded",
-                description: "Go to Reports page to create report from this template",
+                title: "Template applied",
+                description: `Opened submit form with "${res.data.title || 'template'}" parameters`,
             });
-            // Navigate to reports page
-            window.location.href = '/reports';
+            if (onSelectTemplate) {
+                onSelectTemplate(res.data);
+            } else {
+                localStorage.setItem('templateData', JSON.stringify(res.data));
+                window.location.href = '/reports';
+            }
         } catch (error: any) {
             toast({
                 variant: "destructive",
