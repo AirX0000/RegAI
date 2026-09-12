@@ -35,7 +35,8 @@ def get_current_user(
 ) -> User:
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM],
+            options={"leeway": 60}
         )
         user_id: str = payload.get("sub")
         tenant_id: str = payload.get("tid")

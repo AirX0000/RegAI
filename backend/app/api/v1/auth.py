@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app.core import security
+from app.core import security, deps
 from app.core.config import settings
 from app.core.deps import get_db
 from app.core.rate_limit import check_login_rate_limit
@@ -61,6 +61,29 @@ def login_access_token(
     return {
         "access_token": security.create_access_token(
             user.id, expires_delta=access_token_expires,
+            claims=claims
+        ),
+        "token_type": "bearer",
+    }
+
+@router.post("/refresh", response_model=auth_schemas.Token)
+def refresh_access_token(
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Refresh current user's JWT access token with a renewed expiration window.
+    Allows frontend session to remain seamlessly alive during active usage.
+    """
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    claims = {"role": current_user.role}
+    if hasattr(current_user, 'tenant_id') and current_user.tenant_id:
+        claims["tid"] = str(current_user.tenant_id)
+    if hasattr(current_user, 'company_id') and current_user.company_id:
+        claims["cid"] = str(current_user.company_id)
+    
+    return {
+        "access_token": security.create_access_token(
+            current_user.id, expires_delta=access_token_expires,
             claims=claims
         ),
         "token_type": "bearer",

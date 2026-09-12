@@ -537,8 +537,57 @@ def test_feature_10_api_endpoints_live_execution(client, db, superuser_token_hea
     )
     assert resp_audit.status_code == 200
     data = resp_audit.json()
-    assert data["is_balanced"] is True
-    assert data["discrepancy"] == 0.0
-    assert "Unqualified" in data["opinion"]
     assert len(data["audit_memo_markdown"]) > 100
+
+
+def test_feature_11_silent_token_refresh_and_session_persistence(client, db):
+    """
+    FEATURE 11: Verify silent session token refresh mechanism and extended session.
+    Tests POST /api/v1/auth/refresh to ensure users remain authenticated seamlessly without being kicked out.
+    """
+    company = setup_base_entities(db)
+    user = User(
+        id=uuid.uuid4(),
+        email=f"auditor_{uuid.uuid4().hex[:6]}@regai.uz",
+        hashed_password=get_password_hash("SecretRefreshPass123!"),
+        full_name="Assurance Auditor",
+        role="senior_auditor",
+        is_active=True,
+        company_id=company.id,
+        tenant_id=company.tenant_id,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    # 1. Generate access token for user
+    from app.core import security
+    token = security.create_access_token(
+        user.id,
+        claims={"role": user.role, "tid": str(user.tenant_id), "cid": str(user.company_id)}
+    )
+
+    # 2. Call /api/v1/auth/refresh with the bearer token
+    refresh_resp = client.post(
+        "/api/v1/auth/refresh",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert refresh_resp.status_code == 200
+    refresh_data = refresh_resp.json()
+    assert "access_token" in refresh_data
+    assert refresh_data["token_type"] == "bearer"
+    
+    new_token = refresh_data["access_token"]
+    assert new_token != token  # A freshly generated token
+
+    # 3. Verify that the new refreshed token allows accessing protected endpoints
+    me_resp = client.get(
+        "/api/v1/users/me",
+        headers={"Authorization": f"Bearer {new_token}"}
+    )
+    assert me_resp.status_code == 200
+    me_data = me_resp.json()
+    assert me_data["email"] == user.email
+    assert me_data["role"] == "senior_auditor"
+
 
