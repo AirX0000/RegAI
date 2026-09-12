@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app /app/app
 COPY backend/alembic /app/alembic
 COPY backend/alembic.ini /app/alembic.ini
+COPY backend/populate_regulations.py /app/populate_regulations.py
 COPY scripts /app/scripts
 
 # Copy built frontend assets
@@ -53,10 +54,12 @@ ENV CHROMA_DIR=/app/chroma_db
 
 EXPOSE 8000
 
-# Start command: migrations → base seed → AI regulations → demo companies → uvicorn
+# Start command: migrations → universal schema healing → base seed → AI regulations → demo companies → uvicorn
 CMD ["sh", "-c", "\
   echo '🚀 Running DB migrations...' && \
   python -m alembic upgrade head && \
+  echo '🔧 Universal schema self-healing...' && \
+  python -c 'from app.main import ensure_db_schema; ensure_db_schema()' && \
   echo '🌱 Seeding base demo environment...' && \
   python /app/scripts/seed_demo_environment.py || true && \
   echo '🤖 Populating AI regulations content...' && \

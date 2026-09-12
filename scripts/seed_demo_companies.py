@@ -352,32 +352,12 @@ def main():
     print("=" * 70)
 
     credentials_output = []
-
+    # 0. Run universal defensive schema self-healing
     try:
-        from sqlalchemy import text
-        with engine.connect() as conn:
-            try:
-                cols = [row[1] for row in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
-                if cols:
-                    if "hierarchy_level" not in cols:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN hierarchy_level INTEGER DEFAULT 5"))
-                    if "is_company_owner" not in cols:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN is_company_owner BOOLEAN DEFAULT 0"))
-                    if "preferences" not in cols:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN preferences JSON DEFAULT '{}'"))
-                    if "updated_at" not in cols:
-                        conn.execute(text("ALTER TABLE users ADD COLUMN updated_at DATETIME"))
-                comp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(companies)")).fetchall()]
-                if comp_cols:
-                    if "owner_id" not in comp_cols:
-                        conn.execute(text("ALTER TABLE companies ADD COLUMN owner_id VARCHAR"))
-                    if "created_by_id" not in comp_cols:
-                        conn.execute(text("ALTER TABLE companies ADD COLUMN created_by_id VARCHAR"))
-                conn.commit()
-            except Exception as e:
-                print(f"Notice: schema check {e}")
+        from app.main import ensure_db_schema
+        ensure_db_schema()
     except Exception as e:
-        print(f"Notice: schema check connection {e}")
+        print(f"Notice: schema self-healing in seed_demo_companies: {e}")
 
     try:
         for company_cfg in DEMO_COMPANIES:
