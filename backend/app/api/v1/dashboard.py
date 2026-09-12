@@ -192,8 +192,16 @@ def get_dashboard_data(
     recent = []
     try:
         activity_query = db.query(AuditLog)
-        if current_user.tenant_id and not (current_user.is_superuser or current_user.role in ["superadmin", "website_superadmin"]):
-            activity_query = activity_query.filter(AuditLog.tenant_id == current_user.tenant_id)
+        if not (current_user.is_superuser or current_user.role in ["superadmin", "website_superadmin"]):
+            if getattr(current_user, "company_id", None):
+                from app.db.models.user import User
+                company_user_ids = db.query(User.id).filter(User.company_id == current_user.company_id).subquery()
+                activity_query = activity_query.filter(
+                    (AuditLog.tenant_id == current_user.tenant_id) &
+                    ((AuditLog.user_id.in_(company_user_ids)) | (AuditLog.user_id.is_(None)))
+                )
+            elif current_user.tenant_id:
+                activity_query = activity_query.filter(AuditLog.tenant_id == current_user.tenant_id)
         
         try:
             recent_logs = activity_query.order_by(AuditLog.timestamp.desc()).limit(10).all()

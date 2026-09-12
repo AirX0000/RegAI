@@ -35,7 +35,12 @@ def read_alerts(
     """
     Retrieve compliance alerts with filtering and sorting.
     """
-    query = db.query(Alert).filter(Alert.tenant_id == current_user.tenant_id)
+    if current_user.role in ["superadmin", "website_superadmin"] or getattr(current_user, "is_superuser", False):
+        query = db.query(Alert)
+    else:
+        query = db.query(Alert).filter(Alert.tenant_id == current_user.tenant_id)
+        if getattr(current_user, "company_id", None):
+            query = query.filter(Alert.company_id == current_user.company_id)
     
     # Apply filters
     if severity:
@@ -81,7 +86,12 @@ def get_alert_stats(
     """
     Get alert statistics for dashboard.
     """
-    query = db.query(Alert).filter(Alert.tenant_id == current_user.tenant_id)
+    if current_user.role in ["superadmin", "website_superadmin"] or getattr(current_user, "is_superuser", False):
+        query = db.query(Alert)
+    else:
+        query = db.query(Alert).filter(Alert.tenant_id == current_user.tenant_id)
+        if getattr(current_user, "company_id", None):
+            query = query.filter(Alert.company_id == current_user.company_id)
     
     total = query.count()
     critical = query.filter(Alert.severity == AlertSeverity.CRITICAL).count()

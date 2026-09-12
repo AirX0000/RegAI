@@ -86,11 +86,11 @@ def seed_demo():
     db: Session = SessionLocal()
     try:
         print("🌱 [1/6] Seeding Tenant...")
-        tenant = db.query(Tenant).filter(Tenant.name == "TechCorp Group").first()
+        tenant = db.query(Tenant).filter(Tenant.name == "FinBridge Group").first() or db.query(Tenant).first()
         if not tenant:
             tenant = Tenant(
                 id=uuid.uuid4(),
-                name="TechCorp Group",
+                name="FinBridge Group",
                 plan="enterprise"
             )
             db.add(tenant)
@@ -98,7 +98,7 @@ def seed_demo():
             db.refresh(tenant)
             print(f"   ✅ Tenant created: {tenant.name} ({tenant.id})")
         else:
-            print(f"   ℹ️ Tenant exists: {tenant.name}")
+            print(f"   ℹ️ Tenant exists: {tenant.name} ({tenant.id})")
 
         print("\n🏢 [2/6] Seeding Companies...")
         companies_data = [
@@ -812,10 +812,19 @@ def seed_demo():
             print(f"   ℹ️ Documents already exist ({docs_count} found)")
 
         print("\n🛡️ [12/12] Seeding Audit Logs & 1C Sync History...")
-        logs_count = db.query(AuditLog).count()
+        finbridge_users = [u for u in [admin_user, owner_user, accountant_user, auditor_user] if u]
+        finbridge_user_ids = [u.id for u in finbridge_users]
+        if finbridge_user_ids:
+            # Realign any existing audit logs created under mismatched tenant_id
+            db.query(AuditLog).filter(AuditLog.user_id.in_(finbridge_user_ids)).update(
+                {AuditLog.tenant_id: primary_company.tenant_id}, synchronize_session=False
+            )
+            db.commit()
+
+        logs_count = db.query(AuditLog).filter(AuditLog.tenant_id == primary_company.tenant_id).count()
         if logs_count == 0:
             audit_events = [
-                (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system", "192.168.1.10", 6),
+                (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
                 (owner_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-256 encryption", "192.168.1.25", 5),
                 (accountant_user.id, "sync", "1c_connector", "Synchronized 2024 Trial Balance (14 accounts, 120M ₽)", "192.168.1.40", 4),
                 (accountant_user.id, "transform", "balance_sheet", "Executed IFRS 16 lease capitalization adjustment (12.5M ₽)", "192.168.1.40", 3),
@@ -823,16 +832,18 @@ def seed_demo():
                 (admin_user.id, "update", "tax_rates", "Verified Uzbekistan and Kazakhstan VAT/Corporate tax rates", "192.168.1.10", 1),
             ]
             for u_id, act, res_type, det, ip, days_ago in audit_events:
+                ts = datetime.utcnow() - timedelta(days=days_ago)
                 alog = AuditLog(
                     id=uuid.uuid4(),
-                    tenant_id=tenant.id,
+                    tenant_id=primary_company.tenant_id,
                     user_id=u_id,
                     action=act,
                     resource_type=res_type,
                     resource_id=str(uuid.uuid4()),
                     details=det,
                     ip_address=ip,
-                    created_at=datetime.utcnow() - timedelta(days=days_ago)
+                    timestamp=ts,
+                    created_at=ts
                 )
                 db.add(alog)
 
@@ -846,7 +857,7 @@ def seed_demo():
                 slog = OneCSyncLog(
                     id=uuid.uuid4(),
                     company_id=primary_company.id,
-                    tenant_id=tenant.id,
+                    tenant_id=primary_company.tenant_id,
                     user_id=accountant_user.id,
                     sync_type=s_type,
                     status=s_stat,

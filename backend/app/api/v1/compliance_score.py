@@ -48,6 +48,8 @@ def get_compliance_score(
     )
     if current_user.tenant_id and not (getattr(current_user, "is_superuser", False) or getattr(current_user, "role", "") in ["superadmin", "website_superadmin"]):
         alerts_query = alerts_query.filter(Alert.tenant_id == current_user.tenant_id)
+        if getattr(current_user, "company_id", None):
+            alerts_query = alerts_query.filter(Alert.company_id == current_user.company_id)
     alerts = alerts_query.all()
     
     # Process alerts and assign to categories

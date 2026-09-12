@@ -149,7 +149,7 @@ def ensure_demo_data():
         db = SessionLocal()
         try:
             # 1. Ensure Tenant
-            tenant = db.query(Tenant).first()
+            tenant = db.query(Tenant).filter(Tenant.name == "FinBridge Group").first() or db.query(Tenant).first()
             if not tenant:
                 tenant = Tenant(id=uuid.uuid4(), name="FinBridge Group", plan="enterprise")
                 db.add(tenant)
@@ -294,10 +294,8 @@ def ensure_demo_data():
                     user.is_superuser = acc["is_superuser"]
                     user.is_company_owner = acc["is_company_owner"]
                     user.hierarchy_level = acc["hierarchy_level"]
-                    if not user.tenant_id:
-                        user.tenant_id = tenant.id
-                    if not user.company_id:
-                        user.company_id = primary_company.id
+                    user.tenant_id = primary_company.tenant_id
+                    user.company_id = primary_company.id
                     db.commit()
                 users[acc["email"]] = user
 
@@ -660,7 +658,15 @@ def ensure_demo_data():
                 logger.info("Seeded cross-border tax rates")
 
             # 11. Security Audit Logs
-            if db.query(AuditLog).count() < 5 and admin_user:
+            finbridge_users = db.query(User).filter(User.company_id == primary_company.id).all()
+            finbridge_user_ids = [u.id for u in finbridge_users]
+            if finbridge_user_ids:
+                db.query(AuditLog).filter(AuditLog.user_id.in_(finbridge_user_ids)).update(
+                    {AuditLog.tenant_id: primary_company.tenant_id}, synchronize_session=False
+                )
+                db.commit()
+
+            if db.query(AuditLog).filter(AuditLog.tenant_id == primary_company.tenant_id).count() < 5 and admin_user:
                 audit_events = [
                     (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
                     (owner_user.id if owner_user else admin_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-128-CBC encryption", "192.168.1.25", 5),
@@ -674,7 +680,7 @@ def ensure_demo_data():
                     ts = datetime.now(timezone.utc) - timedelta(days=days_ago)
                     alog = AuditLog(
                         id=uuid.uuid4(),
-                        tenant_id=tenant.id,
+                        tenant_id=primary_company.tenant_id,
                         user_id=u_id,
                         action=act,
                         resource_type=res_type,
