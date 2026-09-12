@@ -47,6 +47,8 @@ const resources = {
             "nav_reports": "Reports",
             "nav_companies": "Companies",
             "nav_tax_rates": "Tax Rates",
+            "nav_transformation": "Transformation",
+            "nav_documentation": "Documentation",
             "nav_administration": "Administration",
             "nav_users": "Users",
             "nav_hierarchy": "Hierarchy",
@@ -54,6 +56,13 @@ const resources = {
             "nav_tenants": "Tenants",
             "nav_audit_log": "Audit Log",
             "nav_help": "Help",
+            "role_superadmin": "Superadmin",
+            "role_admin": "Company Admin",
+            "role_company_owner": "Company Owner",
+            "role_accountant": "Accountant",
+            "role_auditor": "Auditor",
+            "role_user": "Analyst",
+            "profile_tooltip": "Profile Management & Security",
             "logout": "Logout",
             "reports_title": "Reports",
             "create_report": "Create Report",
@@ -658,13 +667,22 @@ const resources = {
             "nav_reports": "Отчеты",
             "nav_companies": "Компании",
             "nav_tax_rates": "Налоговые ставки",
+            "nav_transformation": "Трансформация МСФО",
+            "nav_documentation": "Документация",
             "nav_administration": "Администрирование",
             "nav_users": "Пользователи",
             "nav_hierarchy": "Иерархия",
             "nav_company_settings": "Настройки компании",
-            "nav_tenants": "Арендаторы",
+            "nav_tenants": "Тенанты",
             "nav_audit_log": "Журнал аудита",
             "nav_help": "Помощь",
+            "role_superadmin": "Главный суперадмин",
+            "role_admin": "Администратор компании",
+            "role_company_owner": "Владелец компании",
+            "role_accountant": "Главный бухгалтер",
+            "role_auditor": "Аудитор",
+            "role_user": "Финансовый аналитик",
+            "profile_tooltip": "Управление профилем и смена пароля",
             "logout": "Выйти",
             "reports_title": "Отчеты",
             "create_report": "Создать отчет",
@@ -1238,12 +1256,21 @@ const resources = {
     }
 };
 
+const savedLang = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') : null;
+const initialLng = (savedLang && (savedLang.startsWith('en') ? 'en' : 'ru')) || 'ru';
+
 i18n
     .use(LanguageDetector)
     .use(initReactI18next)
     .init({
         resources,
-        fallbackLng: 'en',
+        lng: initialLng,
+        fallbackLng: 'ru',
+        detection: {
+            order: ['localStorage', 'navigator'],
+            lookupLocalStorage: 'i18nextLng',
+            caches: ['localStorage']
+        },
         interpolation: {
             escapeValue: false // react already safes from xss
         }

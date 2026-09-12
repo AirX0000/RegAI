@@ -1,9 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Home, Search, ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function NotFoundPage() {
     const navigate = useNavigate();
+    const { i18n, t } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
@@ -32,10 +35,14 @@ export default function NotFoundPage() {
                 </div>
 
                 {/* Message */}
-                <h1 className="text-2xl font-bold text-white mb-2">Страница не найдена</h1>
+                <h1 className="text-2xl font-bold text-white mb-2">
+                    {isRu ? 'Страница не найдена' : 'Page Not Found'}
+                </h1>
                 <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                    Страница, которую вы ищете, не существует или была перемещена.<br />
-                    Проверьте адрес или воспользуйтесь навигацией.
+                    {isRu 
+                        ? 'Страница, которую вы ищете, не существует или была перемещена. Проверьте адрес или воспользуйтесь навигацией.'
+                        : 'The page you are looking for does not exist or has been moved. Please verify the URL or use navigation.'
+                    }
                 </p>
 
                 {/* Actions */}
@@ -46,14 +53,14 @@ export default function NotFoundPage() {
                         className="border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        Назад
+                        {isRu ? 'Назад' : 'Back'}
                     </Button>
                     <Button
                         onClick={() => navigate('/')}
                         className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/25"
                     >
                         <Home className="w-4 h-4 mr-2" />
-                        На главную
+                        {isRu ? 'На главную' : 'Home'}
                     </Button>
                     <Button
                         onClick={() => navigate('/guide')}
@@ -61,7 +68,7 @@ export default function NotFoundPage() {
                         className="border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                     >
                         <FileText className="w-4 h-4 mr-2" />
-                        Документация
+                        {t('nav_documentation', isRu ? 'Документация' : 'Documentation')}
                     </Button>
                 </div>
 

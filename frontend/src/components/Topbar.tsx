@@ -122,7 +122,7 @@ export function Topbar() {
                                 to="/transformation"
                                 className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-blue-600 font-medium"
                             >
-                                Transformation
+                                {t('nav_transformation')}
                             </Link>
                         )}
 
@@ -217,7 +217,7 @@ export function Topbar() {
                                         className="block px-4 py-2 hover:bg-gray-100 text-blue-600 font-medium"
                                         onClick={() => setOpenDropdown(null)}
                                     >
-                                        📖 Documentation
+                                        📖 {t('nav_documentation')}
                                     </Link>
                                     <Link
                                         to="/examples"
@@ -244,7 +244,7 @@ export function Topbar() {
                         type="button"
                         onClick={() => setIsProfileOpen(true)}
                         className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100/80 active:bg-slate-200/70 cursor-pointer transition-all text-left group border border-transparent hover:border-slate-200"
-                        title="Управление профилем и смена пароля"
+                        title={t('profile_tooltip', 'Управление профилем и смена пароля')}
                     >
                         <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs uppercase group-hover:scale-105 transition-transform shadow-inner">
                             {user?.full_name ? user.full_name.charAt(0) : user?.email?.charAt(0) || 'U'}
@@ -254,7 +254,7 @@ export function Topbar() {
                                 {user?.full_name || user?.email}
                             </div>
                             <div className="text-[11px] text-slate-500 capitalize leading-tight">
-                                {user?.role}
+                                {t(`role_${user?.role}` as any, { defaultValue: user?.role || '' })}
                             </div>
                         </div>
                     </button>

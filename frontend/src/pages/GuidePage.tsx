@@ -1,93 +1,163 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChevronRight, Home, LogIn, BarChart3, FileText, Shield, AlertTriangle, Upload, Settings } from 'lucide-react';
+import { 
+    ChevronRight, 
+    Home, 
+    LogIn, 
+    BarChart3, 
+    FileText, 
+    Shield, 
+    AlertTriangle, 
+    Upload, 
+    Settings,
+    CheckCircle2,
+    Sparkles,
+    Calculator
+} from 'lucide-react';
 
 export default function GuidePage() {
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
     const [activeSection, setActiveSection] = useState('introduction');
 
     const sections = [
-        { id: 'introduction', title: '1. Введение', icon: Home },
-        { id: 'login', title: '2. Вход в систему', icon: LogIn },
-        { id: 'dashboard', title: '3. Главная панель', icon: BarChart3 },
-        { id: 'regulations', title: '4. Регуляции', icon: Shield },
-        { id: 'compliance', title: '5. Соответствие требованиям', icon: AlertTriangle },
-        { id: 'reports', title: '6. Отчеты', icon: FileText },
-        { id: 'tax-analysis', title: '7. AI Анализ налогов', icon: BarChart3 },
-        { id: 'transformation', title: '8. Трансформация балансов', icon: Upload },
-        { id: 'documents', title: '9. Документы', icon: FileText },
-        { id: 'admin', title: '10. Административные функции', icon: Settings },
+        { id: 'introduction', title: isRu ? '1. Введение' : '1. Introduction', icon: Home },
+        { id: 'login', title: isRu ? '2. Вход в систему' : '2. System Login', icon: LogIn },
+        { id: 'dashboard', title: isRu ? '3. Главная панель' : '3. Main Dashboard', icon: BarChart3 },
+        { id: 'regulations', title: isRu ? '4. Нормативы' : '4. Regulations', icon: Shield },
+        { id: 'compliance', title: isRu ? '5. Проверки соответствия' : '5. Compliance Checks', icon: AlertTriangle },
+        { id: 'reports', title: isRu ? '6. Финансовые отчеты' : '6. Financial Reports', icon: FileText },
+        { id: 'tax-analysis', title: isRu ? '7. AI Анализ налогов' : '7. AI Tax Analysis', icon: Calculator },
+        { id: 'transformation', title: isRu ? '8. Трансформация балансов' : '8. Balance Transformation', icon: Upload },
+        { id: 'documents', title: isRu ? '9. Документы' : '9. Documents', icon: FileText },
+        { id: 'admin', title: isRu ? '10. Администрирование' : '10. Administration', icon: Settings },
     ];
 
     return (
-        <div className="flex h-[calc(100vh-4rem)]">
+        <div className="flex flex-col md:flex-row min-h-[calc(100vh-4rem)] bg-slate-50">
             {/* Sidebar Navigation */}
-            <div className="w-64 border-r bg-gray-50 overflow-y-auto">
-                <div className="p-4">
-                    <h2 className="text-lg font-bold mb-4">Руководство пользователя</h2>
-                    <nav className="space-y-1">
-                        {sections.map((section) => {
-                            const Icon = section.icon;
-                            return (
-                                <button
-                                    key={section.id}
-                                    onClick={() => setActiveSection(section.id)}
-                                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors ${activeSection === section.id
-                                        ? 'bg-blue-600 text-white'
-                                        : 'hover:bg-gray-200 text-gray-700'
-                                        }`}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    <span className="text-sm">{section.title}</span>
-                                    {activeSection === section.id && <ChevronRight className="h-4 w-4 ml-auto" />}
-                                </button>
-                            );
-                        })}
-                    </nav>
+            <div className="w-full md:w-72 border-r bg-white p-4 shrink-0 shadow-sm">
+                <div className="mb-4 pb-3 border-b">
+                    <h2 className="text-lg font-bold text-slate-900">
+                        {isRu ? 'Руководство пользователя' : 'User Guide'}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                        {isRu ? 'Инструкции и справка по платформе' : 'Platform documentation and manuals'}
+                    </p>
                 </div>
+                <nav className="space-y-1">
+                    {sections.map((section) => {
+                        const Icon = section.icon;
+                        const isActive = activeSection === section.id;
+                        return (
+                            <button
+                                key={section.id}
+                                onClick={() => setActiveSection(section.id)}
+                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all text-xs sm:text-sm font-medium ${
+                                    isActive
+                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                        : 'hover:bg-slate-100 text-slate-700'
+                                }`}
+                            >
+                                <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                                <span className="truncate">{section.title}</span>
+                                {isActive && <ChevronRight className="h-4 w-4 ml-auto shrink-0" />}
+                            </button>
+                        );
+                    })}
+                </nav>
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-4xl mx-auto space-y-8">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10">
+                <div className="max-w-4xl mx-auto space-y-6">
+
+                    {/* Section 1: Introduction */}
                     {activeSection === 'introduction' && (
-                        <div>
-                            <h1 className="text-4xl font-bold mb-4">RegAI Platform - Руководство пользователя</h1>
-                            <p className="text-gray-600 mb-6">Версия: 1.0 | Дата: 28 ноября 2025</p>
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <div>
+                                <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                    {isRu ? 'RegAI Platform — Руководство пользователя' : 'RegAI Platform — User Guide'}
+                                </h1>
+                                <p className="text-sm text-slate-500 mt-1">
+                                    {isRu ? 'Версия: 2.6 Enterprise • Автоматизация МСФО и НСБУ' : 'Version: 2.6 Enterprise • IFRS & NAS Automation'}
+                                </p>
+                            </div>
 
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Что такое RegAI?</CardTitle>
+                            <Card className="border-slate-200 shadow-sm">
+                                <CardHeader className="bg-slate-50/50 border-b pb-4">
+                                    <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
+                                        <Sparkles className="h-5 w-5 text-blue-600" />
+                                        {isRu ? 'Что такое RegAI?' : 'What is RegAI?'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-4 pt-5 text-sm text-slate-700 leading-relaxed">
                                     <p>
-                                        <strong>RegAI</strong> — это интеллектуальная платформа для управления нормативными требованиями и финансовой отчетностью. Платформа помогает компаниям:
+                                        <strong>RegAI</strong> — {isRu 
+                                            ? 'интеллектуальная FinTech-платформа корпоративного уровня для автоматизации финансовой отчетности, трансформации МСФО (IFRS) и контроля нормативного комплаенса.'
+                                            : 'an enterprise-grade FinTech intelligence platform for financial reporting automation, IFRS transformation, and regulatory compliance monitoring.'
+                                        }
                                     </p>
-                                    <ul className="list-disc ml-6 space-y-2">
-                                        <li>✅ Отслеживать изменения в регуляторных требованиях</li>
-                                        <li>✅ Проверять соответствие нормативам</li>
-                                        <li>✅ Управлять финансовыми отчетами</li>
-                                        <li>✅ Анализировать налоговую отчетность с помощью AI</li>
-                                        <li>✅ Трансформировать балансы из НСБУ (NAS) в МСФО (IFRS)</li>
-                                    </ul>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                        <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 flex items-start gap-2.5">
+                                            <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                                            <span>{isRu ? 'Трансформация балансов из НСБУ в МСФО (IFRS 9, 16, IAS 36)' : 'Balance transformation from NAS into IFRS (9, 16, IAS 36)'}</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-start gap-2.5">
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 shrink-0" />
+                                            <span>{isRu ? 'Синхронизация с 1С:Предприятие через двусторонний OData API' : 'Two-way synchronization with 1C:Enterprise via OData API'}</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-purple-50/60 border border-purple-100 flex items-start gap-2.5">
+                                            <CheckCircle2 className="h-4 w-4 text-purple-600 mt-0.5 shrink-0" />
+                                            <span>{isRu ? 'База из 120+ нормативов (МСФО, НСБУ, Базель III, Налоговый кодекс)' : '120+ normatives library (IFRS, NAS, Basel III, Tax Code)'}</span>
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-100 flex items-start gap-2.5">
+                                            <CheckCircle2 className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                                            <span>{isRu ? 'AI Аудитор с формированием меморандума и КВА (ISA 701)' : 'AI Auditor with audit memorandum and KAM generation (ISA 701)'}</span>
+                                        </div>
+                                    </div>
 
-                                    <div className="mt-6">
-                                        <h3 className="font-semibold mb-3">Роли пользователей</h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="border rounded-lg p-4">
-                                                <h4 className="font-semibold text-blue-600">Superadmin</h4>
-                                                <p className="text-sm text-gray-600">Полный доступ ко всем функциям</p>
+                                    <div className="pt-4 border-t mt-4">
+                                        <h3 className="font-bold text-slate-900 mb-3">
+                                            {isRu ? 'Роли пользователей и права доступа' : 'User Roles & Access Levels'}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="border rounded-xl p-3.5 bg-white shadow-xs">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="font-bold text-blue-600 text-sm">Superadmin</h4>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-mono">Global</span>
+                                                </div>
+                                                <p className="text-xs text-slate-600">
+                                                    {isRu ? 'Полный системный доступ ко всем тенантам, компаниям и журналам аудита' : 'Full platform access across all tenants, companies and audit logs'}
+                                                </p>
                                             </div>
-                                            <div className="border rounded-lg p-4">
-                                                <h4 className="font-semibold text-green-600">Admin</h4>
-                                                <p className="text-sm text-gray-600">Управление компанией и пользователями</p>
+                                            <div className="border rounded-xl p-3.5 bg-white shadow-xs">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="font-bold text-emerald-600 text-sm">Company Admin / Owner</h4>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-mono">Executive</span>
+                                                </div>
+                                                <p className="text-xs text-slate-600">
+                                                    {isRu ? 'Управление компанией, добавление сотрудников и настройка интеграции с 1С' : 'Company management, employee invitation and 1C connection configuration'}
+                                                </p>
                                             </div>
-                                            <div className="border rounded-lg p-4">
-                                                <h4 className="font-semibold text-purple-600">Accountant</h4>
-                                                <p className="text-sm text-gray-600">Работа с отчетами и балансами</p>
+                                            <div className="border rounded-xl p-3.5 bg-white shadow-xs">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="font-bold text-purple-600 text-sm">Accountant</h4>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-mono">Ledger</span>
+                                                </div>
+                                                <p className="text-xs text-slate-600">
+                                                    {isRu ? 'Загрузка ОСВ, проведение корректировок МСФО, экспорт 3-стороннего Excel' : 'Trial balance upload, IFRS adjustments, and 3-way Excel export'}
+                                                </p>
                                             </div>
-                                            <div className="border rounded-lg p-4">
-                                                <h4 className="font-semibold text-orange-600">Auditor</h4>
-                                                <p className="text-sm text-gray-600">Проверка отчетов и соответствия</p>
+                                            <div className="border rounded-xl p-3.5 bg-white shadow-xs">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="font-bold text-amber-600 text-sm">Auditor</h4>
+                                                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-mono">Audit</span>
+                                                </div>
+                                                <p className="text-xs text-slate-600">
+                                                    {isRu ? 'Проверка отчетов, анализ сходимости баланса и генерация меморандума аудита' : 'Report verification, balance convergence review, and audit memo generation'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -96,521 +166,132 @@ export default function GuidePage() {
                         </div>
                     )}
 
+                    {/* Section 2: Login */}
                     {activeSection === 'login' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">2. Вход в систему</h1>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Шаг 1: Открыть страницу входа</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Откройте браузер (рекомендуется Chrome, Firefox или Safari)</li>
-                                        <li>Перейдите по адресу платформы</li>
-                                        <li>Вы увидите страницу входа</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Шаг 2: Ввести учетные данные</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li><strong>Email</strong> — введите ваш email (например: admin@example.com)</li>
-                                        <li><strong>Пароль</strong> — введите ваш пароль</li>
-                                        <li>Нажмите кнопку <strong>"Войти"</strong></li>
-                                    </ol>
-                                    <div className="mt-4 bg-yellow-50 border border-yellow-200 p-3 rounded">
-                                        <p className="text-sm text-yellow-800">
-                                            <strong>Примечание:</strong> Если вы забыли пароль, обратитесь к администратору компании.
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '2. Вход в систему и авторизация' : '2. System Authentication & Login'}
+                            </h1>
 
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Шаг 3: Переход на главную страницу</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Быстрый вход через готовые демо-профили (1 клик)' : '1-Click Quick Demo Profiles'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <p>После успешного входа вы будете перенаправлены на главную панель (Dashboard).</p>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <p>
+                                        {isRu 
+                                            ? 'Для тестирования платформы на странице входа доступны предустановленные демо-профили всех ролей.'
+                                            : 'Pre-configured demo profiles for all roles are available directly on the login page for rapid onboarding.'
+                                        }
+                                    </p>
+                                    <div className="p-3.5 rounded-xl bg-slate-50 border space-y-2 text-xs font-mono">
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Owner:</span>
+                                            <span className="font-semibold text-slate-800">owner@regai.ai</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Accountant:</span>
+                                            <span className="font-semibold text-slate-800">accountant@regai.ai</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Auditor:</span>
+                                            <span className="font-semibold text-slate-800">auditor@regai.ai</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-slate-500">Demo Password:</span>
+                                            <span className="font-semibold text-blue-600">RegAI2026! / FinBridge2026!</span>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500">
+                                        {isRu 
+                                            ? 'Нажмите на любую карточку — поля заполнятся автоматически, затем нажмите «Войти».'
+                                            : 'Click on any profile card to automatically populate fields, then click "Sign In".'
+                                        }
+                                    </p>
                                 </CardContent>
                             </Card>
                         </div>
                     )}
 
+                    {/* Section 3: Dashboard */}
                     {activeSection === 'dashboard' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">3. Главная панель (Dashboard)</h1>
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '3. Главная панель (Dashboard)' : '3. Executive Dashboard'}
+                            </h1>
 
-                            <div className="mb-6">
-                                <img
-                                    src="/Users/air/.gemini/antigravity/brain/e954b391-dcc6-4039-8a61-43671517cd53/guide_dashboard_section.png"
-                                    alt="Dashboard Section"
-                                    className="w-full rounded-lg border shadow-lg"
-                                />
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <Card className="p-4 bg-white border shadow-xs">
+                                    <div className="text-xs text-slate-500 font-medium">{isRu ? 'Оценка соответствия' : 'Compliance Score'}</div>
+                                    <div className="text-2xl font-bold text-emerald-600 mt-1">94%</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'МСФО и НСБУ' : 'IFRS & NAS'}</div>
+                                </Card>
+                                <Card className="p-4 bg-white border shadow-xs">
+                                    <div className="text-xs text-slate-500 font-medium">{isRu ? 'Активные предупреждения' : 'Active Alerts'}</div>
+                                    <div className="text-2xl font-bold text-amber-600 mt-1">3</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'Требуют внимания' : 'Require review'}</div>
+                                </Card>
+                                <Card className="p-4 bg-white border shadow-xs">
+                                    <div className="text-xs text-slate-500 font-medium">{isRu ? 'Трансформировано отчетов' : 'Transformed Reports'}</div>
+                                    <div className="text-2xl font-bold text-blue-600 mt-1">12</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'За текущий квартал' : 'This quarter'}</div>
+                                </Card>
                             </div>
 
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Активные предупреждения (Active Alerts)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="mb-3"><strong>Что это?</strong></p>
-                                    <ul className="list-disc ml-6 space-y-1">
-                                        <li>Показывает количество активных предупреждений о несоответствиях</li>
-                                        <li>Иконка ℹ️ содержит подсказку о том, что такое Alert</li>
-                                    </ul>
-                                    <p className="mt-3 mb-2"><strong>Как использовать:</strong></p>
-                                    <ol className="list-decimal ml-6 space-y-1">
-                                        <li>Посмотрите на число в карточке "Active Alerts"</li>
-                                        <li>Нажмите на карточку для перехода к странице Compliance</li>
-                                        <li>Там вы увидите детальный список всех предупреждений</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Категории регуляций (Category Breakdown)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="mb-3"><strong>Что это?</strong></p>
-                                    <ul className="list-disc ml-6 space-y-1">
-                                        <li>График, показывающий распределение регуляций по категориям</li>
-                                        <li>Категории: Finance, Privacy, Healthcare, Security и другие</li>
-                                    </ul>
-                                    <p className="mt-3 mb-2"><strong>Как использовать:</strong></p>
-                                    <ol className="list-decimal ml-6 space-y-1">
-                                        <li>Просмотрите график категорий</li>
-                                        <li>Нажмите на любую категорию (например, "Finance")</li>
-                                        <li>Вы будете перенаправлены на страницу Compliance с автоматическим фильтром</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Статус соответствия (Compliance Status)</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Ключевые блоки главной панели' : 'Dashboard Core Components'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <p className="mb-3"><strong>Что это?</strong></p>
-                                    <p className="mb-3">Круговая диаграмма, показывающая распределение предупреждений по уровням серьезности</p>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 bg-red-500 rounded"></div>
-                                            <span className="text-sm"><strong>Critical</strong> — немедленное внимание</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                                            <span className="text-sm"><strong>High</strong> — высокий приоритет</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                                            <span className="text-sm"><strong>Medium</strong> — средний приоритет</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                                            <span className="text-sm"><strong>Low</strong> — низкий приоритет</span>
-                                        </div>
-                                    </div>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <ul className="list-disc ml-6 space-y-2">
+                                        <li>
+                                            <strong>{isRu ? 'Телеметрия сходимости:' : 'Convergence Telemetry:'}</strong> {isRu ? 'контроль формулы Баланс = Активы − (Обязательства + Капитал) в реальном времени с нулевой дельтой.' : 'Real-time validation of Assets = Liabilities + Equity formula with zero delta guard.'}
+                                        </li>
+                                        <li>
+                                            <strong>{isRu ? 'Категории рисков:' : 'Risk Categories:'}</strong> {isRu ? 'быстрая фильтрация по стандартам IFRS 9 (кредитный риск), IFRS 16 (аренда), IAS 36 (обесценение).' : 'Fast filtering across IFRS 9 (credit risk), IFRS 16 (leases), IAS 36 (impairment).'}
+                                        </li>
+                                        <li>
+                                            <strong>{isRu ? 'Прямой переход в разделы:' : 'Direct Deep-links:'}</strong> {isRu ? 'клик по любой метрике сразу открывает детальный реестр с преднастроенными фильтрами.' : 'Clicking any KPI widget instantly routes to the detailed view with applied filters.'}
+                                        </li>
+                                    </ul>
                                 </CardContent>
                             </Card>
                         </div>
                     )}
 
+                    {/* Section 4: Regulations */}
                     {activeSection === 'regulations' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">4. Регуляции (Regulations)</h1>
-
-                            <div className="mb-6">
-                                <img
-                                    src="/Users/air/.gemini/antigravity/brain/e954b391-dcc6-4039-8a61-43671517cd53/guide_regulations_section.png"
-                                    alt="Regulations Section"
-                                    className="w-full rounded-lg border shadow-lg"
-                                />
-                            </div>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Поиск регуляций</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <h4 className="font-semibold mb-2">Шаг 1: Использовать поисковую строку</h4>
-                                    <ol className="list-decimal ml-6 space-y-1 mb-4">
-                                        <li>Найдите поле поиска в верхней части страницы</li>
-                                        <li>Введите ключевое слово (например, "IFRS", "GDPR", "tax")</li>
-                                        <li>Результаты обновятся автоматически</li>
-                                    </ol>
-
-                                    <h4 className="font-semibold mb-2">Шаг 2: Применить фильтры</h4>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="font-medium">Фильтр по категории:</p>
-                                            <ul className="list-disc ml-6 text-sm space-y-1">
-                                                <li>Finance (Финансы)</li>
-                                                <li>Privacy (Конфиденциальность)</li>
-                                                <li>Healthcare (Здравоохранение)</li>
-                                                <li>Security (Безопасность)</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '4. Реестр нормативов и авто-синхронизация' : '4. Regulations Library & Auto-Sync'}
+                            </h1>
 
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Экспорт регуляций</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'База знаний нормативных актов (120+ стандартов)' : 'Regulatory Knowledge Base (120+ Standards)'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Нажмите кнопку "Export" в правом верхнем углу</li>
-                                        <li>Выберите формат:
-                                            <ul className="list-disc ml-6 mt-1">
-                                                <li><strong>Excel</strong> — таблица со всеми регуляциями</li>
-                                                <li><strong>PDF</strong> — документ для печати</li>
-                                                <li><strong>CSV</strong> — для импорта в другие системы</li>
-                                            </ul>
-                                        </li>
-                                        <li>Файл автоматически загрузится</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {activeSection === 'compliance' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">5. Соответствие требованиям (Compliance)</h1>
-
-                            <div className="mb-6">
-                                <img
-                                    src="/Users/air/.gemini/antigravity/brain/e954b391-dcc6-4039-8a61-43671517cd53/guide_compliance_section.png"
-                                    alt="Compliance Section"
-                                    className="w-full rounded-lg border shadow-lg"
-                                />
-                            </div>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Запуск проверки соответствия</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Нажмите кнопку <strong>"Run Compliance Check"</strong></li>
-                                        <li>Система автоматически проверит все данные (несколько секунд)</li>
-                                        <li>Появится уведомление о завершении</li>
-                                        <li>Обновится счетчик предупреждений и графики</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Фильтрация предупреждений</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <h4 className="font-semibold mb-2">По статусу:</h4>
-                                            <ul className="list-disc ml-6 space-y-1">
-                                                <li><strong>Open</strong> — новые предупреждения</li>
-                                                <li><strong>In Progress</strong> — в работе</li>
-                                                <li><strong>Resolved</strong> — решенные</li>
-                                                <li><strong>Dismissed</strong> — отклоненные</li>
-                                            </ul>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <p>
+                                        {isRu 
+                                            ? 'Платформа содержит полную коллекцию стандартов МСФО (IFRS 1–17, IAS 1–37), национальных стандартов Узбекистана (НСБУ 1–22), Базель III (CAR, LCR), Налогового кодекса РУз и стандартов аудита МСА.'
+                                            : 'The platform houses a complete corpus of IFRS (1–17, IAS 1–37), Uzbekistan National Standards (NAS 1–22), Basel III (CAR, LCR), Tax Code, and ISA audit standards.'
+                                        }
+                                    </p>
+                                    <div className="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
+                                        <div className="font-bold text-blue-900 text-xs uppercase tracking-wide">
+                                            {isRu ? 'Автоматическое пополнение 24/7:' : 'Automated 24/7 Seeding:'}
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2">По уровню серьезности:</h4>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                                    <span className="text-sm">Critical</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                                                    <span className="text-sm">High</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                                                    <span className="text-sm">Medium</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                                                    <span className="text-sm">Low</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Работа с предупреждениями</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <h4 className="font-semibold mb-2">Изменение статуса:</h4>
-                                    <ol className="list-decimal ml-6 space-y-1">
-                                        <li>Найдите предупреждение в списке</li>
-                                        <li>Нажмите на выпадающий список статуса</li>
-                                        <li>Выберите новый статус</li>
-                                        <li>Статус обновится автоматически</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {activeSection === 'reports' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">6. Отчеты (Reports)</h1>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Создание нового отчета</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Нажмите <strong>"+ New Report"</strong></li>
-                                        <li>Заполните форму:
-                                            <ul className="list-disc ml-6 mt-2 space-y-1">
-                                                <li><strong>Title</strong> — название отчета</li>
-                                                <li><strong>Description</strong> — краткое описание</li>
-                                                <li><strong>Report Type</strong> — Financial, Tax, Audit и т.д.</li>
-                                                <li><strong>Upload File</strong> — прикрепите PDF, Excel или CSV</li>
-                                            </ul>
-                                        </li>
-                                        <li>Нажмите <strong>"Create Report"</strong></li>
-                                    </ol>
-                                    <div className="mt-4 bg-blue-50 border border-blue-200 p-3 rounded">
-                                        <p className="text-sm"><strong>Поддерживаемые форматы:</strong> PDF, Excel, CSV, TXT</p>
-                                        <p className="text-sm"><strong>Максимальный размер:</strong> 10 МБ</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Статусы отчетов</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div className="border rounded p-3">
-                                            <span className="inline-block px-2 py-1 bg-gray-200 text-gray-800 rounded text-xs font-semibold mb-2">DRAFT</span>
-                                            <p className="text-sm">Черновик — можно редактировать и удалять</p>
-                                        </div>
-                                        <div className="border rounded p-3">
-                                            <span className="inline-block px-2 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold mb-2">SUBMITTED</span>
-                                            <p className="text-sm">Отправлен — ожидает проверки</p>
-                                        </div>
-                                        <div className="border rounded p-3">
-                                            <span className="inline-block px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-semibold mb-2">UNDER REVIEW</span>
-                                            <p className="text-sm">На рассмотрении — проверяется администратором</p>
-                                        </div>
-                                        <div className="border rounded p-3">
-                                            <span className="inline-block px-2 py-1 bg-green-200 text-green-800 rounded text-xs font-semibold mb-2">APPROVED</span>
-                                            <p className="text-sm">Одобрен — проверка пройдена</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Действия с отчетами</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <h4 className="font-semibold">Скачивание файла:</h4>
-                                            <p className="text-sm text-gray-600">Нажмите иконку Download для скачивания прикрепленного файла</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold">Удаление отчета:</h4>
-                                            <ol className="list-decimal ml-6 text-sm text-gray-600">
-                                                <li>Нажмите иконку Trash (только для черновиков)</li>
-                                                <li>Подтвердите удаление в диалоговом окне</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {activeSection === 'tax-analysis' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">7. AI Анализ налогов (Tax Analysis)</h1>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Выбор режима работы</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Режим 1: Select Existing</h4>
-                                            <p className="text-sm text-gray-600 mb-2">Выбрать существующий отчет из системы</p>
-                                            <ol className="list-decimal ml-6 text-sm space-y-1">
-                                                <li>Нажмите кнопку "Select Existing"</li>
-                                                <li>Выберите отчет из выпадающего списка</li>
-                                            </ol>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Режим 2: Upload New PDF</h4>
-                                            <p className="text-sm text-gray-600 mb-2">Загрузить новый файл для анализа</p>
-                                            <ol className="list-decimal ml-6 text-sm space-y-1">
-                                                <li>Нажмите кнопку "Upload New PDF"</li>
-                                                <li>Введите название отчета (опционально)</li>
-                                                <li>Выберите файл (PDF, Excel, CSV, TXT)</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Настройка параметров анализа</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Выбор страны:</h4>
-                                            <p className="text-sm text-gray-600">United Kingdom, United States, Germany, France и другие</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Выбор типов налогов:</h4>
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div>☑ VAT (НДС)</div>
-                                                <div>☑ Corporate Tax</div>
-                                                <div>☐ Income Tax</div>
-                                                <div>☐ Social Tax</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Результаты анализа</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Compliance Score (Оценка соответствия):</h4>
-                                            <div className="grid grid-cols-2 gap-2 text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-green-500 rounded"></div>
-                                                    <span>90-100% — Отличное соответствие</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                                                    <span>70-89% — Хорошее с проблемами</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                                                    <span>50-69% — Требуется внимание</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 bg-red-500 rounded"></div>
-                                                    <span>0-49% — Срочные действия</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Статистика:</h4>
-                                            <ul className="list-disc ml-6 text-sm space-y-1">
-                                                <li><strong>Passed</strong> — успешные проверки</li>
-                                                <li><strong>Errors</strong> — критические ошибки</li>
-                                                <li><strong>Warnings</strong> — предупреждения</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    )}
-
-                    {activeSection === 'transformation' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">8. Трансформация балансов (Transformation)</h1>
-
-                            <div className="mb-6">
-                                <img
-                                    src="/Users/air/.gemini/antigravity/brain/e954b391-dcc6-4039-8a61-43671517cd53/guide_transformation_section.png"
-                                    alt="Transformation Section"
-                                    className="w-full rounded-lg border shadow-lg"
-                                />
-                            </div>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Создание нового баланса</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Нажмите <strong>"+ Create New Balance Sheet"</strong></li>
-                                        <li>Заполните основную информацию:
-                                            <ul className="list-disc ml-6 mt-2 space-y-1">
-                                                <li>Период (месяц и год)</li>
-                                                <li>Название компании</li>
-                                                <li>Валюта (RUB, USD, EUR, GBP)</li>
-                                            </ul>
-                                        </li>
-                                        <li>Введите данные баланса:
-                                            <ul className="list-disc ml-6 mt-2 space-y-1">
-                                                <li>Активы (текущие и внеоборотные)</li>
-                                                <li>Обязательства (текущие и долгосрочные)</li>
-                                                <li>Капитал</li>
-                                            </ul>
-                                        </li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Сохранение и трансформация</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Вариант 1: Сохранить черновик</h4>
-                                            <p className="text-sm text-gray-600">Нажмите "Save Draft" для сохранения без трансформации</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-semibold mb-2">Вариант 2: Трансформировать</h4>
-                                            <ol className="list-decimal ml-6 text-sm space-y-1">
-                                                <li>Нажмите "Transform"</li>
-                                                <li>Система проверит данные</li>
-                                                <li>Применит правила трансформации НСБУ (NAS) → МСФО (IFRS)</li>
-                                                <li>Откроется страница результатов</li>
-                                            </ol>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Удаление баланса</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-1 text-sm">
-                                        <li>Найдите баланс в списке</li>
-                                        <li>Нажмите иконку Trash</li>
-                                        <li>Подтвердите удаление в диалоговом окне</li>
-                                        <li>Баланс будет удален безвозвратно</li>
-                                    </ol>
-                                    <div className="mt-3 bg-yellow-50 border border-yellow-200 p-3 rounded">
-                                        <p className="text-sm text-yellow-800">
-                                            <strong>Важно:</strong> Удалить можно только балансы со статусом "Draft" или "Transformed"
+                                        <p className="text-xs text-blue-800 leading-relaxed">
+                                            {isRu 
+                                                ? 'Каждые 6 часов и при каждом запуске система автоматически сверяет реестр нормативов и загружает новые акты без участия пользователя. Кнопка «Авто-пополнение базы» в шапке страницы позволяет запустить процесс вручную в 1 клик.'
+                                                : 'Every 6 hours and upon system boot, the platform automatically reconciles the regulation catalog and loads missing standards. The "Auto-Sync Library" button in the header triggers manual sync on demand.'
+                                            }
                                         </p>
                                     </div>
                                 </CardContent>
@@ -618,98 +299,176 @@ export default function GuidePage() {
                         </div>
                     )}
 
-                    {activeSection === 'documents' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">9. Документы (Documents)</h1>
+                    {/* Section 5: Compliance */}
+                    {activeSection === 'compliance' && (
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '5. Проверки соответствия и риск-контроль' : '5. Compliance Checks & Risk Control'}
+                            </h1>
 
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Загрузка документа</CardTitle>
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Запуск и анализ аудиторских проверок' : 'Executing Compliance Audits'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
                                     <ol className="list-decimal ml-6 space-y-2">
-                                        <li>Выберите тип документа:
-                                            <ul className="list-disc ml-6 mt-1">
-                                                <li>Invoice (Счета)</li>
-                                                <li>Contract (Контракты)</li>
-                                                <li>Bank Statement (Банковские выписки)</li>
-                                            </ul>
-                                        </li>
-                                        <li>Нажмите кнопку "Upload"</li>
-                                        <li>Выберите файл (PDF, JPEG, PNG, BMP, TIFF)</li>
-                                        <li>Дождитесь обработки</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Просмотр извлеченных данных</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ol className="list-decimal ml-6 space-y-1 text-sm">
-                                        <li>Найдите документ со статусом "completed"</li>
-                                        <li>Нажмите кнопку "View Data"</li>
-                                        <li>Изучите извлеченные данные в формате JSON</li>
-                                        <li>Закройте окно</li>
+                                        <li>{isRu ? 'Перейдите в раздел «Соблюдение норм» → «Проверки соответствия».' : 'Navigate to "Compliance" → "Compliance Checks".'}</li>
+                                        <li>{isRu ? 'Нажмите кнопку «Запустить проверку» (Run Compliance Check).' : 'Click "Run Compliance Check".'}</li>
+                                        <li>{isRu ? 'Система проанализирует данные компании и сформирует перечень несоответствий с градацией Critical / High / Medium / Low.' : 'The engine will analyze company filings and generate classified discrepancies (Critical, High, Medium, Low).'}</li>
+                                        <li>{isRu ? 'Каждое предупреждение содержит пошаговые рекомендации по устранению (Action Items).' : 'Each alert is paired with actionable remediation guidance (Action Items).'}</li>
                                     </ol>
                                 </CardContent>
                             </Card>
                         </div>
                     )}
 
+                    {/* Section 6: Reports */}
+                    {activeSection === 'reports' && (
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '6. Финансовые отчеты и выгрузка' : '6. Financial Reports & Exports'}
+                            </h1>
+
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Генерация 3-сторонней отчетности (НСБУ / Корректировки / МСФО)' : '3-Way Financial Statement Generation'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <p>
+                                        {isRu 
+                                            ? 'Платформа формирует аудированный отчет в трёх параллельных столбцах: баланс НСБУ, суммы корректировок МСФО и итоговый трансформированный баланс МСФО.'
+                                            : 'The engine renders an audited 3-column statement: original NAS balance, IFRS adjustment journal, and the resulting IFRS converted balance.'
+                                        }
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
+                                        <div className="p-3 bg-slate-50 border rounded-lg text-center">
+                                            <div className="font-bold text-slate-800 text-xs">Excel (.xlsx)</div>
+                                            <div className="text-[10px] text-slate-500 mt-1">{isRu ? 'Формулы SUM/SUMIF' : 'Formulas SUM/SUMIF'}</div>
+                                        </div>
+                                        <div className="p-3 bg-slate-50 border rounded-lg text-center">
+                                            <div className="font-bold text-slate-800 text-xs">PDF Report</div>
+                                            <div className="text-[10px] text-slate-500 mt-1">{isRu ? 'Для совета директоров' : 'Board-ready export'}</div>
+                                        </div>
+                                        <div className="p-3 bg-slate-50 border rounded-lg text-center">
+                                            <div className="font-bold text-slate-800 text-xs">JSON API</div>
+                                            <div className="text-[10px] text-slate-500 mt-1">{isRu ? 'Интеграция с ERP / 1C' : 'ERP / 1C Integration'}</div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {/* Section 7: Tax Analysis */}
+                    {activeSection === 'tax-analysis' && (
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '7. AI Анализ налогов и налоговая оптимизация' : '7. AI Tax Analysis & Optimization'}
+                            </h1>
+
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Интеллектуальная налоговая аналитика' : 'Intelligent Tax Health Check'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <ul className="list-disc ml-6 space-y-2">
+                                        <li>{isRu ? 'Проверка корректности ставок налога на прибыль (15%) и НДС (12%) по НК РУз.' : 'Validation of corporate income tax (15%) and VAT (12%) rates against Tax Code.'}</li>
+                                        <li>{isRu ? 'Выявление неиспользованных налоговых льгот и оптимизационных резервов.' : 'Detection of unapplied tax credits and optimization allowances.'}</li>
+                                        <li>{isRu ? 'Автоматическая сверка сумм ЭСФ через систему e-INVOICE.' : 'Automatic cross-matching of e-INVOICE amounts.'}</li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {/* Section 8: Transformation */}
+                    {activeSection === 'transformation' && (
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '8. Трансформация балансов (НСБУ → МСФО)' : '8. Balance Transformation (NAS → IFRS)'}
+                            </h1>
+
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Движок трансформации с защитой равенства баланса (Zero-Delta Guard)' : 'Transformation Engine with Zero-Delta Capital Guard'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <p>
+                                        {isRu 
+                                            ? 'При проведении трансформационных проводок движок автоматически соблюдает парность отражения в капитале (счет 84 «Нераспределенная прибыль»), гарантируя 100% сходимость баланса:'
+                                            : 'During transformation adjustments, the engine strictly maintains dual-entry impact on retained earnings, guaranteeing 100% balance convergence:'
+                                        }
+                                    </p>
+                                    <div className="p-3.5 bg-slate-900 text-slate-100 rounded-xl font-mono text-xs space-y-1">
+                                        <div className="text-blue-400 font-bold">// IFRS 16 (Leases / Аренда):</div>
+                                        <div>Дт 01 (ROU Актив) — Кт 67 (Обязательство)</div>
+                                        <div className="text-blue-400 font-bold mt-2">// IAS 36 (Impairment / Обесценение ОС):</div>
+                                        <div>Дт 84 (Капитал) — Кт 02/01 (Обесценение)</div>
+                                        <div className="text-blue-400 font-bold mt-2">// IFRS 9 (ECL Credit Losses / Резерв сомнительных долгов):</div>
+                                        <div>Дт 84 (Капитал) — Кт 63/62 (Резерв ECL)</div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {/* Section 9: Documents */}
+                    {activeSection === 'documents' && (
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '9. Электронный документооборот и OCR' : '9. Documents & OCR Extraction'}
+                            </h1>
+
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Распознавание первичных документов (PDF / Excel / Сканы)' : 'Primary Document Extraction (PDF / Excel / Scans)'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <p>
+                                        {isRu 
+                                            ? 'Модуль OCR автоматически извлекает табличные данные, реквизиты договоров, акты сверок и оборотно-сальдовые ведомости из файлов любого формата с привязкой к счетам учета.'
+                                            : 'The OCR subsystem extracts tabular data, contract terms, reconciliation statements, and trial balances from arbitrary file formats directly into ledger mappings.'
+                                        }
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+
+                    {/* Section 10: Administration */}
                     {activeSection === 'admin' && (
-                        <div>
-                            <h1 className="text-3xl font-bold mb-6">10. Административные функции</h1>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Управление пользователями (Users)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-gray-600 mb-3">Доступ: Admin, Superadmin</p>
-                                    <h4 className="font-semibold mb-2">Создание нового пользователя:</h4>
-                                    <ol className="list-decimal ml-6 space-y-1 text-sm">
-                                        <li>Нажмите "+ Invite User"</li>
-                                        <li>Введите Email, Full Name, Password</li>
-                                        <li>Выберите роль (Accountant, Auditor, Admin)</li>
-                                        <li>Нажмите "Create"</li>
-                                    </ol>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="mb-6">
-                                <CardHeader>
-                                    <CardTitle>Настройки компании (Company Settings)</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-gray-600 mb-3">Доступ: Admin</p>
-                                    <ul className="list-disc ml-6 space-y-1 text-sm">
-                                        <li>Название компании</li>
-                                        <li>Описание</li>
-                                        <li>Веб-сайт</li>
-                                        <li>Индустрия</li>
-                                        <li>Количество сотрудников</li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
+                        <div className="space-y-6 animate-in fade-in duration-200">
+                            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                                {isRu ? '10. Администрирование и безопасность' : '10. Administration & Governance'}
+                            </h1>
 
                             <Card>
-                                <CardHeader>
-                                    <CardTitle>Журнал аудита (Audit Log)</CardTitle>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base">
+                                        {isRu ? 'Управление доступом (RBAC) и аудит операций' : 'Role-Based Access Control (RBAC) & Audit Logs'}
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent>
-                                    <p className="text-sm text-gray-600 mb-3">Просмотр всех действий пользователей в системе</p>
-                                    <h4 className="font-semibold mb-2">Фильтрация:</h4>
-                                    <ul className="list-disc ml-6 space-y-1 text-sm">
-                                        <li>По пользователю</li>
-                                        <li>По действию (Login, Create, Update, Delete)</li>
-                                        <li>По дате</li>
+                                <CardContent className="text-sm space-y-3 text-slate-700">
+                                    <ul className="list-disc ml-6 space-y-2">
+                                        <li>{isRu ? 'Изоляция данных на уровне тенанта (Tenant ID) исключает доступ к данным других организаций.' : 'Strict tenant data isolation (Tenant ID) eliminates cross-organizational data leakage.'}</li>
+                                        <li>{isRu ? 'Журнал аудита фиксирует каждое действие: вход, изменения проводок, генерацию отчетов с временными метками UTC.' : 'Tamper-proof audit logging records every event: logins, entry updates, report generation with UTC timestamps.'}</li>
+                                        <li>{isRu ? 'Шифрование данных AES-256 в состоянии покоя и TLS 1.3 при передаче.' : 'AES-256 encryption at rest and TLS 1.3 in transit.'}</li>
                                     </ul>
                                 </CardContent>
                             </Card>
                         </div>
                     )}
+
                 </div>
             </div>
         </div>
