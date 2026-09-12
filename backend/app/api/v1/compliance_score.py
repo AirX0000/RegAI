@@ -42,11 +42,13 @@ def get_compliance_score(
             }
         category_stats[reg.category]["total_regulations"] += 1
 
-    # Get all active alerts for the tenant (open + in_progress)
-    alerts = db.query(Alert).filter(
-        Alert.tenant_id == current_user.tenant_id,
+    # Get all active alerts (for tenant or global for superadmin)
+    alerts_query = db.query(Alert).filter(
         Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS])
-    ).all()
+    )
+    if current_user.tenant_id and not (getattr(current_user, "is_superuser", False) or getattr(current_user, "role", "") in ["superadmin", "website_superadmin"]):
+        alerts_query = alerts_query.filter(Alert.tenant_id == current_user.tenant_id)
+    alerts = alerts_query.all()
     
     # Process alerts and assign to categories
     global_alerts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
@@ -130,17 +132,20 @@ def get_compliance_score(
     two_weeks_ago = now - timedelta(days=14)
 
     try:
-        recent_count = db.query(Alert).filter(
-            Alert.tenant_id == current_user.tenant_id,
+        recent_q = db.query(Alert).filter(
             Alert.created_at >= week_ago,
             Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS]),
-        ).count()
-        prior_count = db.query(Alert).filter(
-            Alert.tenant_id == current_user.tenant_id,
+        )
+        prior_q = db.query(Alert).filter(
             Alert.created_at >= two_weeks_ago,
             Alert.created_at < week_ago,
             Alert.status.in_([AlertStatus.OPEN, AlertStatus.IN_PROGRESS]),
-        ).count()
+        )
+        if current_user.tenant_id and not (getattr(current_user, "is_superuser", False) or getattr(current_user, "role", "") in ["superadmin", "website_superadmin"]):
+            recent_q = recent_q.filter(Alert.tenant_id == current_user.tenant_id)
+            prior_q = prior_q.filter(Alert.tenant_id == current_user.tenant_id)
+        recent_count = recent_q.count()
+        prior_count = prior_q.count()
 
         if recent_count < prior_count:
             trend = "improving"

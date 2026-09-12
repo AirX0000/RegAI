@@ -18,4 +18,7 @@ from app.db.models.alert import Alert  # noqa
 from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement, TransformationAdjustment  # noqa
 from app.db.models.onec_connection import OneCConnection  # noqa
 from app.db.models.onec_sync_log import OneCSyncLog  # noqa
+from app.db.models.notification import Notification  # noqa
+from app.db.models.evidence_item import EvidenceItem  # noqa
+from app.db.models.review_note import ReviewNote  # noqa
 from app.db.session import Base  # noqa

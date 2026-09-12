@@ -26,12 +26,13 @@ def get_audit_logs(
     Only accessible to admin/owner users.
     """
     # Check if user has permission (admin or owner role)
-    if current_user.role not in ["admin", "owner", "superadmin"]:
+    allowed_roles = ["admin", "owner", "company_owner", "superadmin", "website_superadmin", "company_admin", "company_superadmin"]
+    if current_user.role not in allowed_roles and not getattr(current_user, "is_superuser", False):
         return {"error": "Insufficient permissions"}, 403
     
-    query = db.query(AuditLog).filter(
-        AuditLog.tenant_id == current_user.tenant_id
-    )
+    query = db.query(AuditLog)
+    if not (getattr(current_user, "is_superuser", False) or current_user.role in ["superadmin", "website_superadmin"]):
+        query = query.filter(AuditLog.tenant_id == current_user.tenant_id)
     
     # Apply filters
     if user_id:
@@ -91,7 +92,8 @@ def get_audit_stats(
     """
     Get audit log statistics for the dashboard.
     """
-    if current_user.role not in ["admin", "owner", "superadmin", "company_admin", "company_superadmin", "company_owner"]:
+    allowed_roles = ["admin", "owner", "superadmin", "company_admin", "company_superadmin", "company_owner", "website_superadmin"]
+    if current_user.role not in allowed_roles and not getattr(current_user, "is_superuser", False):
         return {"error": "Insufficient permissions"}, 403
     
     # Get today's date
@@ -101,9 +103,9 @@ def get_audit_stats(
     # Get logs from last 30 days
     thirty_days_ago = datetime.utcnow() - timedelta(days=30)
     
-    query = db.query(AuditLog).filter(
-        AuditLog.tenant_id == current_user.tenant_id
-    )
+    query = db.query(AuditLog)
+    if not (getattr(current_user, "is_superuser", False) or current_user.role in ["superadmin", "website_superadmin"]):
+        query = query.filter(AuditLog.tenant_id == current_user.tenant_id)
     
     total_actions = query.count()
     
@@ -112,11 +114,13 @@ def get_audit_stats(
     
     # Active users (users who performed actions in last 24 hours)
     twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
-    active_users = db.query(AuditLog.user_id).filter(
-        AuditLog.tenant_id == current_user.tenant_id,
+    users_q = db.query(AuditLog.user_id).filter(
         AuditLog.timestamp >= twenty_four_hours_ago,
         AuditLog.user_id.isnot(None)
-    ).distinct().count()
+    )
+    if not (getattr(current_user, "is_superuser", False) or current_user.role in ["superadmin", "website_superadmin"]):
+        users_q = users_q.filter(AuditLog.tenant_id == current_user.tenant_id)
+    active_users = users_q.distinct().count()
     
     # Critical actions (delete, permission changes)
     critical_actions = query.filter(
