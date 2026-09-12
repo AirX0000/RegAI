@@ -35,8 +35,10 @@ def run_migrations():
         if "already exists" in error_msg.lower():
             logger.warning("Migration skipped - tables already exist")
         else:
+            logger.error(f"Error running database migrations: {e}")
+
 def ensure_db_schema():
-    """Defensive schema self-healing for SQLite/Postgres: ensures hierarchy and ownership columns exist."""
+    """Defensive schema self-healing for SQLite/Postgres: ensures hierarchy, preferences, and company columns exist."""
     try:
         from app.db.session import engine
         from sqlalchemy import text
@@ -52,6 +54,12 @@ def ensure_db_schema():
                     if "is_company_owner" not in user_cols:
                         conn.execute(text("ALTER TABLE users ADD COLUMN is_company_owner BOOLEAN DEFAULT 0"))
                         logger.info("Added missing users.is_company_owner column")
+                    if "preferences" not in user_cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN preferences JSON DEFAULT '{}'"))
+                        logger.info("Added missing users.preferences column")
+                    if "updated_at" not in user_cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN updated_at DATETIME"))
+                        logger.info("Added missing users.updated_at column")
                 
                 # Check companies table
                 comp_res = conn.execute(text("PRAGMA table_info(companies)"))
@@ -63,6 +71,16 @@ def ensure_db_schema():
                     if "created_by_id" not in comp_cols:
                         conn.execute(text("ALTER TABLE companies ADD COLUMN created_by_id VARCHAR"))
                         logger.info("Added missing companies.created_by_id column")
+                    if "logo_url" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN logo_url VARCHAR"))
+                    if "employee_count" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN employee_count INTEGER DEFAULT 1"))
+                    if "industry" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN industry VARCHAR"))
+                    if "website" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN website VARCHAR"))
+                    if "description" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN description TEXT"))
                 conn.commit()
             except Exception as e:
                 logger.warning(f"Schema self-healing notice: {e}")

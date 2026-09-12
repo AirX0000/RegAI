@@ -84,6 +84,10 @@ def seed_demo():
                     conn.execute(text("ALTER TABLE users ADD COLUMN hierarchy_level INTEGER DEFAULT 5"))
                 if "is_company_owner" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN is_company_owner BOOLEAN DEFAULT 0"))
+                if "preferences" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN preferences JSON DEFAULT '{}'"))
+                if "updated_at" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN updated_at DATETIME"))
             comp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(companies)")).fetchall()]
             if comp_cols:
                 if "owner_id" not in comp_cols:
