@@ -1,5 +1,5 @@
 from pydantic import BaseModel, UUID4
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 class ReportTemplateBase(BaseModel):
@@ -10,6 +10,7 @@ class ReportTemplateBase(BaseModel):
     tax_types: Optional[List[str]] = None
     is_recurring: bool = False
     recurrence_pattern: Optional[str] = None
+    configuration: Optional[Dict[str, Any]] = None
 
 class ReportTemplateCreate(ReportTemplateBase):
     pass
@@ -22,6 +23,7 @@ class ReportTemplateUpdate(BaseModel):
     tax_types: Optional[List[str]] = None
     is_recurring: Optional[bool] = None
     recurrence_pattern: Optional[str] = None
+    configuration: Optional[Dict[str, Any]] = None
 
 class ReportTemplate(ReportTemplateBase):
     id: UUID4

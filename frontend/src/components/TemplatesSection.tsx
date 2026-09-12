@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import {
+    Plus,
+    Trash2,
+    Edit,
+    Sparkles,
+    Server,
+    FileSpreadsheet,
+    Layers,
+    Brain,
+    ShieldCheck,
+    RefreshCw,
+    FileText
+} from 'lucide-react';
+import { TemplateWizardModal } from './templates/TemplateWizardModal';
 
 interface TemplatesSectionProps {
     onSelectTemplate?: (templateData: any) => void;
@@ -11,19 +23,9 @@ interface TemplatesSectionProps {
 
 export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionProps = {}) {
     const [templates, setTemplates] = useState<any[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<any>(null);
     const { toast } = useToast();
-
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        report_type: 'compliance',
-        country_code: 'GB',
-        tax_types: ['vat', 'corporate'],
-        is_recurring: false,
-        recurrence_pattern: ''
-    });
 
     useEffect(() => {
         fetchTemplates();
@@ -38,72 +40,36 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         }
     };
 
-    const handleSubmit = async () => {
-        try {
-            if (editingTemplate) {
-                await api.put(`/templates/${editingTemplate.id}`, formData);
-                toast({
-                    title: "Success",
-                    description: "Template updated successfully",
-                });
-            } else {
-                await api.post('/templates/', formData);
-                toast({
-                    title: "Success",
-                    description: "Template created successfully",
-                });
-            }
-            setIsModalOpen(false);
-            resetForm();
-            fetchTemplates();
-        } catch (error: any) {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to save template",
-            });
-        }
-    };
-
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this template?')) return;
+    const handleDelete = async (id: string, name: string) => {
+        if (!confirm(`Вы уверены, что хотите удалить шаблон "${name}"?`)) return;
 
         try {
             await api.delete(`/templates/${id}`);
             toast({
-                title: "Success",
-                description: "Template deleted",
+                title: "Шаблон удален",
+                description: "Шаблон успешно исключен из библиотеки",
             });
             fetchTemplates();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to delete template",
+                title: "Ошибка",
+                description: error.response?.data?.detail || "Не удалось удалить шаблон",
             });
         }
     };
 
     const handleEdit = (template: any) => {
         setEditingTemplate(template);
-        setFormData({
-            name: template.name,
-            description: template.description || '',
-            report_type: template.report_type,
-            country_code: template.country_code || 'GB',
-            tax_types: template.tax_types || ['vat'],
-            is_recurring: template.is_recurring,
-            recurrence_pattern: template.recurrence_pattern || ''
-        });
-        setIsModalOpen(true);
+        setIsWizardOpen(true);
     };
 
     const handleUseTemplate = async (id: string) => {
         try {
             const res = await api.post(`/templates/${id}/use`);
             toast({
-                title: "Template applied",
-                description: `Opened submit form with "${res.data.title || 'template'}" parameters`,
+                title: "Шаблон применен",
+                description: `Параметры "${res.data.template_name || res.data.title}" загружены в форму`,
             });
             if (onSelectTemplate) {
                 onSelectTemplate(res.data);
@@ -114,177 +80,216 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to use template",
+                title: "Ошибка",
+                description: error.response?.data?.detail || "Не удалось применить шаблон",
             });
         }
     };
 
-    const resetForm = () => {
-        setFormData({
-            name: '',
-            description: '',
-            report_type: 'compliance',
-            country_code: 'GB',
-            tax_types: ['vat', 'corporate'],
-            is_recurring: false,
-            recurrence_pattern: ''
-        });
-        setEditingTemplate(null);
+    const getCountryBadge = (code?: string) => {
+        switch (code) {
+            case 'UZ': return '🇺🇿 Узбекистан';
+            case 'KZ': return '🇰🇿 Казахстан';
+            case 'GB': return '🇬🇧 Великобритания';
+            case 'US': return '🇺🇸 США';
+            case 'DE': return '🇩🇪 Германия / ЕС';
+            default: return '🌐 Глобальный';
+        }
+    };
+
+    const getTypeColor = (type: string) => {
+        switch (type) {
+            case 'financial': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'compliance': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            case 'audit': return 'bg-amber-50 text-amber-800 border-amber-200';
+            case 'risk_assessment': return 'bg-purple-50 text-purple-700 border-purple-200';
+            default: return 'bg-gray-50 text-gray-700 border-gray-200';
+        }
     };
 
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Report Templates</h2>
-                <Button onClick={() => { resetForm(); setIsModalOpen(true); }}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Template
+                <div>
+                    <h2 className="text-xl font-bold tracking-tight text-gray-900 flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-blue-600" />
+                        Библиотека Smart-Шаблонов
+                    </h2>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        Пакеты регламентных проверок, правил трансформации МСФО и аудиторских сценариев
+                    </p>
+                </div>
+                <Button
+                    onClick={() => { setEditingTemplate(null); setIsWizardOpen(true); }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-semibold text-xs"
+                >
+                    <Plus className="mr-1.5 h-4 w-4" />
+                    Новый Smart-Шаблон
                 </Button>
             </div>
 
-            {/* Templates List */}
+            {/* Templates Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {templates.map((template) => (
-                    <div key={template.id} className="rounded-lg border bg-white p-4 shadow-sm">
-                        <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1">
-                                <h3 className="font-semibold">{template.name}</h3>
-                                <p className="text-sm text-gray-600">{template.description}</p>
-                            </div>
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => handleEdit(template)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                >
-                                    <Edit className="h-4 w-4 text-gray-600" />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(template.id)}
-                                    className="p-1 hover:bg-gray-100 rounded"
-                                >
-                                    <Trash2 className="h-4 w-4 text-red-600" />
-                                </button>
-                            </div>
-                        </div>
-                        <div className="space-y-1 text-sm">
-                            <p><span className="font-medium">Type:</span> {template.report_type}</p>
-                            {template.country_code && (
-                                <p><span className="font-medium">Country:</span> {template.country_code}</p>
-                            )}
-                            {template.is_recurring && (
-                                <p className="text-blue-600">
-                                    🔄 Recurring: {template.recurrence_pattern}
-                                </p>
-                            )}
-                        </div>
-                        <Button
-                            onClick={() => handleUseTemplate(template.id)}
-                            className="w-full mt-3"
-                            size="sm"
+                {templates.map((template) => {
+                    const cfg = template.configuration || {};
+                    const activeStandards = cfg.active_standards || [];
+                    const dataSource = cfg.data_source_type;
+
+                    return (
+                        <div
+                            key={template.id}
+                            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
                         >
-                            Use Template
-                        </Button>
-                    </div>
-                ))}
+                            <div className="space-y-3">
+                                {/* Card Header */}
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getTypeColor(template.report_type)}`}>
+                                                {template.report_type.toUpperCase()}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 font-medium">
+                                                {getCountryBadge(template.country_code)}
+                                            </span>
+                                        </div>
+                                        <h3 className="font-bold text-gray-900 text-sm leading-snug group-hover:text-blue-600 transition-colors">
+                                            {template.name}
+                                        </h3>
+                                    </div>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => handleEdit(template)}
+                                            className="p-1.5 hover:bg-gray-100 text-gray-400 hover:text-blue-600 rounded-lg transition-colors"
+                                            title="Редактировать шаблон в визарде"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(template.id, template.name)}
+                                            className="p-1.5 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+                                            title="Удалить шаблон"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                                    {template.description || 'Интеллектуальный шаблон финансовой трансформации и комплаенса.'}
+                                </p>
+
+                                {/* Smart Configuration Badges */}
+                                <div className="space-y-2 pt-1">
+                                    {/* Standards pills */}
+                                    {activeStandards.length > 0 && (
+                                        <div className="flex flex-wrap gap-1">
+                                            {activeStandards.map((std: string) => (
+                                                <span
+                                                    key={std}
+                                                    className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                                >
+                                                    <Layers className="mr-1 h-3 w-3" />
+                                                    {std}
+                                                </span>
+                                            ))}
+                                            {cfg.enforce_zero_delta && (
+                                                <span
+                                                    className="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                                    title="Double-Entry Balance Guard: Zero Delta"
+                                                >
+                                                    <ShieldCheck className="mr-1 h-3 w-3" />
+                                                    Zero Delta
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Data Source & Transition */}
+                                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
+                                        <div className="flex items-center gap-1 font-medium">
+                                            {dataSource === 'onec_sync' ? (
+                                                <span className="flex items-center gap-1 text-amber-700 font-semibold">
+                                                    <Server className="h-3 w-3" /> 1C:Enterprise
+                                                </span>
+                                            ) : dataSource === 'excel_upload' ? (
+                                                <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                                                    <FileSpreadsheet className="h-3 w-3" /> Excel ОСВ
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-blue-700 font-semibold">
+                                                    <FileText className="h-3 w-3" /> Выбор баланса
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {cfg.source_standard && cfg.target_standard && (
+                                            <span className="font-mono text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">
+                                                {cfg.source_standard} ➔ {cfg.target_standard}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* AI & Recurring Indicator */}
+                                    <div className="flex items-center justify-between text-[11px] pt-1">
+                                        {cfg.ai_audit_enabled !== false ? (
+                                            <span className="flex items-center gap-1 text-purple-700 font-medium text-[10px]">
+                                                <Brain className="h-3 w-3" />
+                                                ИИ-аудит активен
+                                            </span>
+                                        ) : (
+                                            <span></span>
+                                        )}
+
+                                        {template.is_recurring && (
+                                            <span className="flex items-center gap-1 text-blue-600 font-medium text-[10px]">
+                                                <RefreshCw className="h-3 w-3" />
+                                                {template.recurrence_pattern || 'квартально'}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Use Template Action */}
+                            <Button
+                                onClick={() => handleUseTemplate(template.id)}
+                                className="w-full mt-4 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold h-9 rounded-xl shadow-xs transition-colors"
+                            >
+                                <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-400" />
+                                Использовать шаблон
+                            </Button>
+                        </div>
+                    );
+                })}
             </div>
 
             {templates.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                    No templates yet. Create one to get started!
+                <div className="text-center py-12 bg-white rounded-2xl border border-dashed border-gray-300 p-8 space-y-3">
+                    <Sparkles className="mx-auto h-8 w-8 text-blue-500" />
+                    <h3 className="text-sm font-semibold text-gray-900">Шаблоны пока не созданы</h3>
+                    <p className="text-xs text-gray-500 max-w-sm mx-auto">
+                        Создайте свой первый интеллектуальный регламентный шаблон с помощью 5-шагового конструктора.
+                    </p>
+                    <Button
+                        onClick={() => { setEditingTemplate(null); setIsWizardOpen(true); }}
+                        size="sm"
+                        className="bg-blue-600 text-white"
+                    >
+                        <Plus className="mr-1.5 h-4 w-4" /> Создать шаблон
+                    </Button>
                 </div>
             )}
 
-            {/* Create/Edit Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold mb-4">
-                            {editingTemplate ? 'Edit Template' : 'Create Template'}
-                        </h2>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Name *</label>
-                                <Input
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Monthly VAT Return"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
-                                <textarea
-                                    className="w-full rounded-md border p-2"
-                                    rows={2}
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Template description"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Report Type *</label>
-                                <select
-                                    className="w-full rounded-md border p-2"
-                                    value={formData.report_type}
-                                    onChange={(e) => setFormData({ ...formData, report_type: e.target.value })}
-                                >
-                                    <option value="compliance">Compliance Report</option>
-                                    <option value="audit">Audit Report</option>
-                                    <option value="financial">Financial Report</option>
-                                    <option value="risk_assessment">Risk Assessment</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Country</label>
-                                <select
-                                    className="w-full rounded-md border p-2"
-                                    value={formData.country_code}
-                                    onChange={(e) => setFormData({ ...formData, country_code: e.target.value })}
-                                >
-                                    <option value="GB">United Kingdom</option>
-                                    <option value="US">United States</option>
-                                    <option value="DE">Germany</option>
-                                    <option value="FR">France</option>
-                                    <option value="UZ">Uzbekistan</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.is_recurring}
-                                        onChange={(e) => setFormData({ ...formData, is_recurring: e.target.checked })}
-                                    />
-                                    <span className="text-sm font-medium">Recurring Report</span>
-                                </label>
-                            </div>
-                            {formData.is_recurring && (
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Recurrence</label>
-                                    <select
-                                        className="w-full rounded-md border p-2"
-                                        value={formData.recurrence_pattern}
-                                        onChange={(e) => setFormData({ ...formData, recurrence_pattern: e.target.value })}
-                                    >
-                                        <option value="weekly">Weekly</option>
-                                        <option value="monthly">Monthly</option>
-                                        <option value="quarterly">Quarterly</option>
-                                        <option value="yearly">Yearly</option>
-                                    </select>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex gap-2 mt-6">
-                            <Button onClick={handleSubmit} className="flex-1">
-                                {editingTemplate ? 'Update' : 'Create'}
-                            </Button>
-                            <Button onClick={() => { setIsModalOpen(false); resetForm(); }} variant="outline" className="flex-1">
-                                Cancel
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* 5-Step Smart Template Wizard */}
+            <TemplateWizardModal
+                isOpen={isWizardOpen}
+                onClose={() => {
+                    setIsWizardOpen(false);
+                    setEditingTemplate(null);
+                }}
+                onSuccess={fetchTemplates}
+                initialTemplate={editingTemplate}
+            />
         </div>
     );
 }

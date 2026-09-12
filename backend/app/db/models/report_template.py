@@ -17,6 +17,7 @@ class ReportTemplate(Base):
     # Template configuration
     country_code = Column(String(10))  # For tax analysis
     tax_types = Column(JSON)  # List of tax types to check
+    configuration = Column(JSON, nullable=True)  # Detailed 5-step Smart Template settings
     
     # Recurring settings
     is_recurring = Column(Boolean, default=False)

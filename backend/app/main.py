@@ -146,6 +146,7 @@ def ensure_demo_data():
         from app.db.models.document import Document, DocumentType, DocumentStatus
         from app.db.models.tax_rate import TaxRate
         from app.db.models.audit_log import AuditLog
+        from app.db.models.report_template import ReportTemplate
 
         db = SessionLocal()
         try:
@@ -840,6 +841,121 @@ def ensure_demo_data():
                     db.add(alog)
                 db.commit()
                 logger.info("Seeded security audit logs")
+
+            # 12. Smart Report Templates with 5-Step Configuration
+            templates_data = [
+                (
+                    "IFRS 16 Lease Recognition & Disclosure Pack",
+                    "Standard valuation template for capital leases under IFRS 16",
+                    "financial",
+                    "UZ",
+                    ["corporate", "vat"],
+                    {
+                        "source_standard": "NAS",
+                        "target_standard": "IFRS",
+                        "data_source_type": "onec_sync",
+                        "required_accounts": ["01", "02", "60", "67", "84"],
+                        "active_standards": ["IFRS 16", "IAS 36"],
+                        "enforce_zero_delta": True,
+                        "ai_audit_enabled": True,
+                        "ai_expert_role": "Senior IFRS Auditor",
+                        "ai_prompt": "Проверь классификацию договоров аренды по МСФО 16, правильность дисконтирования и авто-сходимость баланса.",
+                        "risk_triggers": ["unbalanced_equity", "undisclosed_lease_terms"],
+                        "approval_chain": ["accountant", "auditor", "admin"]
+                    }
+                ),
+                (
+                    "Corporate Profit Tax & VAT Declaration Form",
+                    "Quarterly reconciliation form for tax authorities",
+                    "compliance",
+                    "UZ",
+                    ["vat", "corporate"],
+                    {
+                        "source_standard": "NAS",
+                        "target_standard": "TAX_CODE",
+                        "data_source_type": "excel_upload",
+                        "required_accounts": ["64", "68", "90", "91"],
+                        "active_standards": ["TAX_VAT", "TAX_PROFIT"],
+                        "enforce_zero_delta": True,
+                        "ai_audit_enabled": True,
+                        "ai_expert_role": "Tax Compliance Consultant",
+                        "ai_prompt": "Проанализируй зачетный НДС и налогооблагаемую базу по налогу на прибыль в соответствии с Налоговым кодексом РУз.",
+                        "risk_triggers": ["vat_gap", "unsubstantiated_expenses"],
+                        "approval_chain": ["accountant", "auditor"]
+                    }
+                ),
+                (
+                    "1C:Enterprise General Ledger & Trial Balance Audit",
+                    "Trial balance reconciliation pack between 1C and IFRS chart of accounts",
+                    "audit",
+                    "UZ",
+                    ["vat"],
+                    {
+                        "source_standard": "1C_COA",
+                        "target_standard": "IFRS",
+                        "data_source_type": "onec_sync",
+                        "required_accounts": ["01", "10", "41", "51", "60", "62", "70", "80", "84"],
+                        "active_standards": ["IFRS 9", "IAS 36", "IFRS 16"],
+                        "enforce_zero_delta": True,
+                        "ai_audit_enabled": True,
+                        "ai_expert_role": "Big 4 External Auditor",
+                        "ai_prompt": "Сверь оборотно-сальдовую ведомость 1С с трансляционным балансом, найди нетипичные проводки и обороты.",
+                        "risk_triggers": ["direct_equity_debit", "stale_receivables"],
+                        "approval_chain": ["accountant", "auditor", "admin"]
+                    }
+                ),
+                (
+                    "Executive ESG & Carbon Accounting Summary",
+                    "Scope 1, 2, and 3 emissions reporting and governance matrix",
+                    "risk_assessment",
+                    "Global",
+                    [],
+                    {
+                        "source_standard": "GRI",
+                        "target_standard": "IFRS_S1_S2",
+                        "data_source_type": "manual_entry",
+                        "required_accounts": [],
+                        "active_standards": ["IFRS S1", "IFRS S2"],
+                        "enforce_zero_delta": False,
+                        "ai_audit_enabled": True,
+                        "ai_expert_role": "ESG & Sustainability Lead",
+                        "ai_prompt": "Оцени полноту раскрытия информации о прямых и косвенных выбросах парниковых газов и климатических рисках.",
+                        "risk_triggers": ["scope3_unmeasured", "governance_gaps"],
+                        "approval_chain": ["auditor", "admin"]
+                    }
+                ),
+            ]
+
+            if db.query(ReportTemplate).count() == 0 and admin_user:
+                for t_name, t_desc, t_type, t_cc, t_taxes, t_cfg in templates_data:
+                    tmpl = ReportTemplate(
+                        id=uuid.uuid4(),
+                        name=t_name,
+                        description=t_desc,
+                        report_type=t_type,
+                        country_code=t_cc,
+                        tax_types=t_taxes,
+                        configuration=t_cfg,
+                        is_recurring=True,
+                        recurrence_pattern="quarterly",
+                        created_by=admin_user.id,
+                        company_id=primary_company.id,
+                        tenant_id=primary_company.tenant_id
+                    )
+                    db.add(tmpl)
+                db.commit()
+                logger.info("Seeded 4 industry-standard report templates with smart configuration")
+            else:
+                updated_any = False
+                for t_name, t_desc, t_type, t_cc, t_taxes, t_cfg in templates_data:
+                    existing = db.query(ReportTemplate).filter(ReportTemplate.name == t_name).first()
+                    if existing and (existing.configuration is None or not existing.configuration):
+                        existing.configuration = t_cfg
+                        existing.country_code = t_cc
+                        updated_any = True
+                if updated_any:
+                    db.commit()
+                    logger.info("Backfilled smart configuration for existing report templates")
 
             logger.info("✅ All demo data verified and fully populated.")
         except Exception as e:

@@ -22,7 +22,7 @@ def create_template(
     Create new report template
     """
     # Only accountants, auditors, and admins can create templates
-    if current_user.role not in ["accountant", "auditor", "admin", "superadmin"]:
+    if current_user.role not in ["accountant", "auditor", "admin", "superadmin", "company_owner"]:
         raise HTTPException(status_code=403, detail="Not authorized to create templates")
     
     template = ReportTemplate(
@@ -32,6 +32,7 @@ def create_template(
         report_type=template_in.report_type,
         country_code=template_in.country_code,
         tax_types=template_in.tax_types,
+        configuration=template_in.configuration,
         is_recurring=template_in.is_recurring,
         recurrence_pattern=template_in.recurrence_pattern,
         created_by=current_user.id,
@@ -55,14 +56,16 @@ def list_templates(
     """
     List report templates
     """
-    # Filter by role
+    # Superadmin sees all templates
     if current_user.role == "superadmin":
         templates = db.query(ReportTemplate).offset(skip).limit(limit).all()
-    elif current_user.role == "admin":
+    elif current_user.company_id:
+        # Company members see templates for their company or created by them
         templates = db.query(ReportTemplate).filter(
-            ReportTemplate.company_id == current_user.company_id
+            (ReportTemplate.company_id == current_user.company_id) |
+            (ReportTemplate.created_by == current_user.id)
         ).offset(skip).limit(limit).all()
-    else:  # accountant, auditor
+    else:
         templates = db.query(ReportTemplate).filter(
             ReportTemplate.created_by == current_user.id
         ).offset(skip).limit(limit).all()
@@ -173,16 +176,18 @@ def use_template(
         raise HTTPException(status_code=404, detail="Template not found")
     
     # Check permissions
-    if current_user.role not in ["superadmin", "admin"]:
-        if template.created_by != current_user.id:
-            raise HTTPException(status_code=403, detail="Not authorized")
+    if current_user.role != "superadmin":
+        if current_user.company_id and template.company_id != current_user.company_id and template.created_by != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized to use this template")
     
     # Return template data for form pre-fill
     return {
         "title": f"{template.name} - {template.recurrence_pattern or 'Report'}",
+        "template_name": template.name,
         "description": template.description,
         "report_type": template.report_type,
         "country_code": template.country_code,
         "tax_types": template.tax_types,
-        "company_id": str(current_user.company_id)
+        "configuration": template.configuration,
+        "company_id": str(current_user.company_id) if current_user.company_id else ""
     }
