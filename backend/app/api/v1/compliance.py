@@ -19,6 +19,7 @@ import uuid
 router = APIRouter()
 
 @router.get("/alerts", response_model=List[alert_schemas.Alert])
+@router.get("/alerts/", response_model=List[alert_schemas.Alert])
 def read_alerts(
     db: Session = Depends(get_db),
     skip: int = 0,
@@ -79,6 +80,7 @@ def read_alerts(
 
 
 @router.get("/stats", response_model=alert_schemas.AlertStats)
+@router.get("/stats/", response_model=alert_schemas.AlertStats)
 def get_alert_stats(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_active_user),

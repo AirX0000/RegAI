@@ -98,6 +98,7 @@ def get_audit_logs(
     }
 
 @router.get("/stats")
+@router.get("/stats/")
 def get_audit_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -163,6 +164,7 @@ def get_audit_stats(
     }
 
 @router.get("/export")
+@router.get("/export/")
 def export_audit_logs(
     action: str = Query(None),
     user_id: str = Query(None),

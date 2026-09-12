@@ -25,6 +25,7 @@ DEFAULT_LAYOUT = [
 ]
 
 @router.get("/config", response_model=DashboardLayout)
+@router.get("/config/", response_model=DashboardLayout)
 def get_dashboard_config(
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
@@ -44,6 +45,7 @@ def get_dashboard_config(
     return DashboardLayout(widgets=layout_objects)
 
 @router.post("/config", response_model=DashboardLayout)
+@router.post("/config/", response_model=DashboardLayout)
 def update_dashboard_config(
     config: DashboardLayout,
     db: Session = Depends(get_db),
@@ -70,6 +72,7 @@ def update_dashboard_config(
     return config
 
 @router.get("/data", response_model=DashboardData)
+@router.get("/data/", response_model=DashboardData)
 def get_dashboard_data(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),

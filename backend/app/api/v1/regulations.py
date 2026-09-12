@@ -68,6 +68,7 @@ def ingest_regulation(
     return regulation
 
 @router.get("/search", response_model=List[dict])
+@router.get("/search/", response_model=List[dict])
 def search_regulations(
     query: str,
     limit: int = 200,  # Increased from 50 to show all regulations
@@ -244,7 +245,8 @@ def unsubscribe_regulation(
         
     return {"message": "Unsubscribed successfully"}
 
-@router.post("/refresh")
+@router.api_route("/refresh", methods=["GET", "POST"])
+@router.api_route("/refresh/", methods=["GET", "POST"])
 def refresh_regulations(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_active_user),
@@ -374,6 +376,7 @@ def list_regulations(
     return regulations
 
 @router.get("/jurisdictions")
+@router.get("/jurisdictions/")
 def get_jurisdictions(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_active_user),

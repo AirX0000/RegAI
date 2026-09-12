@@ -806,7 +806,8 @@ if os.path.exists(dist_dir):
     async def serve_spa_page(full_path: str):
         # Exclude backend internal routes
         if full_path.startswith("api/") or full_path.startswith("metrics") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="API route not found")
+            logger.warning(f"Unmatched backend route: /{full_path}")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"API route /{full_path} not found")
         
         file_path = os.path.join(dist_dir, full_path)
         if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
