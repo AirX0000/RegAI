@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List
+from typing import Optional, List, Any, Union
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
@@ -85,7 +85,7 @@ class BalanceSheet(BalanceSheetBase):
 class TransformedStatementBase(BaseModel):
     format_type: TransformationFormat
     transformed_data: dict
-    transformation_rules_applied: Optional[dict] = None
+    transformation_rules_applied: Optional[Any] = None
 
 
 class TransformedStatementCreate(TransformedStatementBase):

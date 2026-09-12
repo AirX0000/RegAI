@@ -78,9 +78,17 @@ def search_regulations(
     Search regulations using RAG.
     """
     try:
-        results = retriever.search_regulations(str(current_user.tenant_id), query, limit)
-        
-        # If RAG returns no results or is not yet indexed, fallback to querying SQL regulations table directly
+        results = []
+        is_empty_query = not query or not query.strip()
+
+        if not is_empty_query:
+            try:
+                results = retriever.search_regulations(str(current_user.tenant_id), query, limit)
+            except Exception as rag_err:
+                print(f"RAG search notice: {rag_err}, falling back to SQL regulations search")
+                results = []
+
+        # If query is empty, or RAG returned no results, query SQL regulations table directly
         if not results:
             sql_query = db.query(Regulation)
             if current_user.tenant_id:
@@ -90,7 +98,7 @@ def search_regulations(
                         Regulation.tenant_id == None
                     )
                 )
-            if query and query.strip():
+            if not is_empty_query:
                 q_like = f"%{query.strip()}%"
                 sql_query = sql_query.filter(
                     or_(
@@ -100,7 +108,7 @@ def search_regulations(
                         Regulation.content.ilike(q_like)
                     )
                 )
-            regs = sql_query.limit(limit).all()
+            regs = sql_query.order_by(Regulation.code.asc()).limit(limit).all()
             results = []
             for r in regs:
                 results.append({
@@ -115,7 +123,8 @@ def search_regulations(
                         "effective_date": r.effective_date.strftime("%Y-%m-%d") if r.effective_date else "",
                         "source_url": r.source_url or "",
                         "summary": r.content[:300] if r.content else (r.title or ""),
-                        "description": r.content or r.title or ""
+                        "description": r.content or r.title or "",
+                        "workflow_steps": r.workflow_steps or []
                     }
                 })
 

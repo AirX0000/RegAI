@@ -54,17 +54,18 @@ ENV CHROMA_DIR=/app/chroma_db
 
 EXPOSE 8000
 
-# Start command: migrations → universal schema healing → base seed → AI regulations → demo companies → uvicorn
+# Start command: migrations → universal schema healing → 50+ regulations → demo companies → balance sheets & 1C → uvicorn
 CMD ["sh", "-c", "\
   echo '🚀 Running DB migrations...' && \
-  python -m alembic upgrade head && \
+  (python -m alembic upgrade head || true) && \
   echo '🔧 Universal schema self-healing...' && \
   python -c 'from app.main import ensure_db_schema; ensure_db_schema()' && \
-  echo '🌱 Seeding base demo environment...' && \
-  python /app/scripts/seed_demo_environment.py || true && \
-  echo '🤖 Populating AI regulations content...' && \
-  python /app/scripts/ai_populate_db.py || true && \
+  echo '📜 Seeding 50+ banking, audit & Uzbekistan regulations...' && \
+  (python -c 'from app.db.seeds.load_regulations import load_regulations; load_regulations()' || true) && \
   echo '🏢 Creating demo companies & users...' && \
-  python /app/scripts/seed_demo_companies.py || true && \
+  (python /app/scripts/seed_demo_companies.py || true) && \
+  echo '🌱 Seeding base demo balance sheets, 1C & adjustments...' && \
+  (python /app/scripts/seed_demo_environment.py || true) && \
   echo '✅ Starting server...' && \
   uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+

@@ -10,8 +10,14 @@ from pathlib import Path
 from datetime import datetime, timezone
 import uuid
 
-# Add the app directory to the path
-sys.path.insert(0, str(Path(__file__).parent / "app"))
+# Add the directory containing the "app" package to sys.path
+_dir = Path(__file__).resolve().parent
+if (_dir / "app").exists():
+    if str(_dir) not in sys.path:
+        sys.path.insert(0, str(_dir))
+elif (_dir.parent / "app").exists():
+    if str(_dir.parent) not in sys.path:
+        sys.path.insert(0, str(_dir.parent))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

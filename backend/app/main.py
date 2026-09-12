@@ -36,6 +36,11 @@ def run_migrations():
             logger.warning("Migration skipped - tables already exist")
         else:
             logger.error(f"Error running database migrations: {e}")
+    finally:
+        try:
+            setup_logging()
+        except Exception:
+            pass
 
 def ensure_db_schema():
     """Universal defensive schema self-healing for SQLite and PostgreSQL:
@@ -298,9 +303,9 @@ def ensure_demo_data():
 
             # Link primary company ownership
             if "owner@finbridge.demo" in users:
-                primary_company.owner_id = str(users["owner@finbridge.demo"].id)
+                primary_company.owner_id = users["owner@finbridge.demo"].id
             if "admin@finbridge.demo" in users:
-                primary_company.created_by_id = str(users["admin@finbridge.demo"].id)
+                primary_company.created_by_id = users["admin@finbridge.demo"].id
             db.commit()
 
             admin_user = users.get("admin@finbridge.demo")
@@ -322,9 +327,10 @@ def ensure_demo_data():
                 try:
                     import sys
                     from pathlib import Path
-                    backend_dir = Path(__file__).parent.parent
-                    if str(backend_dir) not in sys.path:
-                        sys.path.insert(0, str(backend_dir))
+                    # Ensure app's parent directory is in sys.path
+                    app_root = Path(__file__).resolve().parent.parent
+                    if str(app_root) not in sys.path:
+                        sys.path.insert(0, str(app_root))
                     from populate_regulations import REGULATIONS as GLOBAL_REGS
                     for reg_item in GLOBAL_REGS:
                         if not db.query(Regulation).filter(Regulation.title == reg_item["title"]).first():

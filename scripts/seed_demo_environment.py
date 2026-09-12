@@ -38,6 +38,8 @@ from app.db.models.balance_sheet import (  # type: ignore
     BalanceSheetItem, 
     BalanceSheetStatus, 
     BalanceSheetCategory,
+    TransformationFormat,
+    TransformedStatement,
     TransformationAdjustment
 )
 from app.db.models.alert import Alert, AlertStatus, AlertSeverity  # type: ignore
@@ -101,11 +103,20 @@ def seed_demo():
         print("\n🏢 [2/6] Seeding Companies...")
         companies_data = [
             {
-                "name": "TechCorp International LLC",
+                "name": "FinBridge Capital",
                 "domain": "finbridge.demo",
+                "industry": "Financial Services",
+                "employee_count": 850,
+                "website": "https://finbridge.demo",
+                "description": "Leading investment banking and asset management firm operating across EU and CIS markets.",
+                "logo_url": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=128&auto=format&fit=crop&q=80"
+            },
+            {
+                "name": "TechCorp International LLC",
+                "domain": "techcorp.demo",
                 "industry": "Technology",
                 "employee_count": 120,
-                "website": "https://finbridge.demo",
+                "website": "https://techcorp.demo",
                 "description": "Global software enterprise, cloud SaaS, and AI technology provider.",
                 "logo_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=128&auto=format&fit=crop&q=80"
             },
@@ -153,7 +164,9 @@ def seed_demo():
                 print(f"   ℹ️ Company exists: {comp.name}")
             companies[cdata["name"]] = comp
 
-        primary_company = companies["TechCorp International LLC"]
+        primary_company = db.query(Company).filter(Company.name == "FinBridge Capital").first()
+        if not primary_company:
+            primary_company = companies["FinBridge Capital"]
 
         print("\n👥 [3/6] Seeding Users with Role Hierarchy...")
         users_data = [
@@ -335,14 +348,14 @@ def seed_demo():
                 )
                 db.add(item)
 
-            # Add IFRS Adjustments
+            # Add IFRS Adjustments (IFRS 16 Lease, IAS 36 Impairment, IFRS 9 ECL)
             adj1 = TransformationAdjustment(
                 id=uuid.uuid4(),
                 balance_sheet_id=bs_2024.id,
                 description="IFRS 16 Lease Capitalization (Right-of-Use Asset Recognition)",
                 adjustment_amount=12500000.00,
                 adjustment_type="debit",
-                ifrs_category="IFRS 16 Leases"
+                ifrs_category="IFRS 16 (Leases)"
             )
             adj2 = TransformationAdjustment(
                 id=uuid.uuid4(),
@@ -350,11 +363,44 @@ def seed_demo():
                 description="IFRS 16 Lease Liability Recognition",
                 adjustment_amount=12500000.00,
                 adjustment_type="credit",
-                ifrs_category="IFRS 16 Leases"
+                ifrs_category="IFRS 16 (Leases)"
             )
-            db.add_all([adj1, adj2])
+            adj3 = TransformationAdjustment(
+                id=uuid.uuid4(),
+                balance_sheet_id=bs_2024.id,
+                description="IAS 36 Impairment of obsolete server infrastructure to recoverable amount",
+                adjustment_amount=2300000.00,
+                adjustment_type="credit",
+                ifrs_category="IAS 36 (Impairment)"
+            )
+            adj4 = TransformationAdjustment(
+                id=uuid.uuid4(),
+                balance_sheet_id=bs_2024.id,
+                description="IFRS 9 Expected Credit Loss (ECL) Stage 2 provision on trade receivables past 90 days (PD=12.4%, LGD=45%)",
+                adjustment_amount=3250000.00,
+                adjustment_type="credit",
+                ifrs_category="IFRS 9 (Financial Instruments)"
+            )
+            ts = TransformedStatement(
+                id=uuid.uuid4(),
+                balance_sheet_id=bs_2024.id,
+                format_type=TransformationFormat.IFRS,
+                transformed_data={
+                    "total_assets_ifrs": 132500000.00,
+                    "total_liabilities_ifrs": 82500000.00,
+                    "total_equity_ifrs": 50000000.00,
+                    "status": "balanced",
+                    "adjustments_count": 4
+                },
+                transformation_rules_applied=[
+                    {"standard": "IFRS 16", "impact": "+12,500,000 ROU Asset"},
+                    {"standard": "IAS 36", "impact": "-2,300,000 Impairment"},
+                    {"standard": "IFRS 9", "impact": "-3,250,000 ECL Provision"}
+                ]
+            )
+            db.add_all([adj1, adj2, adj3, adj4, ts])
             db.commit()
-            print(f"   ✅ Seeded 2024 Balanced Sheet with 14 accounts and 2 IFRS adjustments")
+            print(f"   ✅ Seeded 2024 Balanced Sheet with 14 accounts and IFRS 16 / IAS 36 / IFRS 9 adjustments")
         else:
             print("   ℹ️ Balance sheet data already exists")
 
@@ -815,6 +861,46 @@ def seed_demo():
             print("   ✅ Seeded security audit trail and 1C synchronization logs")
         else:
             print(f"   ℹ️ Audit logs already exist ({logs_count} found)")
+
+        # Seed Regulations if empty
+        if db.query(Regulation).count() < 10:
+            print("\n📜 Seeding Regulations & Standards...")
+            try:
+                from app.db.seeds.load_regulations import load_regulations
+                load_regulations()
+                print("   ✅ Loaded 50+ banking, audit, and Uzbekistan regulations")
+            except Exception as e:
+                print(f"   ⚠️ Notice loading regulations: {e}")
+
+        # Seed Tax Rates if empty
+        if db.query(TaxRate).count() == 0:
+            print("\n💰 Seeding Cross-Border Tax Rates...")
+            from datetime import date
+            taxes = [
+                ("UZ", "Uzbekistan", "vat", 12.00, "Standard Value Added Tax per Tax Code of the Republic of Uzbekistan", date(2023, 1, 1)),
+                ("UZ", "Uzbekistan", "corporate", 15.00, "Corporate Income (Profit) Tax base rate", date(2023, 1, 1)),
+                ("RU", "Russia", "vat", 20.00, "Standard Value Added Tax per RF Tax Code Article 164", date(2019, 1, 1)),
+                ("RU", "Russia", "corporate", 20.00, "Corporate Profit Tax general rate", date(2009, 1, 1)),
+                ("KZ", "Kazakhstan", "vat", 12.00, "Standard Value Added Tax per Tax Code of the Republic of Kazakhstan", date(2020, 1, 1)),
+                ("KZ", "Kazakhstan", "corporate", 20.00, "Corporate Income Tax statutory rate", date(2020, 1, 1)),
+                ("DE", "Germany", "vat", 19.00, "Standard German Umsatzsteuer (MwSt)", date(2021, 1, 1)),
+                ("DE", "Germany", "corporate", 15.00, "German Corporate Income Tax (KSt)", date(2021, 1, 1)),
+                ("US", "United States", "corporate", 21.00, "US Federal Corporate Income Tax", date(2018, 1, 1)),
+                ("GB", "United Kingdom", "corporate", 25.00, "UK Corporation Tax standard rate", date(2023, 4, 1)),
+            ]
+            for cc, cn, tt, r, desc, ef in taxes:
+                tr = TaxRate(
+                    id=uuid.uuid4(),
+                    country_code=cc,
+                    country_name=cn,
+                    tax_type=tt,
+                    rate=r,
+                    description=desc,
+                    effective_from=ef
+                )
+                db.add(tr)
+            db.commit()
+            print(f"   ✅ Seeded {len(taxes)} cross-border tax rates")
 
         print("\n" + "="*70)
         print("🎉 DEMO ENVIRONMENT SEEDED SUCCESSFULLY!")

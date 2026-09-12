@@ -7,8 +7,14 @@ import sys
 import os
 from datetime import datetime
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+# Dynamically add the directory containing the "app" package to sys.path
+_dir = os.path.dirname(os.path.abspath(__file__))
+for _ in range(4):
+    _dir = os.path.dirname(_dir)
+    if os.path.exists(os.path.join(_dir, "app")):
+        if _dir not in sys.path:
+            sys.path.insert(0, _dir)
+        break
 
 from app.db.session import SessionLocal
 from app.db.models.regulation import Regulation
