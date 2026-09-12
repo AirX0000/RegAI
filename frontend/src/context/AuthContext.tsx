@@ -88,8 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     localStorage.setItem('user', JSON.stringify(res.data));
                 })
                 .catch(err => {
-                    // Only log out if backend explicitly rejected with 401 Unauthorized
-                    if (err.response?.status === 401) {
+                    // Only log out if backend explicitly rejected with 401 Unauthorized or 404 (user record does not exist on backend)
+                    if (err.response?.status === 401 || err.response?.status === 404) {
                         logout();
                     } else {
                         console.warn("Could not reach backend to verify user, retaining cached session:", err);

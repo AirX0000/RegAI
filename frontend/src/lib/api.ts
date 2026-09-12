@@ -46,6 +46,16 @@ api.interceptors.response.use(
             originalRequest.url?.includes('/auth/login') ||
             originalRequest.url?.includes('/auth/refresh');
 
+        // If /users/me fails with 401 or 404, the user session or user record is gone on backend
+        if (originalRequest.url?.includes('/users/me') && (error.response.status === 401 || error.response.status === 404)) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+
         // If 401 unauthorized and not already retried and not a login/refresh request
         if (error.response.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
             const currentToken = localStorage.getItem('token');
