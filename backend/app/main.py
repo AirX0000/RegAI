@@ -972,6 +972,11 @@ async def lifespan(app: FastAPI):
     run_migrations()
     ensure_db_schema()
     ensure_demo_data()
+    try:
+        from app.services.regulation_auto_seeder import regulation_auto_seeder
+        regulation_auto_seeder.seed_if_missing()
+    except Exception as seeder_err:
+        logger.error(f"Failed to auto-seed regulations on startup: {seeder_err}")
     start_scheduler()
     yield
     # Shutdown

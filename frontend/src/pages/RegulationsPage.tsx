@@ -14,7 +14,9 @@ import {
     X,
     Filter,
     Loader2,
-    Plus
+    Plus,
+    Sparkles,
+    RefreshCw
 } from 'lucide-react';
 import {
     Dialog,
@@ -47,7 +49,7 @@ export default function RegulationsPage() {
     const [showSubscribedOnly, setShowSubscribedOnly] = useState(false);
     const [relatedRegulations, setRelatedRegulations] = useState<any[]>([]);
     const [isLoadingRelated, setIsLoadingRelated] = useState(false);
-
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const { register, handleSubmit } = useForm();
     const { toast } = useToast();
@@ -85,7 +87,7 @@ export default function RegulationsPage() {
         }
     };
 
-    const tabs = ["All", "Tax", "IFRS", "ESG", "Privacy", "Security", "Finance", "Healthcare", "Labor", "Environmental", "AML", "Consumer"];
+    const tabs = ["All", "IFRS", "НСБУ", "Finance", "Tax", "Audit", "AML", "ESG", "Privacy", "Security", "Healthcare", "Labor", "Consumer"];
 
     useEffect(() => {
         fetchRegulations();
@@ -136,10 +138,14 @@ export default function RegulationsPage() {
         let filtered = results.filter(item => {
             // Tab filter
             if (activeTab !== "All") {
-                const category = item.metadata.category || "";
-                const matchesTab = category.toLowerCase() === activeTab.toLowerCase() ||
-                    item.metadata.code.includes(activeTab) ||
-                    item.metadata.title.includes(activeTab);
+                const category = (item.metadata.category || "").toLowerCase();
+                const code = (item.metadata.code || "").toLowerCase();
+                const title = (item.metadata.title || "").toLowerCase();
+                const tabLower = activeTab.toLowerCase();
+                const matchesTab = category === tabLower ||
+                    category.includes(tabLower) ||
+                    code.includes(tabLower) ||
+                    title.includes(tabLower);
                 if (!matchesTab) return false;
             }
 
@@ -401,13 +407,37 @@ export default function RegulationsPage() {
         }
     };
 
+    const handleAutoSeed = async () => {
+        setIsSyncing(true);
+        try {
+            const res = await api.post('/regulations/auto-seed');
+            toast({
+                title: "Авто-синхронизация нормативов",
+                description: `Каталог обновлен: добавлено ${res.data.added ?? 0}, обновлено ${res.data.updated ?? 0}. Всего в базе: ${res.data.total_regulations ?? results.length}.`,
+            });
+            await fetchRegulations();
+            await fetchJurisdictions();
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: t('error'),
+                description: "Ошибка автоматической синхронизации каталога нормативов",
+            });
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     const handleRefresh = async () => {
         setIsLoading(true);
         try {
             const res = await api.post('/regulations/refresh');
+            const added = res.data.added ?? 0;
+            const updated = res.data.updated ?? 0;
+            const total = res.data.total_regulations ?? results.length;
             toast({
                 title: t('success'),
-                description: `Update check complete. ${res.data.updated_count} regulations checked. List refreshed.`,
+                description: `Синхронизация завершена. Добавлено: ${added}, Обновлено: ${updated}. Всего в базе: ${total}.`,
             });
             fetchRegulations();
         } catch (error) {
@@ -423,19 +453,39 @@ export default function RegulationsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">{t('regulations')}</h1>
-                    <p className="text-sm text-gray-500 mt-1">
-                        {filteredResults.length} {t('regulations_found')}
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold">{t('regulations')}</h1>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Авто-синхронизация 24/7
+                        </span>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
+                        <span>Найдено: <strong>{filteredResults.length}</strong></span>
+                        <span>•</span>
+                        <span>Всего в базе: <strong>{results.length}</strong> нормативов</span>
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                    <Button 
+                        onClick={handleAutoSeed} 
+                        disabled={isSyncing} 
+                        className="gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white shadow-sm"
+                    >
+                        {isSyncing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Sparkles className="h-4 w-4" />
+                        )}
+                        <span>Авто-пополнение базы</span>
+                    </Button>
                     <Button onClick={handleRefresh} variant="secondary" className="gap-2">
-                        <Loader2 className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                         {t('check_updates')}
                     </Button>
-                    <Button onClick={() => setIsAddModalOpen(true)} className="gap-2">
+                    <Button onClick={() => setIsAddModalOpen(true)} className="gap-2" variant="outline">
                         <Plus className="h-4 w-4" />
                         {t('add_regulation')}
                     </Button>

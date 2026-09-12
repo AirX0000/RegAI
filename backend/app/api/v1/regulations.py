@@ -245,6 +245,20 @@ def unsubscribe_regulation(
         
     return {"message": "Unsubscribed successfully"}
 
+@router.api_route("/auto-seed", methods=["POST"])
+@router.api_route("/auto-seed/", methods=["POST"])
+def auto_seed_regulations(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Manually trigger automatic seeding of all official regulations and normatives.
+    """
+    from app.services.regulation_auto_seeder import RegulationAutoSeeder
+    seeder = RegulationAutoSeeder(db)
+    result = seeder.seed_if_missing()
+    return result
+
 @router.api_route("/refresh", methods=["GET", "POST"])
 @router.api_route("/refresh/", methods=["GET", "POST"])
 def refresh_regulations(
@@ -252,14 +266,26 @@ def refresh_regulations(
     current_user = Depends(get_current_active_user),
 ) -> Any:
     """
-    Manually trigger regulation update check.
+    Manually trigger regulation update check and auto-sync missing normatives.
     """
+    from app.services.regulation_auto_seeder import RegulationAutoSeeder
     from app.services.regulation_updater import RegulationUpdaterService
     
+    # 1. First ensure all base/new catalog regulations are seeded
+    seeder = RegulationAutoSeeder(db)
+    seed_result = seeder.seed_if_missing()
+
+    # 2. Check for content revisions / updates
     updater = RegulationUpdaterService(db)
-    result = updater.check_for_updates()
+    update_result = updater.check_for_updates()
     
-    return result
+    return {
+        "status": "success",
+        "added": seed_result.get("added", 0),
+        "updated": seed_result.get("updated", 0) + update_result.get("updated_count", 0),
+        "skipped": seed_result.get("skipped", 0),
+        "total_regulations": seed_result.get("total_regulations", 0)
+    }
 
 @router.post("/{regulation_id}/analyze-impact")
 def analyze_regulation_impact(
