@@ -18,13 +18,11 @@ import {
     Lock, 
     Mail, 
     ArrowRight, 
-    Cpu, 
-    Check 
+    Cpu 
 } from 'lucide-react';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const DEMO_ACCOUNTS = [
-    { role: 'superadmin', label: '👑 Master SuperAdmin', email: 'superadmin@finbridge.demo', badge: 'Global Access', color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100' },
     { role: 'admin', label: 'Company Admin', email: 'admin@finbridge.demo', badge: 'Company Only', color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100' },
     { role: 'company_owner', label: 'Owner', email: 'owner@finbridge.demo', badge: 'Executive', color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' },
     { role: 'accountant', label: 'Accountant', email: 'accountant@finbridge.demo', badge: 'Ledger', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' },
@@ -232,64 +230,26 @@ export default function LoginPage() {
                             </span>
                         </div>
 
-                        {/* Master SuperAdmin Hero Card */}
-                        <div className="mb-2.5">
-                            {DEMO_ACCOUNTS.filter(a => a.role === 'superadmin').map((acc) => {
-                                const isSelected = activeDemo === acc.email;
-                                return (
-                                    <button
-                                        key={acc.email}
-                                        type="button"
-                                        onClick={() => fillCredentials(acc.email)}
-                                        className={`w-full p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
-                                            isSelected 
-                                                ? 'border-indigo-500 bg-indigo-500/20 text-white ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/10' 
-                                                : 'border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 to-slate-900/60 text-slate-200 hover:border-indigo-500/60 hover:bg-indigo-950/60'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-sm">
-                                                👑
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-bold text-white">Master SuperAdmin</span>
-                                                    <span className="text-[9px] px-1.5 py-0.2 rounded font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                                                        Global Access
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] text-slate-400">{acc.email}</span>
-                                            </div>
-                                        </div>
-                                        {isSelected && <Check className="w-4 h-4 text-indigo-400" />}
-                                    </button>
-                                );
-                            })}
-                        </div>
-
                         {/* Company Scoped Profiles Grid */}
-                        <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-1.5 font-semibold">
-                            {t('company_scoped_title') || 'Профили компании (Изолированные)'}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                            {DEMO_ACCOUNTS.filter(a => a.role !== 'superadmin').map((acc) => {
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {DEMO_ACCOUNTS.map((acc) => {
                                 const isSelected = activeDemo === acc.email;
                                 return (
                                     <button
                                         key={acc.email}
                                         type="button"
                                         onClick={() => fillCredentials(acc.email)}
-                                        className={`p-2 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                                             isSelected 
-                                                ? 'border-blue-500 bg-blue-500/20 text-white ring-1 ring-blue-500' 
-                                                : 'border-slate-800 bg-slate-950/50 text-slate-300 hover:border-slate-700 hover:bg-slate-800/60'
+                                                ? 'border-blue-500 bg-blue-500/20 text-white ring-1 ring-blue-500 shadow-md shadow-blue-500/10' 
+                                                : 'border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 hover:bg-slate-800/60'
                                         }`}
                                     >
-                                        <div className="flex items-center justify-between w-full mb-0.5">
+                                        <div className="flex items-center justify-between w-full mb-1">
                                             <span className="text-xs font-semibold truncate">{acc.label}</span>
-                                            <span className="text-[9px] px-1 rounded bg-slate-800 text-slate-400">{acc.badge}</span>
+                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{acc.badge}</span>
                                         </div>
-                                        <span className="text-[9px] text-slate-500 truncate">{acc.email}</span>
+                                        <span className="text-[10px] text-slate-400 truncate">{acc.email}</span>
                                     </button>
                                 );
                             })}

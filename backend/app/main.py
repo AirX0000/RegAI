@@ -37,10 +37,145 @@ def run_migrations():
         else:
             logger.error(f"Error running database migrations: {e}")
 
+def ensure_demo_accounts():
+    """Ensure essential demo accounts and companies exist with active status and correct password on every startup."""
+    try:
+        from app.db.session import SessionLocal
+        from app.db.models.tenant import Tenant
+        from app.db.models.company import Company
+        from app.db.models.user import User
+        from app.core.security import get_password_hash
+
+        db = SessionLocal()
+        try:
+            # 1. Ensure Tenant
+            tenant = db.query(Tenant).first()
+            if not tenant:
+                tenant = Tenant(id=uuid.uuid4(), name="FinBridge Group", plan="enterprise")
+                db.add(tenant)
+                db.commit()
+                db.refresh(tenant)
+
+            # 2. Ensure Primary Company
+            company = db.query(Company).filter(Company.domain == "finbridge.demo").first()
+            if not company:
+                company = db.query(Company).first()
+            if not company:
+                company = Company(
+                    id=uuid.uuid4(),
+                    tenant_id=tenant.id,
+                    name="FinBridge Capital",
+                    domain="finbridge.demo",
+                    industry="Financial Services",
+                    employee_count=850,
+                    website="https://finbridge.demo",
+                    description="Enterprise financial advisory and IFRS compliance.",
+                    is_active=True
+                )
+                db.add(company)
+                db.commit()
+                db.refresh(company)
+
+            # 3. Ensure All Demo Accounts with active password FinBridge2026!
+            demo_accounts = [
+                {
+                    "email": "superadmin@finbridge.demo",
+                    "full_name": "Chief Master SuperAdmin (Global)",
+                    "role": "superadmin",
+                    "is_superuser": True,
+                    "is_company_owner": False,
+                    "hierarchy_level": 1,
+                },
+                {
+                    "email": "admin@finbridge.demo",
+                    "full_name": "Alexander Volkov (Company Admin)",
+                    "role": "admin",
+                    "is_superuser": False,
+                    "is_company_owner": False,
+                    "hierarchy_level": 4,
+                },
+                {
+                    "email": "owner@finbridge.demo",
+                    "full_name": "Elena Smirnova (Company Owner)",
+                    "role": "company_owner",
+                    "is_superuser": False,
+                    "is_company_owner": True,
+                    "hierarchy_level": 2,
+                },
+                {
+                    "email": "accountant@finbridge.demo",
+                    "full_name": "Dmitry Ivanov (Chief Accountant)",
+                    "role": "accountant",
+                    "is_superuser": False,
+                    "is_company_owner": False,
+                    "hierarchy_level": 4,
+                },
+                {
+                    "email": "auditor@finbridge.demo",
+                    "full_name": "Marina Petrova (External Auditor)",
+                    "role": "auditor",
+                    "is_superuser": False,
+                    "is_company_owner": False,
+                    "hierarchy_level": 4,
+                },
+                {
+                    "email": "analyst@finbridge.demo",
+                    "full_name": "Nikolay Volkov (Analyst)",
+                    "role": "user",
+                    "is_superuser": False,
+                    "is_company_owner": False,
+                    "hierarchy_level": 5,
+                },
+            ]
+
+            hashed_pwd = get_password_hash("FinBridge2026!")
+
+            for acc in demo_accounts:
+                user = db.query(User).filter(User.email == acc["email"]).first()
+                if not user:
+                    user = User(
+                        id=uuid.uuid4(),
+                        tenant_id=tenant.id,
+                        company_id=company.id,
+                        email=acc["email"],
+                        full_name=acc["full_name"],
+                        hashed_password=hashed_pwd,
+                        role=acc["role"],
+                        hierarchy_level=acc["hierarchy_level"],
+                        is_superuser=acc["is_superuser"],
+                        is_company_owner=acc["is_company_owner"],
+                        is_active=True
+                    )
+                    db.add(user)
+                    logger.info(f"Initialized demo user: {acc['email']}")
+                else:
+                    user.hashed_password = hashed_pwd
+                    user.is_active = True
+                    user.role = acc["role"]
+                    user.is_superuser = acc["is_superuser"]
+                    user.is_company_owner = acc["is_company_owner"]
+                    user.hierarchy_level = acc["hierarchy_level"]
+                    if not user.tenant_id:
+                        user.tenant_id = tenant.id
+                    if not user.company_id:
+                        user.company_id = company.id
+                    logger.info(f"Refreshed credentials for demo user: {acc['email']}")
+
+            db.commit()
+            logger.info("Demo accounts verified and active.")
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error initializing demo accounts: {e}")
+        finally:
+            db.close()
+    except Exception as outer_e:
+        logger.error(f"Could not load demo seeding dependencies: {outer_e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     run_migrations()
+    ensure_demo_accounts()
     start_scheduler()
     yield
     # Shutdown
