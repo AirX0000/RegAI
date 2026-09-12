@@ -11,6 +11,7 @@ from app.db.schemas import user as user_schemas
 
 router = APIRouter()
 
+@router.get("", response_model=List[company_schemas.Company], include_in_schema=False)
 @router.get("/", response_model=List[company_schemas.Company])
 def read_companies(
     db: Session = Depends(get_db),
@@ -41,6 +42,7 @@ def read_companies(
     return companies
 
 
+@router.post("", response_model=company_schemas.Company, include_in_schema=False)
 @router.post("/", response_model=company_schemas.Company)
 def create_company(
     *,

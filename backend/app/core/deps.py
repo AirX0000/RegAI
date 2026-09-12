@@ -60,10 +60,22 @@ def get_current_user(
         # Fallback for SQLite or if RLS not set up yet
         pass
         
-    user = db.query(User).filter(User.id == uuid.UUID(token_data.user_id)).first()
+    try:
+        user_uuid = uuid.UUID(str(token_data.user_id))
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
+        
+    user = db.query(User).filter(User.id == user_uuid).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User session invalid or user not found",
+        )
     return user
+
 
 def get_current_active_user(
     current_user: User = Depends(get_current_user),

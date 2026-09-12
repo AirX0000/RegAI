@@ -30,16 +30,22 @@ export default function UsersPage() {
 
     useEffect(() => {
         fetchUsers();
-        api.get('/companies/').then(res => setCompanies(res.data));
+        api.get('/companies/')
+            .then(res => setCompanies(res.data || []))
+            .catch(err => console.warn('Failed to load companies:', err));
     }, [selectedCompanyId]);
 
     const fetchUsers = async () => {
-        const params: any = {};
-        if (selectedCompanyId) {
-            params.company_id = selectedCompanyId;
+        try {
+            const params: any = {};
+            if (selectedCompanyId) {
+                params.company_id = selectedCompanyId;
+            }
+            const res = await api.get('/users/', { params });
+            setUsers(res.data || []);
+        } catch (err) {
+            console.warn('Failed to load users:', err);
         }
-        const res = await api.get('/users/', { params });
-        setUsers(res.data);
     };
 
     const handleInvite = async () => {

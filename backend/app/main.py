@@ -153,7 +153,7 @@ def ensure_demo_data():
             # 1. Ensure Tenant
             tenant = db.query(Tenant).filter(Tenant.name == "FinBridge Group").first() or db.query(Tenant).first()
             if not tenant:
-                tenant = Tenant(id=uuid.uuid4(), name="FinBridge Group", plan="enterprise")
+                tenant = Tenant(id=uuid.uuid5(uuid.NAMESPACE_DNS, "FinBridge Group"), name="FinBridge Group", plan="enterprise")
                 db.add(tenant)
                 db.commit()
                 db.refresh(tenant)
@@ -195,7 +195,7 @@ def ensure_demo_data():
                 comp = db.query(Company).filter(Company.name == c_info["name"]).first()
                 if not comp:
                     comp = Company(
-                        id=uuid.uuid4(),
+                        id=uuid.uuid5(uuid.NAMESPACE_DNS, c_info["name"]),
                         tenant_id=tenant.id,
                         name=c_info["name"],
                         domain=c_info["domain"],
@@ -281,7 +281,7 @@ def ensure_demo_data():
                 ).first()
                 if not user:
                     user = User(
-                        id=uuid.uuid4(),
+                        id=uuid.uuid5(uuid.NAMESPACE_DNS, acc["email"]),
                         tenant_id=tenant.id,
                         company_id=primary_company.id,
                         email=acc["email"],
@@ -1069,6 +1069,9 @@ if os.path.exists(dist_dir):
     async def serve_spa_page(full_path: str):
         # Exclude backend internal routes
         if full_path.startswith("api/") or full_path.startswith("metrics") or full_path.startswith("docs") or full_path.startswith("openapi.json"):
+            if full_path.startswith("api/") and not full_path.endswith("/"):
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse(url=f"/{full_path}/", status_code=status.HTTP_307_TEMPORARY_REDIRECT)
             logger.warning(f"Unmatched backend route: /{full_path}")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"API route /{full_path} not found")
         

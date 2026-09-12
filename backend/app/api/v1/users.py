@@ -15,6 +15,7 @@ from app.utils.hierarchy import (
 
 router = APIRouter()
 
+@router.get("", response_model=List[user_schemas.User], include_in_schema=False)
 @router.get("/", response_model=List[user_schemas.User])
 def read_users(
     db: Session = Depends(get_db),
@@ -43,11 +44,12 @@ def read_users(
             query = query.filter(User.company_id == company_uuid)
         except ValueError:
             # Invalid UUID format, return empty or ignore
-            return []
+            pass
         
     users = query.offset(skip).limit(limit).all()
     return users
 
+@router.post("", response_model=user_schemas.User, include_in_schema=False)
 @router.post("/", response_model=user_schemas.User)
 def create_user(
     *,

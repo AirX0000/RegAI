@@ -41,15 +41,33 @@ export default function CompanySettingsPage() {
             }
 
             try {
-                const response = await api.get(`/companies/${companyId}`);
-                setCompany(response.data);
-                setFormData({
-                    description: response.data.description || '',
-                    website: response.data.website || '',
-                    industry: response.data.industry || '',
-                    employee_count: response.data.employee_count?.toString() || '',
-                    logo_url: response.data.logo_url || ''
-                });
+                let companyData = null;
+                try {
+                    const response = await api.get(`/companies/${companyId}`);
+                    companyData = response.data;
+                } catch (err: any) {
+                    if (err.response?.status === 404) {
+                        const fallbackRes = await api.get('/companies/');
+                        if (fallbackRes.data && fallbackRes.data.length > 0) {
+                            companyData = fallbackRes.data[0];
+                        } else {
+                            throw err;
+                        }
+                    } else {
+                        throw err;
+                    }
+                }
+
+                if (companyData) {
+                    setCompany(companyData);
+                    setFormData({
+                        description: companyData.description || '',
+                        website: companyData.website || '',
+                        industry: companyData.industry || '',
+                        employee_count: companyData.employee_count?.toString() || '',
+                        logo_url: companyData.logo_url || ''
+                    });
+                }
             } catch (error) {
                 console.error('Failed to fetch company', error);
                 toast({
