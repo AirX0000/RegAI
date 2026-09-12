@@ -13,7 +13,7 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (token: string) => void;
+    login: (token: string) => Promise<User | null>;
     logout: () => void;
     isLoading: boolean;
 }
@@ -28,9 +28,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                jwtDecode(token);
-                // In a real app, fetch full user profile from /users/me
-                // Here we just use the token payload if available or mock it
+                const decoded: any = jwtDecode(token);
+                // Immediately set initial user from token while network fetches /users/me
+                setUser({
+                    id: decoded.sub,
+                    email: decoded.sub,
+                    full_name: decoded.role === 'admin' ? 'Administrator' : 'User',
+                    role: decoded.role || 'user',
+                    tenant_id: decoded.tid || '',
+                    company_id: decoded.cid || '',
+                });
                 api.get('/users/me')
                     .then(res => setUser(res.data))
                     .catch(() => logout())
@@ -44,11 +51,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const login = (token: string) => {
+    const login = async (token: string): Promise<User | null> => {
         localStorage.setItem('token', token);
-        jwtDecode(token);
-        // Optimistic update or fetch user
-        api.get('/users/me').then(res => setUser(res.data));
+        let optimisticUser: User | null = null;
+        try {
+            const decoded: any = jwtDecode(token);
+            optimisticUser = {
+                id: decoded.sub,
+                email: decoded.sub,
+                full_name: decoded.role === 'admin' ? 'Administrator' : 'User',
+                role: decoded.role || 'user',
+                tenant_id: decoded.tid || '',
+                company_id: decoded.cid || '',
+            };
+            setUser(optimisticUser);
+        } catch (e) {
+            console.error("Failed to decode token", e);
+        }
+
+        try {
+            const res = await api.get('/users/me');
+            setUser(res.data);
+            return res.data;
+        } catch (e) {
+            console.warn("Using token profile fallback", e);
+            return optimisticUser;
+        }
     };
 
     const logout = () => {

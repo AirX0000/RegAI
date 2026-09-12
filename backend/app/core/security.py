@@ -34,24 +34,21 @@ def create_access_token(subject: Union[str, Any], expires_delta: timedelta = Non
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     if not plain_password or not hashed_password:
         return False
-    if len(plain_password.encode('utf-8')) > 72:
-        return False
-    # 1. Try direct bcrypt verification first (immune to passlib __about__ bugs)
+    # Safe 72-byte truncation for bcrypt/passlib
+    safe_bytes = plain_password.encode('utf-8')[:72]
+    # 1. Try direct bcrypt verification first (fast, standard, error-free)
     try:
         import bcrypt
-        # bcrypt.checkpw requires bytes for both password and hash
-        pw_bytes = plain_password.encode('utf-8')
         hash_bytes = hashed_password.encode('utf-8') if isinstance(hashed_password, str) else hashed_password
-        if bcrypt.checkpw(pw_bytes, hash_bytes):
-            return True
+        return bcrypt.checkpw(safe_bytes, hash_bytes)
     except Exception as e:
         logger.debug(f"Direct bcrypt verification fallback: {e}")
     
     # 2. Fallback to passlib verification
     try:
-        return pwd_context.verify(plain_password, hashed_password)
+        return pwd_context.verify(safe_bytes.decode('utf-8', errors='ignore'), hashed_password)
     except Exception as e:
-        logger.error(f"Password verification error: {e}")
+        logger.warning(f"Passlib verification fallback: {e}")
         return False
 
 def get_password_hash(password: str) -> str:

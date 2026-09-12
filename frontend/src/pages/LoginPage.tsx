@@ -42,8 +42,8 @@ export default function LoginPage() {
     const ssoEnabled = import.meta.env.VITE_SSO_ENABLED === 'true';
 
     const fillCredentials = (email: string) => {
-        setValue('email', email);
-        setValue('password', 'FinBridge2026!');
+        setValue('email', email, { shouldValidate: true, shouldDirty: true });
+        setValue('password', 'RegAI2026!', { shouldValidate: true, shouldDirty: true });
         setActiveDemo(email);
         toast({
             title: "Credentials Loaded",
@@ -62,7 +62,7 @@ export default function LoginPage() {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             });
 
-            login(res.data.access_token);
+            await login(res.data.access_token);
             toast({
                 title: "Welcome to RegAI",
                 description: "Session authenticated successfully",
@@ -226,7 +226,7 @@ export default function LoginPage() {
                                 {t('demo_profiles_title') || 'Демо-профили в 1 клик'}
                             </span>
                             <span className="text-[10px] font-mono text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                                FinBridge2026!
+                                RegAI2026!
                             </span>
                         </div>
 

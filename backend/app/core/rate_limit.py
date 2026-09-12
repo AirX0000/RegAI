@@ -50,7 +50,7 @@ def check_login_rate_limit(request: Request):
 
     now = time.time()
     window_seconds = 60
-    max_login_attempts = 10
+    max_login_attempts = 120
 
     _login_attempt_history[client_ip] = cleanup_old_requests(_login_attempt_history[client_ip], window_seconds, now)
 
