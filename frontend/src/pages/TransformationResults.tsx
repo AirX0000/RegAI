@@ -102,7 +102,7 @@ export default function TransformationResults() {
                 {/* Assets */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-green-700">Assets</CardTitle>
+                        <CardTitle className="text-green-700">Assets (NAS / НСБУ)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -139,7 +139,7 @@ export default function TransformationResults() {
                 {/* Liabilities */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-red-700">Liabilities</CardTitle>
+                        <CardTitle className="text-red-700">Liabilities (NAS / НСБУ)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
@@ -176,7 +176,7 @@ export default function TransformationResults() {
                 {/* Equity */}
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-blue-700">Equity</CardTitle>
+                        <CardTitle className="text-blue-700">Equity (NAS / НСБУ)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-1">
@@ -430,15 +430,15 @@ export default function TransformationResults() {
                         </Button>
                     )}
                     {mcfoData && (
-                        <Button variant="outline" onClick={() => exportToJSON(mcfoData, `mcfo-${id}.json`)}>
+                        <Button variant="outline" onClick={() => exportToJSON(mcfoData, `nas-${id}.json`)}>
                             <Download className="mr-2 h-4 w-4" />
-                            Export MCFO
+                            Export NAS / НСБУ
                         </Button>
                     )}
                     {ifrsData && (
                         <Button variant="outline" onClick={() => exportToJSON(ifrsData, `ifrs-${id}.json`)}>
                             <Download className="mr-2 h-4 w-4" />
-                            Export IFRS
+                            Export IFRS / МСФО
                         </Button>
                     )}
                 </div>
@@ -456,7 +456,7 @@ export default function TransformationResults() {
                                     }`}
                                 onClick={() => setActiveTab('mcfo')}
                             >
-                                MCFO Format
+                                NAS / НСБУ Format
                             </button>
                             <button
                                 className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === 'ifrs'
@@ -465,7 +465,7 @@ export default function TransformationResults() {
                                     }`}
                                 onClick={() => setActiveTab('ifrs')}
                             >
-                                IFRS Format
+                                IFRS / МСФО Format
                             </button>
                         </div>
                     </div>
@@ -484,7 +484,7 @@ export default function TransformationResults() {
                         <RefreshCw className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to Transform</h3>
                         <p className="text-gray-500 mb-6">
-                            Click the "Transform Now" button to convert this balance sheet to MCFO and IFRS formats
+                            Click the "Transform Now" button to convert this balance sheet from NAS / НСБУ to IFRS format
                         </p>
                         <Button onClick={handleTransform} disabled={transforming}>
                             <RefreshCw className={`mr-2 h-4 w-4 ${transforming ? 'animate-spin' : ''}`} />

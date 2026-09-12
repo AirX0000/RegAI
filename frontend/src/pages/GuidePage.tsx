@@ -67,7 +67,7 @@ export default function GuidePage() {
                                         <li>✅ Проверять соответствие нормативам</li>
                                         <li>✅ Управлять финансовыми отчетами</li>
                                         <li>✅ Анализировать налоговую отчетность с помощью AI</li>
-                                        <li>✅ Трансформировать балансы из МСФО в IFRS</li>
+                                        <li>✅ Трансформировать балансы из НСБУ (NAS) в МСФО (IFRS)</li>
                                     </ul>
 
                                     <div className="mt-6">
@@ -589,7 +589,7 @@ export default function GuidePage() {
                                             <ol className="list-decimal ml-6 text-sm space-y-1">
                                                 <li>Нажмите "Transform"</li>
                                                 <li>Система проверит данные</li>
-                                                <li>Применит правила трансформации МСФО → IFRS</li>
+                                                <li>Применит правила трансформации НСБУ (NAS) → МСФО (IFRS)</li>
                                                 <li>Откроется страница результатов</li>
                                             </ol>
                                         </div>

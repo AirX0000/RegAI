@@ -69,7 +69,7 @@ class TransformationService:
             mcfo_statement=TransformedStatementSchema.from_orm(mcfo_statement),
             ifrs_statement=TransformedStatementSchema.from_orm(ifrs_statement),
             success=True,
-            message="Balance sheet successfully transformed to MCFO and IFRS formats"
+            message="Balance sheet successfully transformed from NAS / НСБУ to IFRS format"
         )
     
     def _transform_to_mcfo(self, balance_sheet: BalanceSheet) -> Dict:

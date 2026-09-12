@@ -284,7 +284,7 @@ export default function BalanceSheetForm() {
                         Back to Dashboard
                     </Button>
                     <h1 className="text-3xl font-bold tracking-tight">New Transformation Project</h1>
-                    <p className="text-gray-500 mt-1">Enter MCFO (NSBU) data to begin transformation</p>
+                    <p className="text-gray-500 mt-1">Enter NAS (НСБУ) data to begin transformation to IFRS</p>
                 </div>
             </div>
 

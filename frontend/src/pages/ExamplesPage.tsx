@@ -327,16 +327,16 @@ ${t('note_1_desc')}
                             <span className="font-medium">{t('for_auditors')}</span>
                         </div>
                     </a>
+                    <a href="#nas" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-2">
+                            <FileSpreadsheet className="h-5 w-5 text-amber-600" />
+                            <span className="font-medium">{t('nas_examples')}</span>
+                        </div>
+                    </a>
                     <a href="#ifrs" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-center gap-2">
                             <BookOpen className="h-5 w-5 text-purple-600" />
                             <span className="font-medium">{t('ifrs_examples')}</span>
-                        </div>
-                    </a>
-                    <a href="#mcfo" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="h-5 w-5 text-amber-600" />
-                            <span className="font-medium">{t('msfo_examples')}</span>
                         </div>
                     </a>
                 </CardContent>
@@ -365,7 +365,7 @@ ${t('note_1_desc')}
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {/* NAS Example */}
-                                <div className="border-l-4 border-blue-500 pl-4">
+                                <div id="nas" className="border-l-4 border-blue-500 pl-4">
                                     <h3 className="text-lg font-semibold mb-3">📘 {t('nas_standard')}</h3>
                                     <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
                                         <table className="w-full text-sm">
@@ -549,9 +549,7 @@ ${t('note_1_desc')}
 
                                 {/* IFRS Example */}
                                 <div id="ifrs" className="border-l-4 border-purple-500 pl-4 mt-6">
-                                    <div id="mcfo">
-                                        <h3 className="text-lg font-semibold mb-3">📗 {t('ifrs_standard')}</h3>
-                                    </div>
+                                    <h3 className="text-lg font-semibold mb-3">📗 {t('ifrs_standard')}</h3>
                                     <div className="bg-gray-50 p-4 rounded-lg">
                                         <p className="text-sm text-gray-700 mb-3">
                                             <strong>{t('statement_financial_position')}</strong>

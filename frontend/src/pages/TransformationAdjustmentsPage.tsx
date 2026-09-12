@@ -219,15 +219,15 @@ export default function TransformationAdjustmentsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>MCFO to IFRS Worksheet</CardTitle>
+                    <CardTitle>NAS / НСБУ to IFRS Worksheet</CardTitle>
                     <CardDescription>Click on any row to add reclassification or valuation adjustments.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
                         <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b font-medium text-sm text-gray-500">
                             <div className="col-span-1">Code</div>
-                            <div className="col-span-3">Account (MCFO)</div>
-                            <div className="col-span-2 text-right">MCFO Amount</div>
+                            <div className="col-span-3">Account (NAS / НСБУ)</div>
+                            <div className="col-span-2 text-right">NAS / НСБУ Amount</div>
                             <div className="col-span-2 text-center">Adjustments</div>
                             <div className="col-span-2 text-right">IFRS Amount</div>
                             <div className="col-span-2">IFRS Category</div>
