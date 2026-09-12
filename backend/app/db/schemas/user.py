@@ -30,3 +30,12 @@ class UserInDBBase(UserBase):
 
 class User(UserInDBBase):
     pass
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+class UpdateProfileRequest(BaseModel):
+    full_name: Optional[str] = None
+    preferences: Optional[dict] = None
+

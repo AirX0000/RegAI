@@ -103,6 +103,71 @@ def read_user_me(
     """
     return current_user
 
+
+@router.put("/me/password")
+def change_my_password(
+    *,
+    db: Session = Depends(get_db),
+    pwd_in: user_schemas.ChangePasswordRequest,
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """
+    Change current authenticated user's password.
+    Requires current password verification and minimum 8 characters for new password.
+    Returns refreshed access token.
+    """
+    if not security.verify_password(pwd_in.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect current password",
+        )
+    if len(pwd_in.new_password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="New password must be at least 8 characters long",
+        )
+    
+    current_user.hashed_password = security.get_password_hash(pwd_in.new_password)
+    db.commit()
+    db.refresh(current_user)
+
+    # Issue a fresh access token
+    new_token = security.create_access_token(
+        current_user.id,
+        claims={
+            "role": current_user.role,
+            "tid": str(current_user.tenant_id) if current_user.tenant_id else "",
+            "cid": str(current_user.company_id) if current_user.company_id else "",
+        }
+    )
+
+    return {
+        "message": "Password changed successfully",
+        "access_token": new_token,
+        "token_type": "bearer"
+    }
+
+
+@router.put("/me/profile", response_model=user_schemas.User)
+def update_my_profile(
+    *,
+    db: Session = Depends(get_db),
+    profile_in: user_schemas.UpdateProfileRequest,
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """
+    Update current authenticated user's profile (name, preferences).
+    """
+    if profile_in.full_name is not None and profile_in.full_name.strip():
+        current_user.full_name = profile_in.full_name.strip()
+    if profile_in.preferences is not None:
+        current_user.preferences = profile_in.preferences
+    
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+
 @router.post("/invite", response_model=user_schemas.User)
 def invite_user(
     *,

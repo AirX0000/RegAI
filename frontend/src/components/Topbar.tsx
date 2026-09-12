@@ -6,11 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { PERMISSIONS } from '../lib/permissions';
 
 import LanguageSwitcher from './LanguageSwitcher';
+import ProfileModal from './ProfileModal';
 
 export function Topbar() {
     const { user, logout } = useAuth();
     const { t } = useTranslation();
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const toggleDropdown = (menu: string) => {
         setOpenDropdown(openDropdown === menu ? null : menu);
@@ -236,12 +238,26 @@ export function Topbar() {
                         </div>
                     </nav>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                     <LanguageSwitcher />
-                    <div className="text-sm">
-                        <div className="font-medium">{user?.email}</div>
-                        <div className="text-xs text-gray-500 capitalize">{user?.role}</div>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setIsProfileOpen(true)}
+                        className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl hover:bg-slate-100/80 active:bg-slate-200/70 cursor-pointer transition-all text-left group border border-transparent hover:border-slate-200"
+                        title="Управление профилем и смена пароля"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs uppercase group-hover:scale-105 transition-transform shadow-inner">
+                            {user?.full_name ? user.full_name.charAt(0) : user?.email?.charAt(0) || 'U'}
+                        </div>
+                        <div className="text-sm hidden sm:block">
+                            <div className="font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">
+                                {user?.full_name || user?.email}
+                            </div>
+                            <div className="text-[11px] text-slate-500 capitalize leading-tight">
+                                {user?.role}
+                            </div>
+                        </div>
+                    </button>
                     <button
                         onClick={logout}
                         className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
@@ -250,6 +266,7 @@ export function Topbar() {
                     </button>
                 </div>
             </div>
+            <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
         </header>
     );
 }

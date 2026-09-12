@@ -38,6 +38,13 @@ export default defineConfig({
                     ],
                     // Charts
                     "vendor-charts": ["recharts"],
+                    // Spreadsheets & Data files
+                    "vendor-spreadsheet": ["xlsx", "react-spreadsheet", "jszip"],
+                    // Motion & Animation
+                    "vendor-motion": ["framer-motion"],
+                    // Table & Markdown
+                    "vendor-table": ["@tanstack/react-table"],
+                    "vendor-markdown": ["react-markdown"],
                     // Utilities
                     "vendor-utils": ["clsx", "class-variance-authority", "tailwind-merge", "lucide-react"],
                     // HTTP
