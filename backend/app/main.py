@@ -983,9 +983,11 @@ app = FastAPI(
 )
 
 # CORS Configuration
+_cors_origins = [str(origin) for origin in settings.CORS_ORIGINS] if settings.CORS_ORIGINS else ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.CORS_ORIGINS] if settings.CORS_ORIGINS else ["*"],
+    allow_origins=_cors_origins,
+    allow_origin_regex=r"https://.*\.up\.railway\.app|https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1053,8 +1055,28 @@ app.mount("/metrics", metrics_app)
 @app.get("/health", tags=["system"])
 @app.get(f"{settings.API_V1_STR}/health", tags=["system"])
 def health_check():
+    import time
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    db_status = "healthy"
+    db_latency_ms: float | None = None
+
+    try:
+        db = SessionLocal()
+        t0 = time.monotonic()
+        db.execute(text("SELECT 1"))
+        db_latency_ms = round((time.monotonic() - t0) * 1000, 2)
+        db.close()
+    except Exception as exc:
+        db_status = "degraded"
+        logger.error(f"Health check DB ping failed: {exc}")
+
+    overall = "healthy" if db_status == "healthy" else "degraded"
     return {
-        "status": "healthy",
+        "status": overall,
+        "db": db_status,
+        "db_latency_ms": db_latency_ms,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "1.0.0"
     }

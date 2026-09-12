@@ -45,10 +45,7 @@ export default function LoginPage() {
         setValue('email', email, { shouldValidate: true, shouldDirty: true });
         setValue('password', 'RegAI2026!', { shouldValidate: true, shouldDirty: true });
         setActiveDemo(email);
-        toast({
-            title: "Credentials Loaded",
-            description: `Filled: ${email} with demo password`,
-        });
+        // No toast — the selected card highlights and fields fill visually
     };
 
     const onSubmit = async (data: any) => {
@@ -241,19 +238,35 @@ export default function LoginPage() {
                                         onClick={() => fillCredentials(acc.email)}
                                         className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
                                             isSelected 
-                                                ? 'border-blue-500 bg-blue-500/20 text-white ring-1 ring-blue-500 shadow-md shadow-blue-500/10' 
+                                                ? 'border-emerald-500 bg-emerald-500/10 text-white ring-1 ring-emerald-500/60 shadow-md shadow-emerald-500/10' 
                                                 : 'border-slate-800 bg-slate-950/60 text-slate-300 hover:border-slate-700 hover:bg-slate-800/60'
                                         }`}
                                     >
                                         <div className="flex items-center justify-between w-full mb-1">
                                             <span className="text-xs font-semibold truncate">{acc.label}</span>
-                                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{acc.badge}</span>
+                                            {isSelected ? (
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono border border-emerald-500/30">
+                                                    ✓ Готово
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">{acc.badge}</span>
+                                            )}
                                         </div>
                                         <span className="text-[10px] text-slate-400 truncate">{acc.email}</span>
                                     </button>
                                 );
                             })}
                         </div>
+
+                        {/* Inline hint when profile selected */}
+                        {activeDemo && (
+                            <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <span className="text-emerald-400 text-xs">✓</span>
+                                <span className="text-xs text-emerald-300 font-medium">
+                                    Данные заполнены — нажмите «Войти» для входа
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Form */}

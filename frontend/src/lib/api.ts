@@ -119,9 +119,18 @@ api.interceptors.response.use(
             console.error('Rate limit exceeded');
         }
 
+        // Auto-retry on 502/503/504 (gateway/server transient errors — Railway cold starts)
+        const RETRY_STATUS = [502, 503, 504];
+        const retryCount = (originalRequest as any)._retryCount || 0;
+        if (RETRY_STATUS.includes(error.response.status) && retryCount < 2) {
+            (originalRequest as any)._retryCount = retryCount + 1;
+            const delay = 1200 * (retryCount + 1); // 1.2s, 2.4s
+            await new Promise((res) => setTimeout(res, delay));
+            return api(originalRequest);
+        }
+
         return Promise.reject(error);
     }
 );
 
 export default api;
-

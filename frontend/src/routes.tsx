@@ -23,6 +23,7 @@ import UploadResults from './pages/UploadResults';
 import ExamplesPage from './pages/ExamplesPage';
 import DocumentsPage from './pages/DocumentsPage';
 import GuidePage from './pages/GuidePage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export const router = createBrowserRouter([
     {
@@ -106,6 +107,16 @@ export const router = createBrowserRouter([
                     { path: '/tenants', element: <TenantsPage /> },
                 ],
             },
+            // 9. Catch-all: 404 Not Found
+            {
+                path: '*',
+                element: <NotFoundPage />,
+            },
         ],
+    },
+    // 404 for /login/* and bare unmatched paths
+    {
+        path: '*',
+        element: <NotFoundPage />,
     },
 ]);
