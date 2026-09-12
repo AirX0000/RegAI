@@ -44,7 +44,7 @@ DEMO_COMPANIES = [
         },
         "users": [
             {
-                "email": "owner@finbridge.demo",
+                "email": "owner@regai.ai",
                 "full_name": "Alexander Petrov",
                 "role": "company_owner",
                 "is_company_owner": True,
@@ -52,7 +52,7 @@ DEMO_COMPANIES = [
                 "password": "FinBridge2026!",
             },
             {
-                "email": "admin@finbridge.demo",
+                "email": "admin@regai.ai",
                 "full_name": "Maria Ivanova",
                 "role": "admin",
                 "is_company_owner": False,
@@ -60,7 +60,7 @@ DEMO_COMPANIES = [
                 "password": "FinBridge2026!",
             },
             {
-                "email": "accountant@finbridge.demo",
+                "email": "accountant@regai.ai",
                 "full_name": "Dmitry Sokolov",
                 "role": "accountant",
                 "is_company_owner": False,
@@ -68,7 +68,7 @@ DEMO_COMPANIES = [
                 "password": "FinBridge2026!",
             },
             {
-                "email": "auditor@finbridge.demo",
+                "email": "auditor@regai.ai",
                 "full_name": "Elena Kozlova",
                 "role": "auditor",
                 "is_company_owner": False,
@@ -76,7 +76,7 @@ DEMO_COMPANIES = [
                 "password": "FinBridge2026!",
             },
             {
-                "email": "analyst@finbridge.demo",
+                "email": "analyst@regai.ai",
                 "full_name": "Nikolay Volkov",
                 "role": "user",
                 "is_company_owner": False,

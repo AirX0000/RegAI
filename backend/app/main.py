@@ -161,10 +161,10 @@ def ensure_demo_data():
             companies_data = [
                 {
                     "name": "FinBridge Capital",
-                    "domain": "finbridge.demo",
+                    "domain": "regai.ai",
                     "industry": "Financial Services",
                     "employee_count": 850,
-                    "website": "https://finbridge.demo",
+                    "website": "https://regai.ai",
                     "description": "Leading investment banking and asset management firm operating across EU and CIS markets.",
                     "logo_url": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=128&auto=format&fit=crop&q=80"
                 },
@@ -212,10 +212,11 @@ def ensure_demo_data():
 
             primary_company = companies["FinBridge Capital"]
 
-            # 3. Ensure Demo Accounts with FinBridge2026!
+            # 3. Ensure Demo Accounts with RegAI emails (@regai.ai)
             demo_accounts = [
                 {
-                    "email": "superadmin@finbridge.demo",
+                    "email": "superadmin@regai.ai",
+                    "legacy_email": "superadmin@finbridge.demo",
                     "full_name": "Chief Master SuperAdmin (Global)",
                     "role": "superadmin",
                     "is_superuser": True,
@@ -223,7 +224,8 @@ def ensure_demo_data():
                     "hierarchy_level": 1,
                 },
                 {
-                    "email": "admin@finbridge.demo",
+                    "email": "admin@regai.ai",
+                    "legacy_email": "admin@finbridge.demo",
                     "full_name": "Alexander Volkov (Company Admin)",
                     "role": "admin",
                     "is_superuser": False,
@@ -231,7 +233,8 @@ def ensure_demo_data():
                     "hierarchy_level": 4,
                 },
                 {
-                    "email": "owner@finbridge.demo",
+                    "email": "owner@regai.ai",
+                    "legacy_email": "owner@finbridge.demo",
                     "full_name": "Elena Smirnova (Company Owner)",
                     "role": "company_owner",
                     "is_superuser": False,
@@ -239,7 +242,8 @@ def ensure_demo_data():
                     "hierarchy_level": 2,
                 },
                 {
-                    "email": "accountant@finbridge.demo",
+                    "email": "accountant@regai.ai",
+                    "legacy_email": "accountant@finbridge.demo",
                     "full_name": "Dmitry Ivanov (Chief Accountant)",
                     "role": "accountant",
                     "is_superuser": False,
@@ -247,7 +251,8 @@ def ensure_demo_data():
                     "hierarchy_level": 4,
                 },
                 {
-                    "email": "auditor@finbridge.demo",
+                    "email": "auditor@regai.ai",
+                    "legacy_email": "auditor@finbridge.demo",
                     "full_name": "Marina Petrova (External Auditor)",
                     "role": "auditor",
                     "is_superuser": False,
@@ -255,7 +260,8 @@ def ensure_demo_data():
                     "hierarchy_level": 4,
                 },
                 {
-                    "email": "analyst@finbridge.demo",
+                    "email": "analyst@regai.ai",
+                    "legacy_email": "analyst@finbridge.demo",
                     "full_name": "Nikolay Volkov (Financial Analyst)",
                     "role": "user",
                     "is_superuser": False,
@@ -268,7 +274,9 @@ def ensure_demo_data():
             users = {}
 
             for acc in demo_accounts:
-                user = db.query(User).filter(User.email == acc["email"]).first()
+                user = db.query(User).filter(
+                    (User.email == acc["email"]) | (User.email == acc.get("legacy_email"))
+                ).first()
                 if not user:
                     user = User(
                         id=uuid.uuid4(),
@@ -288,6 +296,7 @@ def ensure_demo_data():
                     db.refresh(user)
                     logger.info(f"Initialized demo user: {acc['email']}")
                 else:
+                    user.email = acc["email"]
                     user.hashed_password = hashed_pwd
                     user.is_active = True
                     user.role = acc["role"]
@@ -298,18 +307,24 @@ def ensure_demo_data():
                     user.company_id = primary_company.id
                     db.commit()
                 users[acc["email"]] = user
+                if "legacy_email" in acc:
+                    users[acc["legacy_email"]] = user
 
             # Link primary company ownership
-            if "owner@finbridge.demo" in users:
+            if "owner@regai.ai" in users:
+                primary_company.owner_id = users["owner@regai.ai"].id
+            elif "owner@finbridge.demo" in users:
                 primary_company.owner_id = users["owner@finbridge.demo"].id
-            if "admin@finbridge.demo" in users:
+            if "admin@regai.ai" in users:
+                primary_company.created_by_id = users["admin@regai.ai"].id
+            elif "admin@finbridge.demo" in users:
                 primary_company.created_by_id = users["admin@finbridge.demo"].id
             db.commit()
 
-            admin_user = users.get("admin@finbridge.demo")
-            accountant_user = users.get("accountant@finbridge.demo")
-            owner_user = users.get("owner@finbridge.demo")
-            auditor_user = users.get("auditor@finbridge.demo")
+            admin_user = users.get("admin@regai.ai") or users.get("admin@finbridge.demo")
+            accountant_user = users.get("accountant@regai.ai") or users.get("accountant@finbridge.demo")
+            owner_user = users.get("owner@regai.ai") or users.get("owner@finbridge.demo")
+            auditor_user = users.get("auditor@regai.ai") or users.get("auditor@finbridge.demo")
 
             # 4. Auto-Seed Regulations (if < 10)
             reg_count = db.query(Regulation).count()
@@ -799,7 +814,7 @@ def ensure_demo_data():
 
             if db.query(AuditLog).filter(AuditLog.tenant_id == primary_company.tenant_id).count() < 5 and admin_user:
                 audit_events = [
-                    (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
+                    (admin_user.id, "login", "auth", "User admin@regai.ai logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
                     (owner_user.id if owner_user else admin_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-128-CBC encryption", "192.168.1.25", 5),
                     (accountant_user.id if accountant_user else admin_user.id, "sync", "1c_connector", "Synchronized 2024 Trial Balance (14 accounts, 120M ₽) via OData v4", "192.168.1.40", 4),
                     (accountant_user.id if accountant_user else admin_user.id, "transform", "balance_sheet", "Executed IFRS 16 lease capitalization adjustment (12.5M ₽ Right-of-Use Asset)", "192.168.1.40", 3),

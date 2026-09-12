@@ -23,11 +23,11 @@ import {
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const DEMO_ACCOUNTS = [
-    { role: 'admin', label: 'Company Admin', email: 'admin@finbridge.demo', badge: 'Company Only', color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100' },
-    { role: 'company_owner', label: 'Owner', email: 'owner@finbridge.demo', badge: 'Executive', color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' },
-    { role: 'accountant', label: 'Accountant', email: 'accountant@finbridge.demo', badge: 'Ledger', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' },
-    { role: 'auditor', label: 'Auditor', email: 'auditor@finbridge.demo', badge: 'Audit', color: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' },
-    { role: 'user', label: 'Analyst', email: 'analyst@finbridge.demo', badge: 'User', color: 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100' },
+    { role: 'admin', label: 'Company Admin', email: 'admin@regai.ai', badge: 'Company Only', color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100' },
+    { role: 'company_owner', label: 'Owner', email: 'owner@regai.ai', badge: 'Executive', color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100' },
+    { role: 'accountant', label: 'Accountant', email: 'accountant@regai.ai', badge: 'Ledger', color: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' },
+    { role: 'auditor', label: 'Auditor', email: 'auditor@regai.ai', badge: 'Audit', color: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100' },
+    { role: 'user', label: 'Analyst', email: 'analyst@regai.ai', badge: 'User', color: 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100' },
 ];
 
 export default function LoginPage() {

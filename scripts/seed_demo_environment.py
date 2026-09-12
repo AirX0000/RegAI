@@ -104,10 +104,10 @@ def seed_demo():
         companies_data = [
             {
                 "name": "FinBridge Capital",
-                "domain": "finbridge.demo",
+                "domain": "regai.ai",
                 "industry": "Financial Services",
                 "employee_count": 850,
-                "website": "https://finbridge.demo",
+                "website": "https://regai.ai",
                 "description": "Leading investment banking and asset management firm operating across EU and CIS markets.",
                 "logo_url": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=128&auto=format&fit=crop&q=80"
             },
@@ -171,7 +171,8 @@ def seed_demo():
         print("\n👥 [3/6] Seeding Users with Role Hierarchy...")
         users_data = [
             {
-                "email": "superadmin@finbridge.demo",
+                "email": "superadmin@regai.ai",
+                "legacy_email": "superadmin@finbridge.demo",
                 "full_name": "Chief Master SuperAdmin (Global)",
                 "password": "FinBridge2026!",
                 "role": "superadmin",
@@ -180,7 +181,8 @@ def seed_demo():
                 "company_id": primary_company.id
             },
             {
-                "email": "admin@finbridge.demo",
+                "email": "admin@regai.ai",
+                "legacy_email": "admin@finbridge.demo",
                 "full_name": "Alexander Volkov (Company Admin)",
                 "password": "FinBridge2026!",
                 "role": "admin",
@@ -189,7 +191,8 @@ def seed_demo():
                 "company_id": primary_company.id
             },
             {
-                "email": "owner@finbridge.demo",
+                "email": "owner@regai.ai",
+                "legacy_email": "owner@finbridge.demo",
                 "full_name": "Elena Smirnova (Company Owner)",
                 "password": "FinBridge2026!",
                 "role": "company_owner",
@@ -198,7 +201,8 @@ def seed_demo():
                 "company_id": primary_company.id
             },
             {
-                "email": "accountant@finbridge.demo",
+                "email": "accountant@regai.ai",
+                "legacy_email": "accountant@finbridge.demo",
                 "full_name": "Dmitry Ivanov (Chief Accountant)",
                 "password": "FinBridge2026!",
                 "role": "accountant",
@@ -207,7 +211,8 @@ def seed_demo():
                 "company_id": primary_company.id
             },
             {
-                "email": "auditor@finbridge.demo",
+                "email": "auditor@regai.ai",
+                "legacy_email": "auditor@finbridge.demo",
                 "full_name": "Marina Petrova (External Auditor)",
                 "password": "FinBridge2026!",
                 "role": "auditor",
@@ -216,7 +221,8 @@ def seed_demo():
                 "company_id": primary_company.id
             },
             {
-                "email": "analyst@finbridge.demo",
+                "email": "analyst@regai.ai",
+                "legacy_email": "analyst@finbridge.demo",
                 "full_name": "Ivan Petrov (Analyst)",
                 "password": "FinBridge2026!",
                 "role": "user",
@@ -237,7 +243,10 @@ def seed_demo():
 
         users = {}
         for udata in users_data:
-            user = db.query(User).filter(User.email == udata["email"]).first()
+            legacy_email = udata.get("legacy_email")
+            user = db.query(User).filter(
+                (User.email == udata["email"]) | (User.email == legacy_email)
+            ).first()
             if not user:
                 user = User(
                     id=uuid.uuid4(),
@@ -249,33 +258,36 @@ def seed_demo():
                     role=udata["role"],
                     hierarchy_level=udata["hierarchy_level"],
                     is_superuser=udata["is_superuser"],
-                    is_active=True,
-                    is_company_owner=(udata["role"] == "company_owner")
+                    is_active=True
                 )
                 db.add(user)
                 db.commit()
                 db.refresh(user)
-                print(f"   ✅ User created: {user.email} (Role: {user.role}, Level: {user.hierarchy_level})")
+                print(f"   👤 Created user: {user.email} ({user.role})")
             else:
-                print(f"   ℹ️ User exists: {user.email}")
-                # Ensure permissions and credentials are fully up-to-date
+                user.email = udata["email"]
                 user.role = udata["role"]
                 user.hierarchy_level = udata["hierarchy_level"]
                 user.is_superuser = udata["is_superuser"]
+                user.company_id = udata["company_id"]
+                user.tenant_id = tenant.id
+                user.is_active = True
                 user.hashed_password = get_password_hash(udata["password"])
                 db.commit()
                 print(f"   🔄 Updated credentials & permissions for: {user.email}")
             users[udata["email"]] = user
+            if legacy_email:
+                users[legacy_email] = user
 
         # Link company owner
-        primary_company.owner_id = users["owner@finbridge.demo"].id
-        primary_company.created_by_id = users["admin@finbridge.demo"].id
+        primary_company.owner_id = users["owner@regai.ai"].id
+        primary_company.created_by_id = users["admin@regai.ai"].id
         db.commit()
 
-        admin_user = users["admin@finbridge.demo"]
-        owner_user = users["owner@finbridge.demo"]
-        accountant_user = users["accountant@finbridge.demo"]
-        auditor_user = users["auditor@finbridge.demo"]
+        admin_user = users["admin@regai.ai"]
+        owner_user = users["owner@regai.ai"]
+        accountant_user = users["accountant@regai.ai"]
+        auditor_user = users["auditor@regai.ai"]
 
         print("\n🔌 [4/6] Seeding 1C:Enterprise Integration Connection...")
         onec = db.query(OneCConnection).filter(OneCConnection.company_id == primary_company.id).first()
@@ -886,7 +898,7 @@ def seed_demo():
         logs_count = db.query(AuditLog).filter(AuditLog.tenant_id == primary_company.tenant_id).count()
         if logs_count == 0:
             audit_events = [
-                (admin_user.id, "login", "auth", "User admin@finbridge.demo logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
+                (admin_user.id, "login", "auth", "User admin@regai.ai logged into system via Multi-Factor Authentication", "192.168.1.10", 6),
                 (owner_user.id, "update", "company", "Updated 1C:Enterprise connection parameters with AES-256 encryption", "192.168.1.25", 5),
                 (accountant_user.id, "sync", "1c_connector", "Synchronized 2024 Trial Balance (14 accounts, 120M ₽)", "192.168.1.40", 4),
                 (accountant_user.id, "transform", "balance_sheet", "Executed IFRS 16 lease capitalization adjustment (12.5M ₽)", "192.168.1.40", 3),
@@ -978,11 +990,13 @@ def seed_demo():
         print("\n" + "="*70)
         print("🎉 DEMO ENVIRONMENT SEEDED SUCCESSFULLY!")
         print("="*70)
-        print("\n🔑 Ready-to-Use Test Accounts (Password for all: FinBridge2026!):")
-        print("  1. Superadmin:  admin@finbridge.demo       (Full system & user control)")
-        print("  2. Owner:       owner@finbridge.demo       (Company settings & integrations)")
-        print("  3. Accountant:  accountant@finbridge.demo  (Balance sheets & 1C Sync)")
-        print("  4. Auditor:     auditor@finbridge.demo     (Audit logs & IFRS reviews)")
+        print("\n🔑 Ready-to-Use Test Accounts (Password: FinBridge2026! / RegAI2026!):")
+        print("  1. Superadmin:  superadmin@regai.ai   (Full system & user control)")
+        print("  2. Admin:       admin@regai.ai        (Company Admin & trial balances)")
+        print("  3. Owner:       owner@regai.ai        (Company settings & integrations)")
+        print("  4. Accountant:  accountant@regai.ai   (Balance sheets & 1C Sync)")
+        print("  5. Auditor:     auditor@regai.ai      (Audit logs & IFRS reviews)")
+        print("  6. Analyst:     analyst@regai.ai      (Financial reports & analytics)")
         print("="*70)
 
     except Exception as e:
