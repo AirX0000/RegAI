@@ -3,7 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Download, RefreshCw, Printer, ShieldCheck, CheckCircle2, SlidersHorizontal } from 'lucide-react';
+import { 
+    ArrowLeft, 
+    Download, 
+    RefreshCw, 
+    Printer, 
+    ShieldCheck, 
+    CheckCircle2, 
+    SlidersHorizontal,
+    FileSpreadsheet,
+    Sparkles,
+    Copy,
+    Check,
+    Coins
+} from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
     Dialog,
@@ -26,11 +39,34 @@ export default function TransformationResults() {
     const [ifrsData, setIfrsData] = useState<TransformedData | null>(null);
     const [activeTab, setActiveTab] = useState<'mcfo' | 'ifrs'>('mcfo');
 
+    // Currency Switcher State
+    const [currency, setCurrency] = useState<'USD' | 'UZS' | 'EUR'>('USD');
+
+    // Excel Export State
+    const [exportingExcel, setExportingExcel] = useState(false);
+
+    // AI Audit Memorandum State
+    const [isAiAuditModalOpen, setIsAiAuditModalOpen] = useState(false);
+    const [aiAuditing, setAiAuditing] = useState(false);
+    const [aiAuditResult, setAiAuditResult] = useState<any>(null);
+    const [copySuccess, setCopySuccess] = useState(false);
+
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
     useEffect(() => {
         fetchBalanceSheet();
     }, [id]);
+
+    const formatMoney = (amountInUSD: number) => {
+        const val = Number(amountInUSD) || 0;
+        if (currency === 'UZS') {
+            return `${(val * 12850).toLocaleString(undefined, { maximumFractionDigits: 0 })} сум`;
+        }
+        if (currency === 'EUR') {
+            return `€${(val * 0.92).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        return `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
 
     const fetchBalanceSheet = async () => {
         try {
@@ -94,6 +130,93 @@ export default function TransformationResults() {
         URL.revokeObjectURL(url);
     };
 
+    const handleExportExcel = async () => {
+        setExportingExcel(true);
+        try {
+            const res = await api.get(`/balance-sheets/${id}/export-excel`, {
+                responseType: 'blob'
+            });
+            const blob = new Blob([res.data], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `transformation_worksheet_${id?.slice(0, 8)}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast({
+                title: "Excel Export Complete",
+                description: "3-Sheet statutory-to-IFRS reconciliation workbook downloaded successfully.",
+            });
+        } catch (error) {
+            console.error("Failed to export Excel", error);
+            toast({
+                title: "Export Failed",
+                description: "Could not generate Excel workbook. Please try again.",
+                variant: "destructive"
+            });
+        } finally {
+            setExportingExcel(false);
+        }
+    };
+
+    const handleRunAiAudit = async () => {
+        setIsAiAuditModalOpen(true);
+        if (aiAuditResult) return; // already loaded
+        setAiAuditing(true);
+        try {
+            const res = await api.post(`/balance-sheets/${id}/ai-audit`, {
+                language: 'ru'
+            });
+            setAiAuditResult(res.data);
+            toast({
+                title: "AI Audit Completed",
+                description: `Assurance opinion: ${res.data.opinion} (Risk Score: ${res.data.risk_score}/100)`
+            });
+        } catch (error: any) {
+            console.error("AI Audit error", error);
+            toast({
+                title: "AI Audit Failed",
+                description: error.response?.data?.detail || "Failed to execute AI assurance audit.",
+                variant: "destructive"
+            });
+        } finally {
+            setAiAuditing(false);
+        }
+    };
+
+    const getDynamicBadges = () => {
+        const adjs = balanceSheet?.transformations || [];
+        if (!adjs || adjs.length === 0) {
+            return [
+                { label: 'IFRS 1 / IAS 1', text: 'Baseline Chart of Accounts Mapping', color: 'border-emerald-200 text-emerald-800' }
+            ];
+        }
+
+        const groups: { [key: string]: { sum: number; count: number; name: string } } = {};
+        for (const adj of adjs) {
+            const cat = adj.ifrs_category || 'IFRS';
+            if (!groups[cat]) {
+                groups[cat] = { sum: 0, count: 0, name: cat };
+            }
+            groups[cat].sum += Number(adj.adjustment_amount) || 0;
+            groups[cat].count += 1;
+        }
+
+        return Object.values(groups).map(g => {
+            const formatted = formatMoney(g.sum);
+            return {
+                label: g.name,
+                text: `${g.name}: ${formatted}`,
+                color: 'border-emerald-200 text-emerald-800'
+            };
+        });
+    };
+
+
     const renderMCFO = () => {
         if (!mcfoData) return null;
 
@@ -112,7 +235,7 @@ export default function TransformationResults() {
                                     {mcfoData.assets?.current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between text-sm">
                                             <span>{item.name}</span>
-                                            <span className="font-mono">${item.amount.toLocaleString()}</span>
+                                            <span className="font-mono">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -123,14 +246,14 @@ export default function TransformationResults() {
                                     {mcfoData.assets?.non_current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between text-sm">
                                             <span>{item.name}</span>
-                                            <span className="font-mono">${item.amount.toLocaleString()}</span>
+                                            <span className="font-mono">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             <div className="border-t pt-2 flex justify-between font-bold">
                                 <span>Total Assets</span>
-                                <span className="font-mono">${mcfoData.assets?.total?.toLocaleString()}</span>
+                                <span className="font-mono">{formatMoney(mcfoData.assets?.total || 0)}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -149,7 +272,7 @@ export default function TransformationResults() {
                                     {mcfoData.liabilities?.current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between text-sm">
                                             <span>{item.name}</span>
-                                            <span className="font-mono">${item.amount.toLocaleString()}</span>
+                                            <span className="font-mono">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -160,14 +283,14 @@ export default function TransformationResults() {
                                     {mcfoData.liabilities?.non_current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between text-sm">
                                             <span>{item.name}</span>
-                                            <span className="font-mono">${item.amount.toLocaleString()}</span>
+                                            <span className="font-mono">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                             <div className="border-t pt-2 flex justify-between font-bold">
                                 <span>Total Liabilities</span>
-                                <span className="font-mono">${mcfoData.liabilities?.total?.toLocaleString()}</span>
+                                <span className="font-mono">{formatMoney(mcfoData.liabilities?.total || 0)}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -183,12 +306,12 @@ export default function TransformationResults() {
                             {mcfoData.equity?.items?.map((item: any, idx: number) => (
                                 <div key={idx} className="flex justify-between text-sm">
                                     <span>{item.name}</span>
-                                    <span className="font-mono">${item.amount.toLocaleString()}</span>
+                                    <span className="font-mono">{formatMoney(item.amount)}</span>
                                 </div>
                             ))}
                             <div className="border-t pt-2 flex justify-between font-bold">
                                 <span>Total Equity</span>
-                                <span className="font-mono">${mcfoData.equity?.total?.toLocaleString()}</span>
+                                <span className="font-mono">{formatMoney(mcfoData.equity?.total || 0)}</span>
                             </div>
                         </div>
                     </CardContent>
@@ -214,7 +337,7 @@ export default function TransformationResults() {
                                 <span className="text-slate-800 font-medium">{item.name}</span>
                             </div>
                             <span className={`font-mono font-semibold ${item.amount < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                                ${Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                {formatMoney(item.amount)}
                             </span>
                         </div>
                     ))}
@@ -249,20 +372,16 @@ export default function TransformationResults() {
                                     </span>
                                 </div>
                                 <p className="text-xs text-emerald-700 mt-0.5">
-                                    Total Assets (${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) exactly equal Total Equity & Liabilities (${totalEqAndLiab.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}).
+                                    Total Assets ({formatMoney(totalAssets)}) exactly equal Total Equity & Liabilities ({formatMoney(totalEqAndLiab)}).
                                 </p>
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="bg-white/80 border border-emerald-200 px-2.5 py-1 rounded font-medium text-emerald-800 shadow-2xs">
-                                IFRS 16: +$12.5M ROU / Liab
-                            </span>
-                            <span className="bg-white/80 border border-emerald-200 px-2.5 py-1 rounded font-medium text-emerald-800 shadow-2xs">
-                                IAS 36: -$2.3M Asset / P&L
-                            </span>
-                            <span className="bg-white/80 border border-emerald-200 px-2.5 py-1 rounded font-medium text-emerald-800 shadow-2xs">
-                                IFRS 9: -$3.25M ECL / P&L
-                            </span>
+                            {getDynamicBadges().map((b, idx) => (
+                                <span key={idx} className={`bg-white/80 border px-2.5 py-1 rounded font-medium shadow-2xs ${b.color}`}>
+                                    {b.text}
+                                </span>
+                            ))}
                         </div>
                     </div>
                 ) : (
@@ -275,11 +394,11 @@ export default function TransformationResults() {
                                 <div className="font-bold text-base flex items-center gap-2">
                                     <span>Balance Discrepancy Detected</span>
                                     <span className="text-xs bg-rose-200 text-rose-800 font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                        Δ ${diff.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        Δ {formatMoney(diff)}
                                     </span>
                                 </div>
                                 <p className="text-xs text-rose-700 mt-0.5">
-                                    Assets (${totalAssets.toLocaleString()}) differ from Equity & Liabilities (${totalEqAndLiab.toLocaleString()}). Check double-entry postings for IAS 36 / IFRS 9.
+                                    Assets ({formatMoney(totalAssets)}) differ from Equity & Liabilities ({formatMoney(totalEqAndLiab)}). Check double-entry postings for IAS 36 / IFRS 9.
                                 </p>
                             </div>
                         </div>
@@ -302,7 +421,7 @@ export default function TransformationResults() {
                                 
                                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Non-Current Assets</span>
-                                    <span className="font-mono">${Number(statement?.assets?.non_current_assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="font-mono">{formatMoney(statement?.assets?.non_current_assets?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>
@@ -317,14 +436,14 @@ export default function TransformationResults() {
                                 
                                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Current Assets</span>
-                                    <span className="font-mono">${Number(statement?.assets?.current_assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="font-mono">{formatMoney(statement?.assets?.current_assets?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="border-t-2 pt-3 flex justify-between font-black text-lg text-emerald-900 bg-emerald-50/70 p-3 rounded-lg border border-emerald-200">
                             <span>Total Assets</span>
-                            <span className="font-mono">${Number(statement?.assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-mono">{formatMoney(statement?.assets?.total || 0)}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -344,7 +463,7 @@ export default function TransformationResults() {
                                 
                                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Equity</span>
-                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.equity?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="font-mono">{formatMoney(statement?.equity_and_liabilities?.equity?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>
@@ -359,7 +478,7 @@ export default function TransformationResults() {
                                 
                                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Non-Current Liabilities</span>
-                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.non_current_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="font-mono">{formatMoney(statement?.equity_and_liabilities?.non_current_liabilities?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>
@@ -374,14 +493,14 @@ export default function TransformationResults() {
                                 
                                 <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Current Liabilities</span>
-                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.current_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                    <span className="font-mono">{formatMoney(statement?.equity_and_liabilities?.current_liabilities?.total || 0)}</span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="border-t-2 pt-3 flex justify-between font-black text-lg text-indigo-950 bg-indigo-50/70 p-3 rounded-lg border border-indigo-200">
                             <span>Total Equity and Liabilities</span>
-                            <span className="font-mono">${Number(statement?.equity_and_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-mono">{formatMoney(statement?.equity_and_liabilities?.total || 0)}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -407,38 +526,77 @@ export default function TransformationResults() {
                         Period: {balanceSheet?.period && new Date(balanceSheet.period).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Currency Selector */}
+                    <div className="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold mr-1">
+                        <Coins className="w-3.5 h-3.5 text-slate-500 ml-1 mr-0.5" />
+                        <button
+                            className={`px-2 py-0.5 rounded transition-all ${currency === 'USD' ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-600 hover:text-slate-900'}`}
+                            onClick={() => setCurrency('USD')}
+                        >
+                            USD ($)
+                        </button>
+                        <button
+                            className={`px-2 py-0.5 rounded transition-all ${currency === 'UZS' ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-600 hover:text-slate-900'}`}
+                            onClick={() => setCurrency('UZS')}
+                        >
+                            UZS (сум)
+                        </button>
+                        <button
+                            className={`px-2 py-0.5 rounded transition-all ${currency === 'EUR' ? 'bg-white shadow text-blue-600 font-bold' : 'text-slate-600 hover:text-slate-900'}`}
+                            onClick={() => setCurrency('EUR')}
+                        >
+                            EUR (€)
+                        </button>
+                    </div>
+
                     <Button
                         variant="outline"
                         onClick={() => navigate(`/transformation/adjustments/${id}`)}
                         className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-1.5 shadow-sm"
                     >
                         <SlidersHorizontal className="h-4 w-4" />
-                        Adjustments & Calculators
+                        Adjustments
                     </Button>
                     <Button onClick={handleTransform} disabled={transforming} className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5">
                         <RefreshCw className={`h-4 w-4 ${transforming ? 'animate-spin' : ''}`} />
                         {transforming ? 'Transforming...' : (mcfoData || ifrsData) ? 'Re-Transform' : 'Transform Now'}
                     </Button>
+
                     {(mcfoData || ifrsData) && (
-                        <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5"
-                            onClick={() => setIsPrintModalOpen(true)}
-                        >
-                            <Printer className="w-4 h-4" />
-                            Audit-Ready PDF Report
-                        </Button>
-                    )}
-                    {mcfoData && (
-                        <Button variant="outline" onClick={() => exportToJSON(mcfoData, `nas-${id}.json`)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Export NAS / НСБУ
-                        </Button>
+                        <>
+                            <Button
+                                onClick={handleRunAiAudit}
+                                disabled={aiAuditing}
+                                className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm flex items-center gap-1.5"
+                            >
+                                <Sparkles className={`w-4 h-4 ${aiAuditing ? 'animate-spin' : 'text-purple-200'}`} />
+                                {aiAuditing ? 'Auditing...' : 'AI Audit Memo'}
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                onClick={handleExportExcel}
+                                disabled={exportingExcel}
+                                className="border-emerald-600 text-emerald-700 hover:bg-emerald-50 shadow-sm flex items-center gap-1.5 font-medium"
+                            >
+                                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                                {exportingExcel ? 'Exporting...' : 'Export Excel (.xlsx)'}
+                            </Button>
+
+                            <Button
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5"
+                                onClick={() => setIsPrintModalOpen(true)}
+                            >
+                                <Printer className="w-4 h-4" />
+                                Audit PDF
+                            </Button>
+                        </>
                     )}
                     {ifrsData && (
-                        <Button variant="outline" onClick={() => exportToJSON(ifrsData, `ifrs-${id}.json`)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Export IFRS / МСФО
+                        <Button variant="outline" size="sm" onClick={() => exportToJSON(ifrsData, `ifrs-${id}.json`)} className="text-slate-500">
+                            <Download className="mr-1 h-3.5 w-3.5" />
+                            JSON
                         </Button>
                     )}
                 </div>
@@ -703,6 +861,155 @@ export default function TransformationResults() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* AI Audit Memorandum Modal */}
+            <Dialog open={isAiAuditModalOpen} onOpenChange={setIsAiAuditModalOpen}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-white text-slate-900">
+                    <div className="p-8">
+                        {/* Header */}
+                        <div className="flex items-center justify-between pb-5 border-b">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-purple-100 text-purple-700">
+                                    <Sparkles className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                        AI Regulatory Assurance Memorandum
+                                        {aiAuditResult && (
+                                            <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                                                aiAuditResult.status === 'passed' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                            }`}>
+                                                {aiAuditResult.opinion}
+                                            </span>
+                                        )}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        Deterministic double-entry audit engine with statutory IFRS convergence validation
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {aiAuditResult && (
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(aiAuditResult.audit_memo_markdown);
+                                                setCopySuccess(true);
+                                                setTimeout(() => setCopySuccess(false), 2000);
+                                            }}
+                                            className="flex items-center gap-1.5 text-xs"
+                                        >
+                                            {copySuccess ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                            {copySuccess ? 'Copied' : 'Copy Memo'}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => window.print()}
+                                            className="flex items-center gap-1.5 text-xs"
+                                        >
+                                            <Printer className="w-3.5 h-3.5" />
+                                            Print
+                                        </Button>
+                                    </>
+                                )}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setIsAiAuditModalOpen(false)}
+                                >
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Loading state */}
+                        {aiAuditing && (
+                            <div className="py-20 text-center space-y-4">
+                                <RefreshCw className="w-10 h-10 text-purple-600 animate-spin mx-auto" />
+                                <div>
+                                    <h4 className="font-bold text-slate-800 text-base">Performing Deep Assurance & IFRS Compliance Analysis...</h4>
+                                    <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                                        Verifying Zero-Delta mathematical equilibrium, testing IFRS 16 lease liability discounting, inspecting IAS 36 asset impairment dcfs, and evaluating IFRS 9 ECL provision matrix.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Content state */}
+                        {!aiAuditing && aiAuditResult && (
+                            <div className="mt-6 space-y-6">
+                                {/* Score and Findings KPI Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/50">
+                                        <div className="text-xs font-semibold text-purple-800 uppercase tracking-wider">Compliance Risk Score</div>
+                                        <div className="text-3xl font-black text-purple-950 mt-1 flex items-baseline gap-1">
+                                            {aiAuditResult.risk_score}
+                                            <span className="text-sm font-normal text-purple-600">/ 100</span>
+                                        </div>
+                                        <div className="text-[11px] text-purple-700 mt-1">
+                                            {aiAuditResult.risk_score >= 90 ? 'Low Assurance Risk (Clean Audit)' : 'Attention Required'}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50">
+                                        <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Capital Equilibrium Guard</div>
+                                        <div className="text-xl font-bold text-emerald-950 mt-1 flex items-center gap-1.5">
+                                            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                            {aiAuditResult.is_balanced ? 'Balanced (Δ $0.00)' : `Discrepancy: ${formatMoney(aiAuditResult.discrepancy)}`}
+                                        </div>
+                                        <div className="text-[11px] text-emerald-700 mt-1 font-mono">
+                                            A = L + E Verified
+                                        </div>
+                                    </div>
+
+                                    <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/50">
+                                        <div className="text-xs font-semibold text-blue-800 uppercase tracking-wider">Lead Assurance Reviewer</div>
+                                        <div className="text-sm font-bold text-blue-950 mt-1 truncate">
+                                            {aiAuditResult.expert_role}
+                                        </div>
+                                        <div className="text-[11px] text-blue-700 mt-1">
+                                            RegAI v2.4 Certified
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Key Audit Matters */}
+                                {aiAuditResult.findings && aiAuditResult.findings.length > 0 && (
+                                    <div>
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Key Audit Matters (KAM)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {aiAuditResult.findings.map((f: any, i: number) => (
+                                                <div key={i} className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 text-xs">
+                                                    <div className="flex items-center justify-between font-semibold text-slate-900 mb-1">
+                                                        <span>{f.code}: {f.title}</span>
+                                                        <span className={`px-1.5 py-0.2 rounded text-[10px] uppercase font-bold ${
+                                                            f.severity === 'info' ? 'bg-emerald-100 text-emerald-800' : f.severity === 'warning' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                                                        }`}>
+                                                            {f.severity}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-slate-600 text-[11px] leading-relaxed">{f.detail}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Full Audit Memorandum Card */}
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Official Memorandum Document</h4>
+                                    <div className="p-6 rounded-xl border border-slate-300 bg-slate-50/30 text-xs leading-relaxed font-sans whitespace-pre-wrap font-normal text-slate-800 border-l-4 border-l-purple-600 shadow-2xs max-h-[400px] overflow-y-auto">
+                                        {aiAuditResult.audit_memo_markdown}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </DialogContent>
             </Dialog>

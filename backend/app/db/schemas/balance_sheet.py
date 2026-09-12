@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator
-from typing import Optional, List, Any, Union
+from typing import Optional, List, Any, Union, Dict
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
@@ -148,3 +148,28 @@ class BalanceSheet(BalanceSheetBase):
 
     class Config:
         from_attributes = True
+
+
+class AIAuditRequest(BaseModel):
+    template_id: Optional[UUID] = None
+    custom_prompt: Optional[str] = None
+    expert_role: Optional[str] = None
+    language: Optional[str] = "ru"
+
+
+class AIAuditResponse(BaseModel):
+    opinion: str
+    status: str
+    risk_score: int
+    is_balanced: bool
+    discrepancy: float
+    total_assets: float
+    total_equity: float
+    total_liabilities: float
+    standards_verified: List[str]
+    findings: List[Dict[str, Any]]
+    expert_role: str
+    executive_summary: str
+    audit_memo_markdown: str
+    audited_at: str
+

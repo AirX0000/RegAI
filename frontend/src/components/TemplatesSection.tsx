@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
@@ -13,18 +14,31 @@ import {
     Brain,
     ShieldCheck,
     RefreshCw,
-    FileText
+    FileText,
+    ArrowRight
 } from 'lucide-react';
 import { TemplateWizardModal } from './templates/TemplateWizardModal';
+import { OneCSyncDrawer } from './onec/OneCSyncDrawer';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 
 interface TemplatesSectionProps {
     onSelectTemplate?: (templateData: any) => void;
 }
 
 export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionProps = {}) {
+    const navigate = useNavigate();
     const [templates, setTemplates] = useState<any[]>([]);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<any>(null);
+    const [actionChooserOpen, setActionChooserOpen] = useState(false);
+    const [selectedTemplateForAction, setSelectedTemplateForAction] = useState<any>(null);
+    const [isOneCDrawerOpen, setIsOneCDrawerOpen] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -64,7 +78,21 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         setIsWizardOpen(true);
     };
 
-    const handleUseTemplate = async (id: string) => {
+    const handleUseTemplate = async (template: any) => {
+        const isFinancial = template.report_type === 'financial' || 
+                            template.configuration?.target_standard === 'IFRS' || 
+                            template.configuration?.source_standard === 'NAS';
+        
+        if (isFinancial) {
+            setSelectedTemplateForAction(template);
+            setActionChooserOpen(true);
+            return;
+        }
+
+        await executeStandardUse(template.id);
+    };
+
+    const executeStandardUse = async (id: string) => {
         try {
             const res = await api.post(`/templates/${id}/use`);
             toast({
@@ -252,7 +280,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
 
                             {/* Use Template Action */}
                             <Button
-                                onClick={() => handleUseTemplate(template.id)}
+                                onClick={() => handleUseTemplate(template)}
                                 className="w-full mt-4 bg-slate-900 hover:bg-blue-600 text-white text-xs font-semibold h-9 rounded-xl shadow-xs transition-colors"
                             >
                                 <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-400" />
@@ -289,6 +317,113 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                 }}
                 onSuccess={fetchTemplates}
                 initialTemplate={editingTemplate}
+            />
+
+            {/* Smart Template Action Chooser Modal */}
+            <Dialog open={actionChooserOpen} onOpenChange={setActionChooserOpen}>
+                <DialogContent className="max-w-2xl bg-white text-slate-900 p-6 rounded-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-blue-600" />
+                            Использовать Smart-Шаблон: {selectedTemplateForAction?.name}
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-slate-500">
+                            Выберите необходимый рабочий сценарий для данного регламентного пакета:
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-3 mt-4">
+                        {/* Option 1: Start Transformation */}
+                        <div 
+                            onClick={() => {
+                                localStorage.setItem('selected_transformation_template', JSON.stringify(selectedTemplateForAction));
+                                setActionChooserOpen(false);
+                                navigate('/transformation/new');
+                                toast({
+                                    title: "Режим трансформации запущен",
+                                    description: `Применены стандарты: ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16 / IAS 36'}`
+                                });
+                            }}
+                            className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all flex items-start gap-4 group"
+                        >
+                            <div className="p-3 rounded-xl bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
+                                <FileSpreadsheet className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-sm text-slate-900 flex items-center justify-between">
+                                    <span>⚡ Запустить трансформацию баланса (NAS ➔ IFRS)</span>
+                                    <ArrowRight className="w-4 h-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    Открыть мастер трансформации с предзаполненными стандартами 
+                                    <strong> {(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16, IAS 36, IFRS 9'}</strong>, 
+                                    контролем Zero Delta Guard и планом счетов 
+                                    <strong> {(selectedTemplateForAction?.configuration?.required_accounts || ['01', '02', '60', '67', '84']).join(', ')}</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Option 2: Sync with 1C */}
+                        <div 
+                            onClick={() => {
+                                setActionChooserOpen(false);
+                                setIsOneCDrawerOpen(true);
+                            }}
+                            className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50 hover:border-amber-400 cursor-pointer transition-all flex items-start gap-4 group"
+                        >
+                            <div className="p-3 rounded-xl bg-amber-500 text-white shadow-xs group-hover:scale-105 transition-transform">
+                                <Server className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-sm text-slate-900 flex items-center justify-between">
+                                    <span>🔌 Синхронизировать с 1С:Предприятие (OData Sync)</span>
+                                    <ArrowRight className="w-4 h-4 text-amber-600 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    Выгрузить оборотно-сальдовую ведомость (ОСВ) из 1С по счетам шаблона 
+                                    <strong> {(selectedTemplateForAction?.configuration?.required_accounts || ['01', '02', '60', '67', '84']).join(', ')} </strong>
+                                    для последующей автоматической сверки.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Option 3: Submit Standard Report */}
+                        <div 
+                            onClick={() => {
+                                setActionChooserOpen(false);
+                                if (selectedTemplateForAction) {
+                                    executeStandardUse(selectedTemplateForAction.id);
+                                }
+                            }}
+                            className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all flex items-start gap-4 group"
+                        >
+                            <div className="p-3 rounded-xl bg-slate-700 text-white shadow-xs group-hover:scale-105 transition-transform">
+                                <FileText className="w-6 h-6" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-sm text-slate-900 flex items-center justify-between">
+                                    <span>📄 Сдать регламентированный комплаенс-отчет</span>
+                                    <ArrowRight className="w-4 h-4 text-slate-600 group-hover:translate-x-1 transition-transform" />
+                                </div>
+                                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    Сформировать стандартный отчет в реестре отчетности с автозаполнением регламента и чек-листа.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* 1C:Enterprise Sync Drawer */}
+            <OneCSyncDrawer
+                isOpen={isOneCDrawerOpen}
+                onClose={() => setIsOneCDrawerOpen(false)}
+                onSyncCompleted={(bsId) => {
+                    setIsOneCDrawerOpen(false);
+                    if (bsId) {
+                        navigate(`/transformation/adjustments/${bsId}`);
+                    }
+                }}
             />
         </div>
     );

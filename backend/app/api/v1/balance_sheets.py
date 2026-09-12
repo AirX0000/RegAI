@@ -12,7 +12,9 @@ from app.db.schemas.balance_sheet import (
     BalanceSheetCreate,
     BalanceSheetUpdate,
     BalanceSheet as BalanceSheetSchema,
-    TransformationResponse
+    TransformationResponse,
+    AIAuditRequest,
+    AIAuditResponse
 )
 from app.core import deps
 from app.db.models.user import User
@@ -442,3 +444,76 @@ def delete_adjustment(
     db.delete(adj)
     db.commit()
     return None
+
+
+@router.get("/{balance_sheet_id}/export-excel")
+def export_transformation_excel(
+    balance_sheet_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    """
+    Export 3-Way Transformation Worksheet, IFRS Balance Sheet, and Audit Journal as Excel (.xlsx).
+    """
+    from app.services.excel_export_service import ExcelExportService
+
+    balance_sheet = db.query(BalanceSheet).filter(
+        BalanceSheet.id == balance_sheet_id
+    ).first()
+
+    if not balance_sheet:
+        raise HTTPException(status_code=404, detail="Balance sheet not found")
+
+    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    excel_stream = ExcelExportService.generate_reconciliation_workbook(balance_sheet)
+    period_str = balance_sheet.period.strftime("%Y_%m_%d") if balance_sheet.period else "report"
+    filename = f"reconciliation_worksheet_{period_str}.xlsx"
+
+    return StreamingResponse(
+        excel_stream,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
+@router.post("/{balance_sheet_id}/ai-audit")
+def run_ai_audit(
+    balance_sheet_id: UUID,
+    audit_req: Optional[AIAuditRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(deps.get_current_user)
+):
+    """
+    Execute AI Assurance & Compliance Audit on the transformed balance sheet.
+    Generates Big-4 style Audit Memorandum with zero-delta equilibrium check and KAMs.
+    """
+    from app.services.ai_auditor_service import AIAuditorService
+    from app.db.models.report_template import ReportTemplate
+
+    balance_sheet = db.query(BalanceSheet).filter(
+        BalanceSheet.id == balance_sheet_id
+    ).first()
+
+    if not balance_sheet:
+        raise HTTPException(status_code=404, detail="Balance sheet not found")
+
+    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    req = audit_req or AIAuditRequest()
+    template = None
+    if req.template_id:
+        template = db.query(ReportTemplate).filter(ReportTemplate.id == req.template_id).first()
+
+    audit_result = AIAuditorService.audit_transformation(
+        balance_sheet=balance_sheet,
+        template=template,
+        custom_prompt=req.custom_prompt,
+        expert_role=req.expert_role,
+        language=req.language or "ru"
+    )
+
+    return audit_result
+

@@ -5,7 +5,7 @@ import api from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Plus, Trash2, ArrowLeft, ArrowRight, CheckCircle2, Calculator } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, ArrowRight, CheckCircle2, Calculator, Sparkles } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from "@/lib/utils";
 
@@ -31,6 +31,14 @@ export default function BalanceSheetForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentStep, setCurrentStep] = useState<Step>('selection');
     const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set());
+    const [activeTemplate, setActiveTemplate] = useState<{ id: string; title: string; category?: string; standard?: string; tags?: string[] } | null>(() => {
+        try {
+            const stored = localStorage.getItem('selected_transformation_template');
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
+        }
+    });
 
     const { register, control, handleSubmit, watch } = useForm<BalanceSheetFormData>({
         defaultValues: {
@@ -81,6 +89,7 @@ export default function BalanceSheetForm() {
             };
 
             const response = await api.post('/balance-sheets/', payload);
+            localStorage.removeItem('selected_transformation_template');
             toast({
                 title: 'Success',
                 description: 'Balance sheet created successfully'
@@ -287,6 +296,41 @@ export default function BalanceSheetForm() {
                     <p className="text-gray-500 mt-1">Enter NAS (НСБУ) data to begin transformation to IFRS</p>
                 </div>
             </div>
+
+            {activeTemplate && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-blue-600 text-white rounded-lg shadow-sm">
+                            <Sparkles className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                                    {activeTemplate.standard || 'NAS ➔ IFRS'}
+                                </span>
+                                <h3 className="text-sm font-bold text-gray-900">
+                                    {activeTemplate.title}
+                                </h3>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                Шаблон применен: правила трансформации и корректировки IFRS 16, IAS 36, IFRS 9 преднастроены для данного проекта.
+                            </p>
+                        </div>
+                    </div>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                            localStorage.removeItem('selected_transformation_template');
+                            setActiveTemplate(null);
+                        }}
+                        className="text-xs text-gray-500 hover:text-red-600"
+                    >
+                        Сбросить шаблон
+                    </Button>
+                </div>
+            )}
 
             {renderStepIndicator()}
 
