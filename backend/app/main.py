@@ -1049,6 +1049,16 @@ async def add_process_time_header(request: Request, call_next):
 metrics_app = make_asgi_app()
 app.mount("/metrics", metrics_app)
 
+# Health Check routes for PaaS / Railway zero-downtime healthcheck
+@app.get("/health", tags=["system"])
+@app.get(f"{settings.API_V1_STR}/health", tags=["system"])
+def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "1.0.0"
+    }
+
 # API routes
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
