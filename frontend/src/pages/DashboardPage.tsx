@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { FileText, Upload } from 'lucide-react';
 import { SmartGrid } from '@/components/dashboard/SmartGrid';
+import { PERMISSIONS } from '../lib/permissions';
 
 export default function DashboardPage() {
     const { user } = useAuth();
@@ -18,12 +19,16 @@ export default function DashboardPage() {
                     <p className="text-gray-500 mt-1">{t('welcome_back')}, {user?.full_name}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button onClick={() => navigate('/reports/new')}>
-                        <FileText className="mr-2 h-4 w-4" /> {t('new_report')}
-                    </Button>
-                    <Button onClick={() => navigate('/upload')}>
-                        <Upload className="mr-2 h-4 w-4" /> {t('upload_balance_sheet')}
-                    </Button>
+                    {PERMISSIONS.canCreateReports(user?.role) && (
+                        <Button onClick={() => navigate('/reports/new')}>
+                            <FileText className="mr-2 h-4 w-4" /> {t('new_report')}
+                        </Button>
+                    )}
+                    {PERMISSIONS.canUploadBalanceSheet(user?.role) && (
+                        <Button onClick={() => navigate('/upload')}>
+                            <Upload className="mr-2 h-4 w-4" /> {t('upload_balance_sheet')}
+                        </Button>
+                    )}
                 </div>
             </div>
 

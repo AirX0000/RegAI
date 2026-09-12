@@ -10,6 +10,7 @@ import TemplatesSection from '../components/TemplatesSection';
 import CommentsSection from '../components/CommentsSection';
 import PreSubmissionChecklist from '../components/PreSubmissionChecklist';
 import { useTranslation } from 'react-i18next';
+import { PERMISSIONS } from '../lib/permissions';
 
 export default function ReportsPage() {
     const { t } = useTranslation();
@@ -296,7 +297,7 @@ export default function ReportsPage() {
         setSelectedReports(reports.length === selectedReports.length ? [] : reports.map(r => r.id));
     };
 
-    const canReview = user?.role === 'admin' || user?.role === 'superadmin';
+    const canReview = ['superadmin', 'admin', 'company_owner', 'auditor'].includes(user?.role || '');
 
     return (
         <div className="space-y-6">
@@ -323,7 +324,7 @@ export default function ReportsPage() {
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         {t('export_excel')}
                     </Button>
-                    {(user?.role === 'accountant' || user?.role === 'auditor' || user?.role === 'admin') && (
+                    {PERMISSIONS.canCreateReports(user?.role) && (
                         <Button onClick={() => setIsSubmitOpen(true)}>
                             <FileUp className="mr-2 h-4 w-4" />
                             {t('submit_report')}
@@ -347,15 +348,17 @@ export default function ReportsPage() {
             )}
 
             {/* Templates Section */}
-            <TemplatesSection onSelectTemplate={(tmplData) => {
-                setFormData({
-                    title: tmplData.title || '',
-                    description: tmplData.description || '',
-                    report_type: tmplData.report_type || 'compliance',
-                    company_id: tmplData.company_id || (user as any)?.company_id || ''
-                });
-                setIsSubmitOpen(true);
-            }} />
+            {PERMISSIONS.canCreateReports(user?.role) && (
+                <TemplatesSection onSelectTemplate={(tmplData) => {
+                    setFormData({
+                        title: tmplData.title || '',
+                        description: tmplData.description || '',
+                        report_type: tmplData.report_type || 'compliance',
+                        company_id: tmplData.company_id || (user as any)?.company_id || ''
+                    });
+                    setIsSubmitOpen(true);
+                }} />
+            )}
 
             {/* Reports Table */}
             <div className="rounded-lg border bg-white shadow-sm">

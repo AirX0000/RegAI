@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PERMISSIONS } from '../lib/permissions';
 
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -65,53 +66,76 @@ export function Topbar() {
                             )}
                         </div>
 
-                        {/* Reports & Data Group */}
-                        <div className="relative">
-                            <button
-                                onClick={() => toggleDropdown('reports')}
-                                className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                        {/* Reports & Data Group - Dropdown if canManageCompanies, else direct link */}
+                        {PERMISSIONS.canManageCompanies(user?.role) ? (
+                            <div className="relative">
+                                <button
+                                    onClick={() => toggleDropdown('reports')}
+                                    className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                                >
+                                    {t('nav_reports_data')}
+                                    <ChevronDown className="h-4 w-4" />
+                                </button>
+                                {openDropdown === 'reports' && (
+                                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg z-50">
+                                        <Link
+                                            to="/reports"
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                            onClick={() => setOpenDropdown(null)}
+                                        >
+                                            {t('nav_reports')}
+                                        </Link>
+                                        <Link
+                                            to="/companies"
+                                            className="block px-4 py-2 hover:bg-gray-100"
+                                            onClick={() => setOpenDropdown(null)}
+                                        >
+                                            {t('nav_companies')}
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <Link
+                                to="/reports"
+                                className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
                             >
-                                {t('nav_reports_data')}
-                                <ChevronDown className="h-4 w-4" />
-                            </button>
-                            {openDropdown === 'reports' && (
-                                <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg z-50">
-                                    <Link
-                                        to="/reports"
-                                        className="block px-4 py-2 hover:bg-gray-100"
-                                        onClick={() => setOpenDropdown(null)}
-                                    >
-                                        {t('nav_reports')}
-                                    </Link>
-                                    <Link
-                                        to="/companies"
-                                        className="block px-4 py-2 hover:bg-gray-100"
-                                        onClick={() => setOpenDropdown(null)}
-                                    >
-                                        {t('nav_companies')}
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
+                                {t('nav_reports')}
+                            </Link>
+                        )}
 
-                        {/* Tax Configuration */}
-                        <Link
-                            to="/tax-config"
-                            className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
-                        >
-                            {t('nav_tax_rates')}
-                        </Link>
+                        {/* Tax Configuration - Restricted */}
+                        {PERMISSIONS.canConfigureTax(user?.role) && (
+                            <Link
+                                to="/tax-config"
+                                className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                            >
+                                {t('nav_tax_rates')}
+                            </Link>
+                        )}
 
-                        {/* Transformation Department */}
-                        <Link
-                            to="/transformation"
-                            className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-blue-600 font-medium"
-                        >
-                            Transformation
-                        </Link>
+                        {/* Transformation Department - Restricted */}
+                        {PERMISSIONS.canViewTransformation(user?.role) && (
+                            <Link
+                                to="/transformation"
+                                className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-blue-600 font-medium"
+                            >
+                                Transformation
+                            </Link>
+                        )}
 
-                        {/* Admin Group - Only for admin/superadmin */}
-                        {['superadmin', 'admin'].includes(user?.role || '') && (
+                        {/* Direct Audit Log link for Auditor */}
+                        {user?.role === 'auditor' && (
+                            <Link
+                                to="/audit-log"
+                                className="px-3 py-2 rounded-md hover:bg-gray-100 transition-colors text-purple-600 font-medium"
+                            >
+                                {t('nav_audit_log')}
+                            </Link>
+                        )}
+
+                        {/* Admin Group - Only for users who can access admin menu */}
+                        {PERMISSIONS.canAccessAdminMenu(user?.role) && (
                             <div className="relative">
                                 <button
                                     onClick={() => toggleDropdown('admin')}
@@ -122,28 +146,43 @@ export function Topbar() {
                                 </button>
                                 {openDropdown === 'admin' && (
                                     <div className="absolute top-full left-0 mt-1 w-48 bg-white border rounded-md shadow-lg z-50">
-                                        <Link
-                                            to="/users"
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setOpenDropdown(null)}
-                                        >
-                                            {t('nav_users')}
-                                        </Link>
-                                        <Link
-                                            to="/hierarchy"
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setOpenDropdown(null)}
-                                        >
-                                            {t('nav_hierarchy')}
-                                        </Link>
-                                        <Link
-                                            to="/company-settings"
-                                            className="block px-4 py-2 hover:bg-gray-100"
-                                            onClick={() => setOpenDropdown(null)}
-                                        >
-                                            {t('nav_company_settings')}
-                                        </Link>
-                                        {user?.role === 'superadmin' && (
+                                        {PERMISSIONS.canManageUsers(user?.role) && (
+                                            <Link
+                                                to="/users"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                onClick={() => setOpenDropdown(null)}
+                                            >
+                                                {t('nav_users')}
+                                            </Link>
+                                        )}
+                                        {PERMISSIONS.canViewHierarchy(user?.role) && (
+                                            <Link
+                                                to="/hierarchy"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                onClick={() => setOpenDropdown(null)}
+                                            >
+                                                {t('nav_hierarchy')}
+                                            </Link>
+                                        )}
+                                        {PERMISSIONS.canManageCompanySettings(user?.role) && (
+                                            <Link
+                                                to="/company-settings"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                onClick={() => setOpenDropdown(null)}
+                                            >
+                                                {t('nav_company_settings')}
+                                            </Link>
+                                        )}
+                                        {PERMISSIONS.canViewAuditLogs(user?.role) && (
+                                            <Link
+                                                to="/audit-log"
+                                                className="block px-4 py-2 hover:bg-gray-100"
+                                                onClick={() => setOpenDropdown(null)}
+                                            >
+                                                {t('nav_audit_log')}
+                                            </Link>
+                                        )}
+                                        {PERMISSIONS.canManageTenants(user?.role) && (
                                             <>
                                                 <div className="border-t my-1"></div>
                                                 <Link
@@ -152,13 +191,6 @@ export function Topbar() {
                                                     onClick={() => setOpenDropdown(null)}
                                                 >
                                                     {t('nav_tenants')}
-                                                </Link>
-                                                <Link
-                                                    to="/audit-log"
-                                                    className="block px-4 py-2 hover:bg-gray-100"
-                                                    onClick={() => setOpenDropdown(null)}
-                                                >
-                                                    {t('nav_audit_log')}
                                                 </Link>
                                             </>
                                         )}

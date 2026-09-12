@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileSpreadsheet, Plus, TrendingUp, Calendar, CheckCircle, Trash2, Upload, Download, FileUp, Server } from 'lucide-react';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '../context/AuthContext';
+import { PERMISSIONS } from '../lib/permissions';
 import {
     Dialog,
     DialogContent,
@@ -25,6 +27,7 @@ interface BalanceSheet {
 }
 
 export default function TransformationDashboard() {
+    const { user } = useAuth();
     const { t } = useTranslation();
     const [balanceSheets, setBalanceSheets] = useState<BalanceSheet[]>([]);
     const [loading, setLoading] = useState(true);
@@ -274,25 +277,27 @@ export default function TransformationDashboard() {
                     </h1>
                     <p className="text-gray-500 mt-1">{t('transform_balance_sheets')}</p>
                 </div>
-                <div className="flex gap-2">
-                    <Button 
-                        onClick={() => setOneCSyncOpen(true)} 
-                        variant="outline" 
-                        size="lg"
-                        className="border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold"
-                    >
-                        <Server className="mr-2 h-4 w-4 text-amber-600" />
-                        1C:Enterprise Sync
-                    </Button>
-                    <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg">
-                        <Upload className="mr-2 h-4 w-4" />
-                        Import from File
-                    </Button>
-                    <Button onClick={() => navigate('/transformation/new')} size="lg">
-                        <Plus className="mr-2 h-4 w-4" />
-                        {t('create_balance_sheet')}
-                    </Button>
-                </div>
+                {PERMISSIONS.canEditTransformation(user?.role) && (
+                    <div className="flex gap-2">
+                        <Button 
+                            onClick={() => setOneCSyncOpen(true)} 
+                            variant="outline" 
+                            size="lg"
+                            className="border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold"
+                        >
+                            <Server className="mr-2 h-4 w-4 text-amber-600" />
+                            1C:Enterprise Sync
+                        </Button>
+                        <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Import from File
+                        </Button>
+                        <Button onClick={() => navigate('/transformation/new')} size="lg">
+                            <Plus className="mr-2 h-4 w-4" />
+                            {t('create_balance_sheet')}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Stats Cards */}
@@ -355,12 +360,14 @@ export default function TransformationDashboard() {
                             <p className="mt-1 text-sm text-gray-500">
                                 {t('get_started_creating_sheet')}
                             </p>
-                            <div className="mt-6">
-                                <Button onClick={() => navigate('/transformation/new')}>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    {t('create_balance_sheet')}
-                                </Button>
-                            </div>
+                            {PERMISSIONS.canEditTransformation(user?.role) && (
+                                <div className="mt-6">
+                                    <Button onClick={() => navigate('/transformation/new')}>
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        {t('create_balance_sheet')}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -403,21 +410,27 @@ export default function TransformationDashboard() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     {bs.status === 'draft' && (
                                                         <>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => navigate(`/transformation/edit/${bs.id}`)}
-                                                            >
-                                                                {t('edit')}
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+                                                            {PERMISSIONS.canEditTransformation(user?.role) ? (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => navigate(`/transformation/edit/${bs.id}`)}
+                                                                    >
+                                                                        {t('edit')}
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
+                                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-gray-400 text-xs italic">Draft</span>
+                                                            )}
                                                         </>
                                                     )}
                                                     {bs.status === 'transformed' && (
@@ -437,14 +450,16 @@ export default function TransformationDashboard() {
                                                             >
                                                                 {t('view_results')}
                                                             </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
+                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
                                                         </>
                                                     )}
                                                     {bs.status === 'submitted' && (
@@ -457,21 +472,25 @@ export default function TransformationDashboard() {
                                                             >
                                                                 {t('adjustments') || 'Корректировки'}
                                                             </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                className="bg-blue-600 hover:bg-blue-700 text-white"
-                                                                onClick={() => navigate(`/transformation/results/${bs.id}`)}
-                                                            >
-                                                                {t('transform')}
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
+                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                                    onClick={() => navigate(`/transformation/results/${bs.id}`)}
+                                                                >
+                                                                    {t('transform')}
+                                                                </Button>
+                                                            )}
+                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
+                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>

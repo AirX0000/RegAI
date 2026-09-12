@@ -33,46 +33,73 @@ export const router = createBrowserRouter([
         path: '/',
         element: <Layout />,
         children: [
+            // 1. General Access: Available to all authenticated users
             {
                 element: <Guard />,
                 children: [
                     { path: '/', element: <DashboardPage /> },
                     { path: '/regulations', element: <RegulationsPage /> },
-                    { path: '/companies', element: <CompaniesManagementPage /> },
                     { path: '/compliance', element: <CompliancePage /> },
                     { path: '/reports', element: <ReportsPage /> },
                     { path: '/reports/new', element: <ReportsPage /> },
-                    { path: '/tax-config', element: <TaxConfigPage /> },
-                    {
-                        path: '/ai-analysis',
-                        element: <ReportAnalysisPage />,
-                    },
-                    {
-                        path: '/companies-management',
-                        element: <CompaniesManagementPage />,
-                    },
+                    { path: '/ai-analysis', element: <ReportAnalysisPage /> },
                     { path: '/tax-analysis', element: <ReportAnalysisPage /> },
                     { path: '/help', element: <HelpPage /> },
                     { path: '/guide', element: <GuidePage /> },
                     { path: '/examples', element: <ExamplesPage /> },
-                    { path: '/transformation', element: <TransformationDashboard /> },
-                    { path: '/transformation/new', element: <BalanceSheetForm /> },
-                    { path: '/transformation/edit/:id', element: <BalanceSheetForm /> },
-                    { path: '/transformation/adjustments/:id', element: <TransformationAdjustmentsPage /> },
-                    { path: '/transformation/results/:id', element: <TransformationResults /> },
-                    { path: '/upload', element: <UploadResults /> },
                     { path: '/documents', element: <DocumentsPage /> },
                 ],
             },
+            // 2. Tax Configuration (superadmin, admin, owner, accountant)
             {
-                element: <Guard roles={['superadmin', 'admin']} />,
+                element: <Guard roles={['superadmin', 'admin', 'company_owner', 'accountant']} />,
+                children: [
+                    { path: '/tax-config', element: <TaxConfigPage /> },
+                ],
+            },
+            // 3. Companies Management (superadmin, admin, owner)
+            {
+                element: <Guard roles={['superadmin', 'admin', 'company_owner']} />,
+                children: [
+                    { path: '/companies', element: <CompaniesManagementPage /> },
+                    { path: '/companies-management', element: <CompaniesManagementPage /> },
+                ],
+            },
+            // 4. Transformation Department (superadmin, admin, owner, accountant, auditor)
+            {
+                element: <Guard roles={['superadmin', 'admin', 'company_owner', 'accountant', 'auditor']} />,
+                children: [
+                    { path: '/transformation', element: <TransformationDashboard /> },
+                    { path: '/transformation/adjustments/:id', element: <TransformationAdjustmentsPage /> },
+                    { path: '/transformation/results/:id', element: <TransformationResults /> },
+                ],
+            },
+            // 5. Transformation Creation & Upload (superadmin, admin, owner, accountant)
+            {
+                element: <Guard roles={['superadmin', 'admin', 'company_owner', 'accountant']} />,
+                children: [
+                    { path: '/transformation/new', element: <BalanceSheetForm /> },
+                    { path: '/transformation/edit/:id', element: <BalanceSheetForm /> },
+                    { path: '/upload', element: <UploadResults /> },
+                ],
+            },
+            // 6. Audit Log (superadmin, admin, owner, auditor)
+            {
+                element: <Guard roles={['superadmin', 'admin', 'company_owner', 'auditor']} />,
+                children: [
+                    { path: '/audit-log', element: <AuditLogPage /> },
+                ],
+            },
+            // 7. Company Administration (superadmin, admin, owner)
+            {
+                element: <Guard roles={['superadmin', 'admin', 'company_owner']} />,
                 children: [
                     { path: '/users', element: <UsersPage /> },
                     { path: '/company-settings', element: <CompanySettingsPage /> },
-                    { path: '/audit-log', element: <AuditLogPage /> },
                     { path: '/hierarchy', element: <HierarchyTreePage /> },
                 ],
             },
+            // 8. Platform Administration (superadmin only)
             {
                 element: <Guard roles={['superadmin']} />,
                 children: [

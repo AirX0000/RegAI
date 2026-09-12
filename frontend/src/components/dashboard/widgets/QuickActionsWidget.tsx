@@ -4,11 +4,11 @@ import { WidgetProps } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { FileText, UploadCloud, ShieldCheck, Users, Activity } from 'lucide-react';
+import { PERMISSIONS } from '@/lib/permissions';
 
 export const QuickActionsWidget: React.FC<WidgetProps> = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const isAdminOrSuper = user?.role === 'admin' || user?.role === 'superadmin' || user?.role?.includes('admin') || user?.role?.includes('owner');
 
     const actions = [
         {
@@ -16,35 +16,35 @@ export const QuickActionsWidget: React.FC<WidgetProps> = () => {
             icon: <FileText className="h-4 w-4 text-blue-500" />,
             onClick: () => navigate('/reports'),
             description: 'Generate compliance report',
-            show: true
+            show: PERMISSIONS.canCreateReports(user?.role)
         },
         {
             label: 'Upload Balance Sheet',
             icon: <UploadCloud className="h-4 w-4 text-purple-500" />,
             onClick: () => navigate('/transformation/new'),
             description: 'Import new statement',
-            show: true
+            show: PERMISSIONS.canUploadBalanceSheet(user?.role)
         },
         {
             label: 'Verify System',
             icon: <ShieldCheck className="h-4 w-4 text-green-500" />,
             onClick: () => navigate('/compliance'),
             description: 'Check active regulations',
-            show: true
+            show: PERMISSIONS.canViewCompliance(user?.role)
         },
         {
             label: 'Audit Log',
             icon: <Activity className="h-4 w-4 text-orange-500" />,
             onClick: () => navigate('/audit-log'),
             description: 'View operation history',
-            show: isAdminOrSuper
+            show: PERMISSIONS.canViewAuditLogs(user?.role)
         },
         {
             label: 'Manage Users',
             icon: <Users className="h-4 w-4 text-rose-500" />,
             onClick: () => navigate('/users'),
             description: 'Configure roles & access',
-            show: isAdminOrSuper
+            show: PERMISSIONS.canManageUsers(user?.role)
         }
     ];
 
