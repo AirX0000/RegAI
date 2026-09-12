@@ -401,8 +401,54 @@ def seed_demo():
             db.add_all([adj1, adj2, adj3, adj4, ts])
             db.commit()
             print(f"   ✅ Seeded 2024 Balanced Sheet with 14 accounts and IFRS 16 / IAS 36 / IFRS 9 adjustments")
+
+        # 2025 FY / H1 Untransformed NAS Balance Sheet
+        bs_2025 = db.query(BalanceSheet).filter(
+            BalanceSheet.company_id == primary_company.id,
+            BalanceSheet.period == datetime(2025, 6, 30)
+        ).first()
+        if not bs_2025:
+            bs_2025 = BalanceSheet(
+                id=uuid.uuid4(),
+                company_id=primary_company.id,
+                period=datetime(2025, 6, 30),
+                status=BalanceSheetStatus.SUBMITTED,
+                notes="Отчет по Национальным Стандартам Бухгалтерского Учета (НАС / НСБУ) за 1-е полугодие 2025 г. (Готов к трансформации в МСФО)"
+            )
+            db.add(bs_2025)
+            db.flush()
+
+            nas_items_data = [
+                ("01.01", "Основные средства (Fixed Assets)", 38000000.00, BalanceSheetCategory.ASSETS, "Non-Current Assets"),
+                ("02.01", "Амортизация ОС (Accumulated Depreciation)", -4000000.00, BalanceSheetCategory.ASSETS, "Non-Current Assets"),
+                ("04.01", "Нематериальные активы (Intangible Assets)", 5000000.00, BalanceSheetCategory.ASSETS, "Non-Current Assets"),
+                ("08.04", "Вложения во внеоборотные активы", 6000000.00, BalanceSheetCategory.ASSETS, "Non-Current Assets"),
+                ("10.01", "Сырье и материалы (Inventories)", 12000000.00, BalanceSheetCategory.ASSETS, "Current Assets"),
+                ("41.01", "Товары на складах (Goods)", 13000000.00, BalanceSheetCategory.ASSETS, "Current Assets"),
+                ("62.01", "Расчеты с покупателями (Accounts Receivable)", 15000000.00, BalanceSheetCategory.ASSETS, "Current Assets"),
+                ("51.00", "Расчетные счета (Cash & Bank)", 10000000.00, BalanceSheetCategory.ASSETS, "Current Assets"),
+                ("60.01", "Расчеты с поставщиками (Accounts Payable)", 20000000.00, BalanceSheetCategory.LIABILITIES, "Current Liabilities"),
+                ("66.01", "Краткосрочные кредиты (Short-term Loans)", 12000000.00, BalanceSheetCategory.LIABILITIES, "Current Liabilities"),
+                ("70.00", "Расчеты по оплате труда (Payroll Liabilities)", 5000000.00, BalanceSheetCategory.LIABILITIES, "Current Liabilities"),
+                ("68.02", "Расчеты по налогам и сборам (Tax Liabilities)", 3000000.00, BalanceSheetCategory.LIABILITIES, "Current Liabilities"),
+                ("67.01", "Долгосрочные кредиты банков (Long-term Borrowings)", 15000000.00, BalanceSheetCategory.LIABILITIES, "Non-Current Liabilities"),
+                ("80.01", "Уставный капитал (Share Capital)", 25000000.00, BalanceSheetCategory.EQUITY, "Equity"),
+                ("84.01", "Нераспределенная прибыль (Retained Earnings)", 15000000.00, BalanceSheetCategory.EQUITY, "Equity"),
+            ]
+            for code, name, amount, cat, subcat in nas_items_data:
+                db.add(BalanceSheetItem(
+                    id=uuid.uuid4(),
+                    balance_sheet_id=bs_2025.id,
+                    account_code=code,
+                    account_name=name,
+                    amount=amount,
+                    category=cat,
+                    subcategory=subcat
+                ))
+            db.commit()
+            print(f"   ✅ Seeded 2025 NAS / NSBU balance sheet (SUBMITTED, 95M ₽ balanced)")
         else:
-            print("   ℹ️ Balance sheet data already exists")
+            print("   ℹ️ 2025 Balance sheet data already exists")
 
         print("\n🔔 [6/6] Seeding Compliance Alerts & Reports...")
         alerts_count = db.query(Alert).filter(Alert.company_id == primary_company.id).count()

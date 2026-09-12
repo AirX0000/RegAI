@@ -425,6 +425,14 @@ export default function TransformationDashboard() {
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
+                                                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                                                                onClick={() => navigate(`/transformation/adjustments/${bs.id}`)}
+                                                            >
+                                                                {t('adjustments') || 'Корректировки'}
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
                                                                 onClick={() => navigate(`/transformation/results/${bs.id}`)}
                                                             >
                                                                 {t('view_results')}
@@ -440,12 +448,31 @@ export default function TransformationDashboard() {
                                                         </>
                                                     )}
                                                     {bs.status === 'submitted' && (
-                                                        <Button
-                                                            size="sm"
-                                                            onClick={() => navigate(`/transformation/results/${bs.id}`)}
-                                                        >
-                                                            {t('transform')}
-                                                        </Button>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                                                                onClick={() => navigate(`/transformation/adjustments/${bs.id}`)}
+                                                            >
+                                                                {t('adjustments') || 'Корректировки'}
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                                                onClick={() => navigate(`/transformation/results/${bs.id}`)}
+                                                            >
+                                                                {t('transform')}
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </td>

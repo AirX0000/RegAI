@@ -22,6 +22,12 @@ class TransformationService:
     def transform(self, balance_sheet: BalanceSheet) -> TransformationResponse:
         """Transform a balance sheet to both MCFO and IFRS formats"""
         
+        # Clear previous transformation results if re-transforming
+        self.db.query(TransformedStatement).filter(
+            TransformedStatement.balance_sheet_id == balance_sheet.id
+        ).delete()
+        self.db.flush()
+
         # Perform MCFO transformation
         mcfo_data = self._transform_to_mcfo(balance_sheet)
         mcfo_statement = TransformedStatement(
@@ -34,11 +40,20 @@ class TransformationService:
         
         # Perform IFRS transformation
         ifrs_data = self._transform_to_ifrs(balance_sheet)
+        rules_applied = [
+            {"standard": "IFRS 1 / IAS 1", "impact": "Presentation of Financial Statements & Standard Chart of Accounts Mapping"}
+        ]
+        for adj in (balance_sheet.transformations or []):
+            rules_applied.append({
+                "standard": adj.ifrs_category or "Adjustment",
+                "impact": f"{adj.description} ({adj.adjustment_type.upper()} {float(adj.adjustment_amount):,.2f})"
+            })
+
         ifrs_statement = TransformedStatement(
             balance_sheet_id=balance_sheet.id,
             format_type=TransformationFormat.IFRS,
             transformed_data=ifrs_data,
-            transformation_rules_applied={"version": "1.0", "rules": "IFRS standard mapping"}
+            transformation_rules_applied=rules_applied
         )
         self.db.add(ifrs_statement)
         
@@ -82,26 +97,36 @@ class TransformationService:
         }
         
         for item in balance_sheet.items:
+            code = (item.account_code or "").strip()
+            name_lower = (item.account_name or "").lower()
+            subcat = (item.subcategory or "").lower().strip()
+            
+            is_non_current = (
+                "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
+                or code.startswith(("01", "02", "03", "04", "05", "07", "08", "58", "67", "77", "96", "1510", "1520", "2510"))
+                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн"])
+            )
+            
             mapped_item = {
                 "code": item.account_code,
                 "name": item.account_name,
                 "amount": float(item.amount),
-                "subcategory": item.subcategory or "Other"
+                "subcategory": item.subcategory or ("Non-Current" if is_non_current else "Current")
             }
             
             if item.category.value == "assets":
-                if "current" in (item.subcategory or "").lower():
-                    mcfo_structure["assets"]["current"].append(mapped_item)
-                else:
+                if is_non_current:
                     mcfo_structure["assets"]["non_current"].append(mapped_item)
+                else:
+                    mcfo_structure["assets"]["current"].append(mapped_item)
                 mcfo_structure["assets"]["total"] += item.amount
                 mcfo_structure["total_assets"] += item.amount
                 
             elif item.category.value == "liabilities":
-                if "current" in (item.subcategory or "").lower():
-                    mcfo_structure["liabilities"]["current"].append(mapped_item)
-                else:
+                if is_non_current:
                     mcfo_structure["liabilities"]["non_current"].append(mapped_item)
+                else:
+                    mcfo_structure["liabilities"]["current"].append(mapped_item)
                 mcfo_structure["liabilities"]["total"] += item.amount
                 mcfo_structure["total_liabilities_and_equity"] += item.amount
                 
@@ -169,128 +194,137 @@ class TransformationService:
             }
         }
         
-        # Map items to IFRS categories (simplified mapping)
+        # Map item adjustments if present
+        item_adjustments = {}
+        for adj in (balance_sheet.transformations or []):
+            if adj.balance_sheet_item_id:
+                item_adjustments.setdefault(str(adj.balance_sheet_item_id), []).append(adj)
+
+        # Map items to IFRS categories
         for item in balance_sheet.items:
+            adj_list = item_adjustments.get(str(item.id), [])
+            adjusted_amount = Decimal(str(item.amount))
+            for adj in adj_list:
+                adj_amt = Decimal(str(adj.adjustment_amount))
+                if item.category.value == "assets":
+                    adjusted_amount += adj_amt if adj.adjustment_type == "debit" else -adj_amt
+                else:
+                    adjusted_amount += adj_amt if adj.adjustment_type == "credit" else -adj_amt
+
             mapped_item = {
                 "code": item.account_code,
                 "name": item.account_name,
-                "amount": float(item.amount)
+                "amount": float(adjusted_amount)
             }
+            code = (item.account_code or "").strip()
+            name_lower = (item.account_name or "").lower()
+            subcat = (item.subcategory or "").lower().strip()
             
-            # === MAPPING LOGIC ===
-            mapped = False
+            is_non_current = (
+                "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
+                or code.startswith(("01", "02", "03", "04", "05", "07", "08", "58", "67", "77", "96", "1510", "1520", "2510"))
+                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн"])
+            )
             
-            # 1. Try Rule-Based Mapping
             if item.category.value == "assets":
-                if "current" in (item.subcategory or "").lower():
-                    # Classify current assets
-                    if "cash" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["cash_and_equivalents"].append(mapped_item)
-                        mapped = True
-                    elif "receivable" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(mapped_item)
-                        mapped = True
-                    elif "inventory" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["inventories"].append(mapped_item)
-                        mapped = True
-                    
-                    if mapped:
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["total"] += item.amount
-                else:
-                    # Classify non-current assets
-                    if "property" in item.account_name.lower() or "equipment" in item.account_name.lower():
+                if is_non_current:
+                    if code.startswith(("01", "02", "03", "07", "08", "1510")) or any(k in name_lower for k in ["основные средства", "амортизац", "fixed asset", "property", "equipment", "plant", "ppe", "вложения во внеоборот", "строительств"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(mapped_item)
-                        mapped = True
-                    elif "intangible" in item.account_name.lower():
+                    elif code.startswith(("04", "05", "1520")) or any(k in name_lower for k in ["нематериальн", "нма", "intangible", "патенты", "лицензи"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["intangible_assets"].append(mapped_item)
-                        mapped = True
-                    
-                    if mapped:
-                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["total"] += item.amount
-                
-                if mapped:
-                    ifrs_structure["statement_of_financial_position"]["assets"]["total"] += item.amount
-                
-            elif item.category.value == "liabilities":
-                if "current" in (item.subcategory or "").lower():
-                    # Classify current liabilities
-                    if "payable" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["trade_payables"].append(mapped_item)
-                        mapped = True
-                    elif "borrowing" in item.account_name.lower() or "loan" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["short_term_borrowings"].append(mapped_item)
-                        mapped = True
-                    
-                    if mapped:
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["total"] += item.amount
-                else:
-                    # Classify non-current liabilities
-                    if "borrowing" in item.account_name.lower() or "loan" in item.account_name.lower():
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(mapped_item)
-                        mapped = True
-                    
-                    if mapped:
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["total"] += item.amount
-                
-                if mapped:
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] += item.amount
-                
-            elif item.category.value == "equity":
-                # Classify equity
-                if "capital" in item.account_name.lower():
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["share_capital"].append(mapped_item)
-                    mapped = True
-                elif "retained" in item.account_name.lower() or "earnings" in item.account_name.lower():
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(mapped_item)
-                    mapped = True
-                
-                if mapped:
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["total"] += item.amount
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] += item.amount
-            
-            # 2. If NOT mapped by rules, try AI
-            if not mapped:
-                logger.info(f"Item '{item.account_name}' not mapped by rules. Attempting AI mapping...")
-                ai_mapping = self._map_account_with_ai(item.account_name, item.account_code, item.category.value, float(item.amount))
-                
-                if ai_mapping:
-                    target_list = self._get_ifrs_target_list(ifrs_structure, ai_mapping)
-                    if target_list is not None:
-                        target_list.append(mapped_item)
-                        mapped = True
-                        logger.info(f"AI successfully mapped '{item.account_name}' to {ai_mapping.get('subcategory_2')}")
-                        
-                        # Update totals (Simplified - in real app would need robust total updates based on AI path)
-                        # For now, we assume the AI mapping is correct and we'd need a helper to update parent totals
-                        # But since our structure is nested, updating totals dynamically is complex without a helper.
-                        # For MVP, we will skip complex total updates for AI items or do a basic one.
-                        pass
-
-            # 3. If still not mapped, fallback to "Other"
-            if not mapped:
-                logger.info(f"Item '{item.account_name}' failed AI mapping. Falling back to 'Other'.")
-                if item.category.value == "assets":
-                    if "current" in (item.subcategory or "").lower():
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["other"].append(mapped_item)
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["total"] += item.amount
+                    elif code.startswith(("58",)) or any(k in name_lower for k in ["финансов", "инвестиц", "financial"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["financial_assets"].append(mapped_item)
                     else:
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["other"].append(mapped_item)
-                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["total"] += item.amount
-                    ifrs_structure["statement_of_financial_position"]["assets"]["total"] += item.amount
-                    
-                elif item.category.value == "liabilities":
-                    if "current" in (item.subcategory or "").lower():
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["other"].append(mapped_item)
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["total"] += item.amount
+                else:
+                    if code.startswith(("10", "41", "43", "1040")) or any(k in name_lower for k in ["сырье", "материал", "товар", "склад", "запасы", "inventory", "inventories", "goods", "stock"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["inventories"].append(mapped_item)
+                    elif code.startswith(("62", "1030")) or any(k in name_lower for k in ["покупател", "заказчик", "клиент", "дебитор", "receivable"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(mapped_item)
+                    elif code.startswith(("50", "51", "52", "55", "1010", "1020")) or any(k in name_lower for k in ["расчетные счета", "касса", "валютн", "денежн", "банк", "cash", "bank"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["cash_and_equivalents"].append(mapped_item)
+                    else:
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["other"].append(mapped_item)
+                        
+            elif item.category.value == "liabilities":
+                if is_non_current:
+                    if code.startswith(("67", "2510")) or any(k in name_lower for k in ["долгосроч", "кредиты банк", "long-term", "long term"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(mapped_item)
+                    elif code.startswith(("77",)) or any(k in name_lower for k in ["отложенн", "deferred"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["deferred_tax"].append(mapped_item)
+                    elif code.startswith(("96",)) or any(k in name_lower for k in ["оценочн", "provision"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["provisions"].append(mapped_item)
                     else:
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["other"].append(mapped_item)
-                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["total"] += item.amount
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] += item.amount
-                    
-                elif item.category.value == "equity":
+                else:
+                    if code.startswith(("66", "2020")) or any(k in name_lower for k in ["краткосроч", "short-term", "short term", "займы", "заем"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["short_term_borrowings"].append(mapped_item)
+                    elif code.startswith(("60", "68", "69", "70", "76", "2010")) or any(k in name_lower for k in ["поставщик", "подрядчик", "оплата труда", "персонал", "зарплат", "налог", "сбор", "ндс", "страхов", "payable"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["trade_payables"].append(mapped_item)
+                    elif any(k in name_lower for k in ["оценочн", "provision"]):
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["provisions"].append(mapped_item)
+                    else:
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["other"].append(mapped_item)
+                        
+            elif item.category.value == "equity":
+                if code.startswith(("80", "3010")) or any(k in name_lower for k in ["уставн", "акционерн", "складочн", "capital", "капитал"]):
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["share_capital"].append(mapped_item)
+                elif code.startswith(("84", "3020")) or any(k in name_lower for k in ["нераспределен", "прибыль", "убыток", "retained", "earnings"]):
+                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(mapped_item)
+                else:
                     ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["other_reserves"].append(mapped_item)
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["total"] += item.amount
-                    ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] += item.amount
+
+        # Apply global adjustments (e.g. from IFRS 16, IAS 36, IFRS 9 calculators)
+        for adj in (balance_sheet.transformations or []):
+            if not adj.balance_sheet_item_id:
+                adj_desc = (adj.description or "").lower()
+                adj_amt = float(adj.adjustment_amount)
+                item_entry = {
+                    "code": "ADJ",
+                    "name": adj.description,
+                    "amount": adj_amt
+                }
+                if "ifrs 16" in adj_desc or "lease" in adj_desc:
+                    if "asset" in adj_desc or "rou" in adj_desc or "right-of-use" in adj_desc:
+                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
+                    elif "liab" in adj_desc:
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(item_entry)
+                elif "ias 36" in adj_desc or "impairment" in adj_desc:
+                    if adj.adjustment_type == "credit":
+                        item_entry["amount"] = -abs(adj_amt)
+                        ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(item_entry)
+                    else:
+                        item_entry["amount"] = -abs(adj_amt)
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
+                elif "ifrs 9" in adj_desc or "ecl" in adj_desc:
+                    if adj.adjustment_type == "credit":
+                        item_entry["amount"] = -abs(adj_amt)
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(item_entry)
+                    else:
+                        item_entry["amount"] = -abs(adj_amt)
+                        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(item_entry)
+
+        # Calculate section totals directly from items
+        def sum_items(lst):
+            return sum(Decimal(str(i["amount"])) for i in lst)
+
+        nc_assets = ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]
+        c_assets = ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]
+        
+        nc_assets["total"] = sum_items(nc_assets["property_plant_equipment"]) + sum_items(nc_assets["intangible_assets"]) + sum_items(nc_assets["financial_assets"]) + sum_items(nc_assets["other"])
+        c_assets["total"] = sum_items(c_assets["inventories"]) + sum_items(c_assets["trade_receivables"]) + sum_items(c_assets["cash_and_equivalents"]) + sum_items(c_assets["other"])
+        
+        ifrs_structure["statement_of_financial_position"]["assets"]["total"] = nc_assets["total"] + c_assets["total"]
+
+        eq = ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]
+        nc_liab = ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]
+        c_liab = ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]
+
+        eq["total"] = sum_items(eq["share_capital"]) + sum_items(eq["retained_earnings"]) + sum_items(eq["other_reserves"])
+        nc_liab["total"] = sum_items(nc_liab["long_term_borrowings"]) + sum_items(nc_liab["deferred_tax"]) + sum_items(nc_liab["provisions"]) + sum_items(nc_liab["other"])
+        c_liab["total"] = sum_items(c_liab["trade_payables"]) + sum_items(c_liab["short_term_borrowings"]) + sum_items(c_liab["provisions"]) + sum_items(c_liab["other"])
+
+        ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"] = eq["total"] + nc_liab["total"] + c_liab["total"]
 
 
         

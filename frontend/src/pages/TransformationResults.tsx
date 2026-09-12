@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Download, RefreshCw, Printer, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Download, RefreshCw, Printer, ShieldCheck, CheckCircle2, SlidersHorizontal } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
     Dialog,
@@ -197,6 +197,32 @@ export default function TransformationResults() {
         );
     };
 
+    const renderItemGroup = (title: string, items: any[]) => {
+        if (!items || items.length === 0) return null;
+        return (
+            <div className="mb-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">{title}</div>
+                <div className="space-y-1 pl-2 border-l-2 border-slate-200">
+                    {items.map((item: any, idx: number) => (
+                        <div key={idx} className="flex justify-between items-center text-sm py-1 border-b border-slate-100 hover:bg-slate-50 px-2 rounded transition-colors">
+                            <div className="flex items-center gap-2">
+                                {item.code && (
+                                    <span className="font-mono text-xs text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded font-semibold border border-slate-200">
+                                        {item.code}
+                                    </span>
+                                )}
+                                <span className="text-slate-800 font-medium">{item.name}</span>
+                            </div>
+                            <span className={`font-mono font-semibold ${item.amount < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                ${Number(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     const renderIFRS = () => {
         if (!ifrsData) return null;
 
@@ -207,52 +233,42 @@ export default function TransformationResults() {
                 {/* Assets */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Assets</CardTitle>
+                        <CardTitle className="text-emerald-700 font-bold text-xl">Assets (IFRS)</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6">
                         <div>
-                            <h4 className="font-medium mb-2">Non-Current Assets</h4>
-                            <div className="pl-4 space-y-2">
-                                {statement?.assets?.non_current_assets?.property_plant_equipment?.length > 0 && (
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-600">Property, Plant & Equipment</div>
-                                        {statement.assets.non_current_assets.property_plant_equipment.map((item: any, idx: number) => (
-                                            <div key={idx} className="flex justify-between text-sm pl-4">
-                                                <span>{item.name}</span>
-                                                <span className="font-mono">${item.amount.toLocaleString()}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <div className="flex justify-between font-medium border-t pt-1">
+                            <h4 className="font-bold text-slate-800 mb-3 text-base">Non-Current Assets</h4>
+                            <div className="pl-2 space-y-2">
+                                {renderItemGroup("Property, Plant & Equipment", statement?.assets?.non_current_assets?.property_plant_equipment)}
+                                {renderItemGroup("Intangible Assets", statement?.assets?.non_current_assets?.intangible_assets)}
+                                {renderItemGroup("Financial Assets", statement?.assets?.non_current_assets?.financial_assets)}
+                                {renderItemGroup("Other Non-Current Assets", statement?.assets?.non_current_assets?.other)}
+                                
+                                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Non-Current Assets</span>
-                                    <span className="font-mono">${statement?.assets?.non_current_assets?.total?.toLocaleString()}</span>
+                                    <span className="font-mono">${Number(statement?.assets?.non_current_assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>
+
                         <div>
-                            <h4 className="font-medium mb-2">Current Assets</h4>
-                            <div className="pl-4 space-y-2">
-                                {statement?.assets?.current_assets?.cash_and_equivalents?.length > 0 && (
-                                    <div>
-                                        <div className="text-sm font-medium text-gray-600">Cash and Cash Equivalents</div>
-                                        {statement.assets.current_assets.cash_and_equivalents.map((item: any, idx: number) => (
-                                            <div key={idx} className="flex justify-between text-sm pl-4">
-                                                <span>{item.name}</span>
-                                                <span className="font-mono">${item.amount.toLocaleString()}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <div className="flex justify-between font-medium border-t pt-1">
+                            <h4 className="font-bold text-slate-800 mb-3 text-base">Current Assets</h4>
+                            <div className="pl-2 space-y-2">
+                                {renderItemGroup("Inventories", statement?.assets?.current_assets?.inventories)}
+                                {renderItemGroup("Trade & Other Receivables", statement?.assets?.current_assets?.trade_receivables)}
+                                {renderItemGroup("Cash & Cash Equivalents", statement?.assets?.current_assets?.cash_and_equivalents)}
+                                {renderItemGroup("Other Current Assets", statement?.assets?.current_assets?.other)}
+                                
+                                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Current Assets</span>
-                                    <span className="font-mono">${statement?.assets?.current_assets?.total?.toLocaleString()}</span>
+                                    <span className="font-mono">${Number(statement?.assets?.current_assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="border-t-2 pt-2 flex justify-between font-bold text-lg">
+
+                        <div className="border-t-2 pt-3 flex justify-between font-black text-lg text-emerald-900 bg-emerald-50/70 p-3 rounded-lg border border-emerald-200">
                             <span>Total Assets</span>
-                            <span className="font-mono">${statement?.assets?.total?.toLocaleString()}</span>
+                            <span className="font-mono">${Number(statement?.assets?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -260,40 +276,56 @@ export default function TransformationResults() {
                 {/* Equity and Liabilities */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Equity and Liabilities</CardTitle>
+                        <CardTitle className="text-indigo-700 font-bold text-xl">Equity and Liabilities (IFRS)</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6">
                         <div>
-                            <h4 className="font-medium mb-2">Equity</h4>
-                            <div className="pl-4 space-y-1">
-                                {statement?.equity_and_liabilities?.equity?.share_capital?.map((item: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between text-sm">
-                                        <span>{item.name}</span>
-                                        <span className="font-mono">${item.amount.toLocaleString()}</span>
-                                    </div>
-                                ))}
-                                <div className="flex justify-between font-medium border-t pt-1">
+                            <h4 className="font-bold text-slate-800 mb-3 text-base">Equity</h4>
+                            <div className="pl-2 space-y-2">
+                                {renderItemGroup("Share Capital", statement?.equity_and_liabilities?.equity?.share_capital)}
+                                {renderItemGroup("Retained Earnings", statement?.equity_and_liabilities?.equity?.retained_earnings)}
+                                {renderItemGroup("Other Reserves", statement?.equity_and_liabilities?.equity?.other_reserves)}
+                                
+                                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
                                     <span>Total Equity</span>
-                                    <span className="font-mono">${statement?.equity_and_liabilities?.equity?.total?.toLocaleString()}</span>
+                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.equity?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>
+
                         <div>
-                            <h4 className="font-medium mb-2">Liabilities</h4>
-                            <div className="pl-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span>Non-Current Liabilities</span>
-                                    <span className="font-mono">${statement?.equity_and_liabilities?.non_current_liabilities?.total?.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span>Current Liabilities</span>
-                                    <span className="font-mono">${statement?.equity_and_liabilities?.current_liabilities?.total?.toLocaleString()}</span>
+                            <h4 className="font-bold text-slate-800 mb-3 text-base">Non-Current Liabilities</h4>
+                            <div className="pl-2 space-y-2">
+                                {renderItemGroup("Long-Term Borrowings & Loans", statement?.equity_and_liabilities?.non_current_liabilities?.long_term_borrowings)}
+                                {renderItemGroup("Deferred Tax Liabilities", statement?.equity_and_liabilities?.non_current_liabilities?.deferred_tax)}
+                                {renderItemGroup("Long-Term Provisions", statement?.equity_and_liabilities?.non_current_liabilities?.provisions)}
+                                {renderItemGroup("Other Non-Current Liabilities", statement?.equity_and_liabilities?.non_current_liabilities?.other)}
+                                
+                                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
+                                    <span>Total Non-Current Liabilities</span>
+                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.non_current_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                                 </div>
                             </div>
                         </div>
-                        <div className="border-t-2 pt-2 flex justify-between font-bold text-lg">
+
+                        <div>
+                            <h4 className="font-bold text-slate-800 mb-3 text-base">Current Liabilities</h4>
+                            <div className="pl-2 space-y-2">
+                                {renderItemGroup("Trade & Other Payables", statement?.equity_and_liabilities?.current_liabilities?.trade_payables)}
+                                {renderItemGroup("Short-Term Borrowings & Loans", statement?.equity_and_liabilities?.current_liabilities?.short_term_borrowings)}
+                                {renderItemGroup("Short-Term Provisions", statement?.equity_and_liabilities?.current_liabilities?.provisions)}
+                                {renderItemGroup("Other Current Liabilities", statement?.equity_and_liabilities?.current_liabilities?.other)}
+                                
+                                <div className="flex justify-between font-bold border-t border-slate-200 pt-2 mt-2 text-slate-900 text-sm">
+                                    <span>Total Current Liabilities</span>
+                                    <span className="font-mono">${Number(statement?.equity_and_liabilities?.current_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t-2 pt-3 flex justify-between font-black text-lg text-indigo-950 bg-indigo-50/70 p-3 rounded-lg border border-indigo-200">
                             <span>Total Equity and Liabilities</span>
-                            <span className="font-mono">${statement?.equity_and_liabilities?.total?.toLocaleString()}</span>
+                            <span className="font-mono">${Number(statement?.equity_and_liabilities?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </CardContent>
                 </Card>
@@ -320,12 +352,18 @@ export default function TransformationResults() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
-                    {!mcfoData && !ifrsData && (
-                        <Button onClick={handleTransform} disabled={transforming}>
-                            <RefreshCw className={`mr-2 h-4 w-4 ${transforming ? 'animate-spin' : ''}`} />
-                            {transforming ? 'Transforming...' : 'Transform Now'}
-                        </Button>
-                    )}
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate(`/transformation/adjustments/${id}`)}
+                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-1.5 shadow-sm"
+                    >
+                        <SlidersHorizontal className="h-4 w-4" />
+                        Adjustments & Calculators
+                    </Button>
+                    <Button onClick={handleTransform} disabled={transforming} className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm flex items-center gap-1.5">
+                        <RefreshCw className={`h-4 w-4 ${transforming ? 'animate-spin' : ''}`} />
+                        {transforming ? 'Transforming...' : (mcfoData || ifrsData) ? 'Re-Transform' : 'Transform Now'}
+                    </Button>
                     {(mcfoData || ifrsData) && (
                         <Button
                             className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5"
