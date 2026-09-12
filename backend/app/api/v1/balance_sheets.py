@@ -6,7 +6,7 @@ from uuid import UUID
 from datetime import datetime
 import io
 
-from app.db.session import get_db
+from app.core.deps import get_db
 from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement
 from app.db.schemas.balance_sheet import (
     BalanceSheetCreate,
