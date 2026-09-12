@@ -74,6 +74,26 @@ def seed_demo():
     except Exception as e:
         print(f"Migration notice: {e}")
 
+    # 2.5 Ensure SQLite columns exist defensively
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            cols = [row[1] for row in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
+            if cols:
+                if "hierarchy_level" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN hierarchy_level INTEGER DEFAULT 5"))
+                if "is_company_owner" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_company_owner BOOLEAN DEFAULT 0"))
+            comp_cols = [row[1] for row in conn.execute(text("PRAGMA table_info(companies)")).fetchall()]
+            if comp_cols:
+                if "owner_id" not in comp_cols:
+                    conn.execute(text("ALTER TABLE companies ADD COLUMN owner_id VARCHAR"))
+                if "created_by_id" not in comp_cols:
+                    conn.execute(text("ALTER TABLE companies ADD COLUMN created_by_id VARCHAR"))
+            conn.commit()
+    except Exception as e:
+        print(f"Schema check notice: {e}")
+
     db: Session = SessionLocal()
     try:
         print("🌱 [1/6] Seeding Tenant...")

@@ -35,7 +35,39 @@ def run_migrations():
         if "already exists" in error_msg.lower():
             logger.warning("Migration skipped - tables already exist")
         else:
-            logger.error(f"Error running database migrations: {e}")
+def ensure_db_schema():
+    """Defensive schema self-healing for SQLite/Postgres: ensures hierarchy and ownership columns exist."""
+    try:
+        from app.db.session import engine
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            try:
+                # Check users table
+                cols_res = conn.execute(text("PRAGMA table_info(users)"))
+                user_cols = [row[1] for row in cols_res.fetchall()]
+                if user_cols:
+                    if "hierarchy_level" not in user_cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN hierarchy_level INTEGER DEFAULT 5"))
+                        logger.info("Added missing users.hierarchy_level column")
+                    if "is_company_owner" not in user_cols:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN is_company_owner BOOLEAN DEFAULT 0"))
+                        logger.info("Added missing users.is_company_owner column")
+                
+                # Check companies table
+                comp_res = conn.execute(text("PRAGMA table_info(companies)"))
+                comp_cols = [row[1] for row in comp_res.fetchall()]
+                if comp_cols:
+                    if "owner_id" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN owner_id VARCHAR"))
+                        logger.info("Added missing companies.owner_id column")
+                    if "created_by_id" not in comp_cols:
+                        conn.execute(text("ALTER TABLE companies ADD COLUMN created_by_id VARCHAR"))
+                        logger.info("Added missing companies.created_by_id column")
+                conn.commit()
+            except Exception as e:
+                logger.warning(f"Schema self-healing notice: {e}")
+    except Exception as e:
+        logger.warning(f"Could not verify schema self-healing: {e}")
 
 def ensure_demo_accounts():
     """Ensure essential demo accounts and companies exist with active status and correct password on every startup."""
@@ -175,6 +207,7 @@ def ensure_demo_accounts():
 async def lifespan(app: FastAPI):
     # Startup
     run_migrations()
+    ensure_db_schema()
     ensure_demo_accounts()
     start_scheduler()
     yield

@@ -67,10 +67,11 @@ def upgrade():
                existing_nullable=True)
     op.create_index(op.f('ix_alerts_regulation'), 'alerts', ['regulation'], unique=False)
     op.create_index(op.f('ix_alerts_severity'), 'alerts', ['severity'], unique=False)
-    op.create_index(op.f('ix_alerts_status'), 'alerts', ['status'], unique=False)
-    op.create_foreign_key(None, 'alerts', 'users', ['created_by'], ['id'])
-    op.create_foreign_key(None, 'alerts', 'users', ['assigned_to'], ['id'])
-    op.create_foreign_key(None, 'alerts', 'companies', ['company_id'], ['id'])
+    bind = op.get_bind()
+    if bind.dialect.name != 'sqlite':
+        op.create_foreign_key(None, 'alerts', 'users', ['created_by'], ['id'])
+        op.create_foreign_key(None, 'alerts', 'users', ['assigned_to'], ['id'])
+        op.create_foreign_key(None, 'alerts', 'companies', ['company_id'], ['id'])
     op.alter_column('audit_logs', 'id',
                existing_type=sa.NUMERIC(),
                type_=sa.UUID(),
@@ -110,8 +111,9 @@ def upgrade():
                nullable=True)
     op.drop_index('ix_balance_sheet_items_balance_sheet_id', table_name='balance_sheet_items')
     op.drop_index('ix_balance_sheet_items_category', table_name='balance_sheet_items')
-    op.drop_constraint(None, 'balance_sheet_items', type_='foreignkey')
-    op.create_foreign_key(None, 'balance_sheet_items', 'balance_sheets', ['balance_sheet_id'], ['id'])
+    if bind.dialect.name != 'sqlite':
+        op.drop_constraint(None, 'balance_sheet_items', type_='foreignkey')
+        op.create_foreign_key(None, 'balance_sheet_items', 'balance_sheets', ['balance_sheet_id'], ['id'])
     op.alter_column('balance_sheets', 'id',
                existing_type=sa.NUMERIC(),
                type_=sa.UUID(),
@@ -144,8 +146,9 @@ def upgrade():
     op.create_index(op.f('ix_companies_industry'), 'companies', ['industry'], unique=False)
     op.create_index(op.f('ix_companies_is_active'), 'companies', ['is_active'], unique=False)
     op.create_index(op.f('ix_companies_owner_id'), 'companies', ['owner_id'], unique=False)
-    op.create_foreign_key(None, 'companies', 'users', ['owner_id'], ['id'])
-    op.create_foreign_key(None, 'companies', 'users', ['created_by_id'], ['id'])
+    if bind.dialect.name != 'sqlite':
+        op.create_foreign_key(None, 'companies', 'users', ['owner_id'], ['id'])
+        op.create_foreign_key(None, 'companies', 'users', ['created_by_id'], ['id'])
     op.alter_column('link_company_regulation', 'id',
                existing_type=sa.NUMERIC(),
                type_=sa.UUID(),
