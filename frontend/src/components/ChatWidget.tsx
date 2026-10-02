@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { MessageCircle, X, Send, Bot, Sparkles, BookOpen } from 'lucide-react';
 import api from '../lib/api';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -12,21 +13,78 @@ interface Message {
     sources?: any[];
 }
 
-const SUGGESTED_QUESTIONS = [
-    "What are the latest IFRS updates?",
-    "Explain GDPR compliance requirements",
-    "How to calculate tax for SaaS?",
-    "Summarize recent ESG regulations"
-];
+const SUGGESTIONS_BY_LANG: Record<string, string[]> = {
+    en: [
+        "What are the latest IFRS updates?",
+        "Explain GDPR compliance requirements",
+        "How to calculate tax for SaaS?",
+        "Summarize recent ESG regulations"
+    ],
+    ru: [
+        "Какие последние обновления в МСФО?",
+        "Объясни требования соответствия GDPR",
+        "Как рассчитать налог для SaaS?",
+        "Сводка актуальных ESG нормативов"
+    ]
+};
+
+const GREETINGS: Record<string, string> = {
+    en: "Hello! I am your RegAI assistant. Ask me anything about regulations, taxes, or IFRS.",
+    ru: "Здравствуйте! Я ваш ассистент RegAI. Задайте мне любой вопрос по нормативам, налогам или МСФО."
+};
+
+const UI_TEXT: Record<string, {
+    title: string;
+    subtitle: string;
+    suggested: string;
+    placeholder: string;
+    sources: string;
+    error: string;
+    fallback: string;
+}> = {
+    en: {
+        title: "RegAI Assistant",
+        subtitle: "AI Powered",
+        suggested: "Suggested Questions",
+        placeholder: "Ask about regulations, taxes, IFRS...",
+        sources: "Sources",
+        error: "Sorry, an error occurred. Please try again.",
+        fallback: "Response generated from RegAI compliance database."
+    },
+    ru: {
+        title: "RegAI Ассистент",
+        subtitle: "На базе ИИ",
+        suggested: "Рекомендуемые вопросы",
+        placeholder: "Задайте вопрос о нормативах, налогах...",
+        sources: "Источники",
+        error: "Извините, произошла ошибка. Пожалуйста, попробуйте еще раз.",
+        fallback: "Ответ сформирован на основе регуляторной базы RegAI."
+    }
+};
 
 export function ChatWidget() {
+    const { i18n } = useTranslation();
+    const activeLang = (i18n.language || 'ru').toLowerCase().startsWith('en') ? 'en' : 'ru';
+    const textConfig = UI_TEXT[activeLang] || UI_TEXT.ru;
+    const suggestedQuestions = SUGGESTIONS_BY_LANG[activeLang] || SUGGESTIONS_BY_LANG.ru;
+
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Hello! I am your RegAI assistant. Ask me anything about regulations.' }
+        { role: 'assistant', content: GREETINGS[activeLang] || GREETINGS.ru }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Update greeting if user changes language and hasn't started conversation yet
+    useEffect(() => {
+        setMessages(prev => {
+            if (prev.length === 1 && prev[0].role === 'assistant') {
+                return [{ role: 'assistant', content: GREETINGS[activeLang] || GREETINGS.ru }];
+            }
+            return prev;
+        });
+    }, [activeLang]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,17 +107,19 @@ export function ChatWidget() {
         try {
             const res = await api.post('/chat/', {
                 message: textToSend,
-                history: messages.map(m => ({ role: m.role, content: m.content }))
+                history: messages.map(m => ({ role: m.role, content: m.content })),
+                locale: activeLang
             });
 
+            const replyContent = res?.data?.response || res?.data?.message || textConfig.fallback;
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: res.data.response,
-                sources: res.data.sources
+                content: replyContent,
+                sources: res?.data?.sources || []
             }]);
         } catch (error) {
             console.error("Chat error", error);
-            setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error. Please try again." }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: textConfig.error }]);
         } finally {
             setIsLoading(false);
         }
@@ -85,9 +145,9 @@ export function ChatWidget() {
                                 <Bot className="h-5 w-5" />
                             </div>
                             <div>
-                                <h3 className="font-semibold">RegAI Assistant</h3>
+                                <h3 className="font-semibold">{textConfig.title}</h3>
                                 <p className="text-xs text-blue-100 flex items-center gap-1">
-                                    <Sparkles className="h-3 w-3" /> AI Powered
+                                    <Sparkles className="h-3 w-3" /> {textConfig.subtitle}
                                 </p>
                             </div>
                         </div>
@@ -105,8 +165,8 @@ export function ChatWidget() {
                     <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gray-50/50">
                         {messages.length === 1 && (
                             <div className="grid grid-cols-1 gap-2 mb-4">
-                                <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">Suggested Questions</p>
-                                {SUGGESTED_QUESTIONS.map((q, i) => (
+                                <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">{textConfig.suggested}</p>
+                                {suggestedQuestions.map((q, i) => (
                                     <button
                                         key={i}
                                         onClick={() => sendMessage(undefined, q)}
@@ -142,7 +202,7 @@ export function ChatWidget() {
                                 {msg.sources && msg.sources.length > 0 && (
                                     <div className="mt-2 ml-2 max-w-[85%]">
                                         <p className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
-                                            <BookOpen className="h-3 w-3" /> Sources
+                                            <BookOpen className="h-3 w-3" /> {textConfig.sources}
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             {msg.sources.map((source, i) => (
@@ -175,7 +235,7 @@ export function ChatWidget() {
                             <Input
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Ask about regulations..."
+                                placeholder={textConfig.placeholder}
                                 className="flex-1 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
                                 autoFocus
                             />
