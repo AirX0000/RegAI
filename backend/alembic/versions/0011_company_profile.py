@@ -5,7 +5,7 @@ Revises: 0010_report_comments
 Create Date: 2024-01-23 20:22:00.000000
 
 """
-from alembic import op
+import alembic.op as op
 import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.

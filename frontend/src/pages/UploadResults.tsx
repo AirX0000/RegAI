@@ -1,22 +1,21 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { read, utils } from 'xlsx';
-import { Matrix, CellBase } from 'react-spreadsheet';
 import { FileUpload } from '@/components/FileUpload';
-import { SpreadsheetViewer } from '@/components/SpreadsheetViewer';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Save, Upload as UploadIcon } from 'lucide-react';
+import { ArrowLeft, Upload as UploadIcon, FileSpreadsheet } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import InteractiveColumnMapper, { BalanceSheetImportItem } from '@/components/upload/InteractiveColumnMapper';
 
 export default function UploadResults() {
-    const { t } = useTranslation();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
     const navigate = useNavigate();
     const { toast } = useToast();
-    const [data, setData] = useState<Matrix<CellBase>>([]);
-    const [columns, setColumns] = useState<string[]>([]);
+
+    const [rawRows, setRawRows] = useState<any[][]>([]);
     const [fileName, setFileName] = useState<string>('');
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -33,170 +32,129 @@ export default function UploadResults() {
                 const ws = wb.Sheets[wsname];
                 const jsonData = utils.sheet_to_json(ws, { header: 1 }) as any[][];
 
-                if (jsonData.length > 0) {
-                    // Extract headers if present (assuming first row is header)
-                    // For now, let's treat first row as data or maybe extract it?
-                    // Let's assume first row is header for column labels
-                    const headerRow = jsonData[0];
-                    const bodyRows = jsonData.slice(1);
-
-                    const cols = headerRow.map((h: any) => String(h || ''));
-                    setColumns(cols);
-
-                    const matrix: Matrix<CellBase> = bodyRows.map((row) => {
-                        // Ensure row has same length as header
-                        const paddedRow = new Array(cols.length).fill(null).map((_, i) => {
-                            return { value: row[i] !== undefined ? String(row[i]) : '' };
-                        });
-                        return paddedRow;
+                if (jsonData && jsonData.length > 0) {
+                    setRawRows(jsonData);
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: isRu ? "Файл пуст" : "Empty file",
+                        description: isRu ? "Не удалось обнаружить строки в документе" : "No rows found in sheet",
                     });
-
-                    setData(matrix);
                 }
             } catch (error) {
                 console.error('Error parsing file:', error);
-                // Handle error (show toast)
+                toast({
+                    variant: "destructive",
+                    title: isRu ? "Ошибка чтения файла" : "File read error",
+                    description: isRu ? "Не удалось распарсить Excel документ" : "Failed to parse Excel document",
+                });
             } finally {
                 setIsProcessing(false);
             }
         };
         reader.readAsBinaryString(file);
-    }, []);
+    }, [isRu, toast]);
 
-    const handleSave = async () => {
-        if (data.length === 0) return;
-
-        setIsProcessing(true);
+    const handleConfirmImport = async (items: BalanceSheetImportItem[], period: string, notes: string) => {
         try {
-            // Smart column mapping
-            const lowerCols = columns.map(c => c.toLowerCase());
-
-            const getColIndex = (keywords: string[]) => {
-                return lowerCols.findIndex(c => keywords.some(k => c.includes(k)));
-            };
-
-            const codeIdx = getColIndex(['code', 'id', 'account number']);
-            const nameIdx = getColIndex(['name', 'description', 'account']);
-            const amountIdx = getColIndex(['amount', 'value', 'balance', 'total']);
-            const catIdx = getColIndex(['category', 'type', 'class']);
-
-            // Fallback to default indices if not found
-            const finalCodeIdx = codeIdx !== -1 ? codeIdx : 0;
-            const finalNameIdx = nameIdx !== -1 ? nameIdx : 1;
-            const finalAmountIdx = amountIdx !== -1 ? amountIdx : 2;
-            // Category is optional in mapping, but required in backend. We'll default to 'assets' if not found.
-            const finalCatIdx = catIdx;
-
-            const items = data.map(row => {
-                const amountStr = row[finalAmountIdx]?.value || '0';
-                // Remove currency symbols and commas
-                const amount = parseFloat(amountStr.replace(/[^0-9.-]+/g, '')) || 0;
-
-                let category = 'assets'; // Default
-                if (finalCatIdx !== -1) {
-                    const catVal = (row[finalCatIdx]?.value || '').toLowerCase();
-                    if (catVal.includes('liab')) category = 'liabilities';
-                    else if (catVal.includes('equit')) category = 'equity';
-                }
-
-                return {
-                    account_code: row[finalCodeIdx]?.value || 'UNKNOWN',
-                    account_name: row[finalNameIdx]?.value || 'Unknown Account',
-                    amount: amount,
-                    category: category
-                };
-            }).filter(item => item.account_code && item.account_name); // Basic validation
-
             const payload = {
-                period: new Date().toISOString(), // Default to now, maybe add a date picker later
+                period: period || new Date().toISOString(),
                 items: items,
-                notes: `Uploaded from ${fileName}`
+                notes: notes || `Uploaded from ${fileName}`
             };
 
-            await api.post('/balance-sheets/', payload);
+            const res = await api.post('/balance-sheets/', payload);
+            const newId = res.data?.id;
 
             toast({
-                title: t('success'),
-                description: t('balance_sheet_saved'),
+                title: isRu ? "Баланс успешно импортирован" : "Balance Sheet Imported",
+                description: isRu 
+                    ? `Загружено ${items.length} статей баланса. Переход к трансформации...`
+                    : `Loaded ${items.length} line items. Proceeding to transformation...`,
             });
 
-            navigate('/transformation');
+            if (newId) {
+                navigate(`/transformation/adjustments/${newId}`);
+            } else {
+                navigate('/transformation');
+            }
         } catch (error) {
             console.error('Failed to save balance sheet', error);
             toast({
                 variant: "destructive",
-                title: t('error'),
-                description: t('error_saving_sheet'),
+                title: isRu ? "Ошибка сохранения" : "Save Error",
+                description: isRu ? "Не удалось сохранить загруженный баланс" : "Failed to save imported balance sheet",
             });
-        } finally {
-            setIsProcessing(false);
+            throw error;
         }
     };
 
     const handleReset = () => {
-        setData([]);
+        setRawRows([]);
         setFileName('');
-        setColumns([]);
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 pb-12">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-                        <ArrowLeft className="w-5 h-5" />
+        <div className="max-w-6xl mx-auto space-y-6 pb-12 animate-in fade-in duration-200">
+            {/* Top Navigation & Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-5">
+                <div className="flex items-center gap-3">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => navigate('/transformation')}
+                        className="rounded-xl border border-border/60 hover:bg-muted"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{t('upload_balance_sheet')}</h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            {t('upload_balance_sheet_subtitle')}
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                                {isRu ? 'Умный импорт оборотно-сальдовой ведомости' : 'Smart Trial Balance (OSV) Ingestion'}
+                            </h1>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                1C ➔ МСФО
+                            </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            {isRu 
+                                ? 'Загрузка файлов Excel/CSV из 1С:Бухгалтерии с автоопределением субсчетов и интерактивным сопоставлением колонок.'
+                                : 'Upload 1C or Excel balance sheets with automated plan of accounts recognition and visual column mapping.'}
                         </p>
                     </div>
                 </div>
-                {data.length > 0 && (
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={handleReset}>
-                            <UploadIcon className="w-4 h-4 mr-2" />
-                            {t('upload_new')}
-                        </Button>
-                        <Button onClick={handleSave}>
-                            <Save className="w-4 h-4 mr-2" />
-                            {t('process_data')}
-                        </Button>
-                    </div>
+
+                {rawRows.length > 0 && (
+                    <Button variant="outline" size="sm" onClick={handleReset} className="text-xs self-start sm:self-auto">
+                        <UploadIcon className="w-3.5 h-3.5 mr-1.5" />
+                        {isRu ? 'Загрузить другой файл' : 'Upload Another File'}
+                    </Button>
                 )}
             </div>
 
-            {data.length === 0 ? (
-                <div className="mt-8">
+            {/* Content State: Dropzone or Interactive Column Mapper */}
+            {rawRows.length === 0 ? (
+                <div className="space-y-6">
                     {isProcessing ? (
-                        <div className="text-center py-12">
-                            <p className="text-lg text-muted-foreground animate-pulse">Processing file...</p>
+                        <div className="text-center py-20 bg-card rounded-2xl border border-border/80 shadow-xs space-y-3">
+                            <FileSpreadsheet className="w-10 h-10 text-blue-600 animate-bounce mx-auto" />
+                            <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                {isRu ? 'Анализ структуры документа 1С...' : 'Parsing 1C document structure...'}
+                            </p>
                         </div>
                     ) : (
-                        <FileUpload onFileSelect={handleFileSelect} />
+                        <div className="bg-card rounded-2xl border border-border/80 shadow-xs p-6 md:p-8">
+                            <FileUpload onFileSelect={handleFileSelect} />
+                        </div>
                     )}
                 </div>
             ) : (
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg font-medium flex items-center justify-between">
-                                <span>Preview: {fileName}</span>
-                                <span className="text-sm font-normal text-muted-foreground">
-                                    {data.length} rows
-                                </span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <SpreadsheetViewer
-                                data={data}
-                                onChange={setData}
-                                columns={columns}
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                <InteractiveColumnMapper
+                    rawData={rawRows}
+                    fileName={fileName}
+                    onConfirm={handleConfirmImport}
+                    onCancel={handleReset}
+                />
             )}
         </div>
     );

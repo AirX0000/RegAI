@@ -66,3 +66,15 @@ def test_search_regulations_includes_new_standards(client: TestClient, db: Sessi
     assert response_basel.status_code == 200
     results_basel = response_basel.json()
     assert len(results_basel) > 0
+
+
+def test_export_regulations_pdf_with_cyrillic(client: TestClient, db: Session, normal_user_token_headers: dict):
+    """
+    Verify PDF export does not crash on Cyrillic / Uzbek characters and returns valid PDF bytes.
+    """
+    RegulationAutoSeeder(db).seed_if_missing()
+    response = client.get("/api/v1/regulations/export/pdf", headers=normal_user_token_headers)
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+    assert response.content.startswith(b"%PDF")
+

@@ -64,8 +64,10 @@ class AIAuditorService:
 
         ifrs16_rou = 0.0
         ifrs16_liab = 0.0
-        ias36_loss = 0.0
-        ifrs9_ecl = 0.0
+        ias36_credit = 0.0
+        ias36_debit = 0.0
+        ifrs9_credit = 0.0
+        ifrs9_debit = 0.0
 
         for adj in adjustments:
             desc = (adj.description or "").lower()
@@ -81,10 +83,16 @@ class AIAuditorService:
                     ifrs16_liab += amt
             elif "ias 36" in desc or "impair" in desc:
                 standards_detected.add("IAS 36 (Impairment)")
-                ias36_loss += amt
+                if adj.adjustment_type == "credit":
+                    ias36_credit += amt
+                else:
+                    ias36_debit += amt
             elif "ifrs 9" in desc or "ecl" in desc or "резерв" in desc:
                 standards_detected.add("IFRS 9 (Financial Instruments)")
-                ifrs9_ecl += amt
+                if adj.adjustment_type == "credit":
+                    ifrs9_credit += amt
+                else:
+                    ifrs9_debit += amt
 
             adj_summary.append({
                 "category": cat,
@@ -92,6 +100,10 @@ class AIAuditorService:
                 "type": adj.adjustment_type,
                 "amount": amt
             })
+
+        # Avoid double-counting debit and credit legs of the same double-entry adjustment
+        ias36_loss = ias36_credit if ias36_credit > 0 else ias36_debit
+        ifrs9_ecl = ifrs9_credit if ifrs9_credit > 0 else ifrs9_debit
 
         # 3. Determine Risk Score and Findings
         risk_score = 98 if is_balanced else 45

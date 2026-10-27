@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:firebase": "npm run build && npx firebase-tools deploy --only hosting",
+    "deploy:preview": "npm run build && npx firebase-tools hosting:channel:deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
@@ -25,6 +27,7 @@
     "framer-motion": "^11.18.2",
     "i18next": "^25.6.3",
     "i18next-browser-languagedetector": "^8.2.0",
+    "jspdf": "^4.2.1",
     "jszip": "^3.10.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.344.0",

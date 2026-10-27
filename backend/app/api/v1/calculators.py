@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 import math
@@ -147,4 +147,112 @@ def calculate_ifrs9(data: IFRS9Input) -> Any:
         "net_carrying_amount": net_amount,
         "effective_loss_rate_pct": loss_rate
     }
+
+
+# --- IAS 12 (Income Taxes / Deferred Taxes) ---
+
+class IAS12Input(BaseModel):
+    carrying_amount: float = Field(..., description="IFRS Carrying Amount of asset or liability")
+    tax_base: float = Field(..., description="Tax base under national tax code")
+    tax_rate_percentage: float = Field(15.0, gt=0, le=100, description="Applicable corporate profit tax rate (%)")
+    category: str = Field("asset", description="'asset' or 'liability'")
+    item_description: Optional[str] = Field(None, description="Description of the temporary difference item")
+
+class IAS12Result(BaseModel):
+    temporary_difference: float
+    difference_type: str  # "taxable" (ОНО) or "deductible" (ОНА)
+    deferred_tax_type: str  # "DTL" (Deferred Tax Liability) or "DTA" (Deferred Tax Asset) or "NONE"
+    deferred_tax_amount: float
+    journal_debit: str
+    journal_credit: str
+    summary_ru: str
+
+@router.post("/ias12", response_model=IAS12Result)
+def calculate_ias12(data: IAS12Input) -> Any:
+    """
+    Calculate IAS 12 Deferred Tax Asset (DTA / ОНА) or Deferred Tax Liability (DTL / ОНО).
+    
+    Principles:
+      - Asset: Carrying Amount > Tax Base -> Taxable Temporary Difference -> DTL (ОНО)
+      - Asset: Carrying Amount < Tax Base -> Deductible Temporary Difference -> DTA (ОНА)
+      - Liability: Tax Base > Carrying Amount -> Taxable Temporary Difference -> DTL (ОНО)
+      - Liability: Carrying Amount > Tax Base -> Deductible Temporary Difference -> DTA (ОНА)
+    """
+    is_asset = data.category.lower().strip() == "asset"
+    rate = data.tax_rate_percentage / 100.0
+
+    if is_asset:
+        raw_diff = data.carrying_amount - data.tax_base
+        if raw_diff > 0.001:
+            diff = round(raw_diff, 2)
+            dt_amount = round(diff * rate, 2)
+            return {
+                "temporary_difference": diff,
+                "difference_type": "taxable",
+                "deferred_tax_type": "DTL",
+                "deferred_tax_amount": dt_amount,
+                "journal_debit": "Дт 99/91 Расход по налогу на прибыль (P&L Income Tax Expense)",
+                "journal_credit": "Кт 77 Отложенное налоговое обязательство (Deferred Tax Liability)",
+                "summary_ru": f"Балансовая стоимость актива превышает налоговую базу на {diff:,.2f}. Признаётся ОНО (DTL) в размере {dt_amount:,.2f}."
+            }
+        elif raw_diff < -0.001:
+            diff = round(abs(raw_diff), 2)
+            dt_amount = round(diff * rate, 2)
+            return {
+                "temporary_difference": diff,
+                "difference_type": "deductible",
+                "deferred_tax_type": "DTA",
+                "deferred_tax_amount": dt_amount,
+                "journal_debit": "Дт 09 Отложенный налоговый актив (Deferred Tax Asset)",
+                "journal_credit": "Кт 99/91 Доход по налогу на прибыль (P&L Income Tax Benefit)",
+                "summary_ru": f"Налоговая база актива превышает балансовую стоимость на {diff:,.2f}. Признаётся ОНА (DTA) в размере {dt_amount:,.2f}."
+            }
+        else:
+            return {
+                "temporary_difference": 0.0,
+                "difference_type": "none",
+                "deferred_tax_type": "NONE",
+                "deferred_tax_amount": 0.0,
+                "journal_debit": "—",
+                "journal_credit": "—",
+                "summary_ru": "Временные разницы отсутствуют. Отложенный налог равен 0.00."
+            }
+    else:
+        # Liability
+        raw_diff = data.tax_base - data.carrying_amount
+        if raw_diff > 0.001:
+            diff = round(raw_diff, 2)
+            dt_amount = round(diff * rate, 2)
+            return {
+                "temporary_difference": diff,
+                "difference_type": "taxable",
+                "deferred_tax_type": "DTL",
+                "deferred_tax_amount": dt_amount,
+                "journal_debit": "Дт 99/91 Расход по налогу на прибыль (P&L Income Tax Expense)",
+                "journal_credit": "Кт 77 Отложенное налоговое обязательство (Deferred Tax Liability)",
+                "summary_ru": f"Налоговая база обязательства превышает балансовую стоимость на {diff:,.2f}. Признаётся ОНО (DTL) в размере {dt_amount:,.2f}."
+            }
+        elif raw_diff < -0.001:
+            diff = round(abs(raw_diff), 2)
+            dt_amount = round(diff * rate, 2)
+            return {
+                "temporary_difference": diff,
+                "difference_type": "deductible",
+                "deferred_tax_type": "DTA",
+                "deferred_tax_amount": dt_amount,
+                "journal_debit": "Дт 09 Отложенный налоговый актив (Deferred Tax Asset)",
+                "journal_credit": "Кт 99/91 Доход по налогу на прибыль (P&L Income Tax Benefit)",
+                "summary_ru": f"Балансовая стоимость обязательства превышает налоговую базу на {diff:,.2f}. Признаётся ОНА (DTA) в размере {dt_amount:,.2f}."
+            }
+        else:
+            return {
+                "temporary_difference": 0.0,
+                "difference_type": "none",
+                "deferred_tax_type": "NONE",
+                "deferred_tax_amount": 0.0,
+                "journal_debit": "—",
+                "journal_credit": "—",
+                "summary_ru": "Временные разницы отсутствуют. Отложенный налог равен 0.00."
+            }
+
 

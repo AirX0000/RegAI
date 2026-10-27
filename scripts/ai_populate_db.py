@@ -51,13 +51,15 @@ def ai_generate(prompt: str, max_tokens: int = 2000) -> str:
                 max_tokens=max_tokens,
                 temperature=0.3,
             )
-            return response.choices[0].message.content.strip()
+            content = response.choices[0].message.content
+            return content.strip() if content else ""
         except Exception as e:
             if attempt < 2:
                 print(f"   ⚠️  OpenAI retry {attempt+1}: {e}")
                 time.sleep(2 ** attempt)
             else:
                 raise
+    return ""
 
 # ─── Regulation Definitions ───────────────────────────────────────────────────
 REGULATIONS_TO_SEED = [

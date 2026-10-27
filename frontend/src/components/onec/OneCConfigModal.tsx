@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from 'react-i18next';
 import {
     Dialog,
     DialogContent,
@@ -37,6 +38,9 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
     onConfigSaved
 }) => {
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [testing, setTesting] = useState(false);
@@ -181,14 +185,16 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl bg-white">
+            <DialogContent className="max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl font-bold text-gray-900">
-                        <Server className="h-6 w-6 text-amber-600" />
-                        1C:Enterprise 8.3 Connection Settings
+                    <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+                        <Server className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                        {isRu ? 'Настройки подключения к 1С:Предприятие 8.3' : '1C:Enterprise 8.3 Connection Settings'}
                     </DialogTitle>
-                    <DialogDescription className="text-gray-600">
-                        Configure production-grade two-way OData v4 integration with 1C:Accounting (Хозрасчетный). Credentials are encrypted with AES-256/Fernet.
+                    <DialogDescription className="text-slate-500 dark:text-slate-400">
+                        {isRu 
+                            ? 'Настройка двусторонней OData v4 интеграции с 1С:Бухгалтерия (Хозрасчетный). Пароли и токены шифруются по стандарту AES-256/Fernet.'
+                            : 'Configure production-grade two-way OData v4 integration with 1C:Accounting (Хозрасчетный). Credentials are encrypted with AES-256/Fernet.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -202,19 +208,19 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                         {testResult && (
                             <div className={`p-3 rounded-lg border flex items-center justify-between text-sm ${
                                 testResult.success 
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800' 
-                                    : 'bg-rose-50 border-rose-200 text-rose-800'
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200' 
+                                    : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200'
                             }`}>
                                 <div className="flex items-center gap-2 font-medium">
                                     {testResult.success ? (
-                                        <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                                        <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                     ) : (
-                                        <XCircle className="h-5 w-5 text-rose-600 shrink-0" />
+                                        <XCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0" />
                                     )}
                                     <span>{testResult.message}</span>
                                 </div>
                                 {testResult.latency_ms !== undefined && (
-                                    <span className="text-xs bg-white/80 px-2 py-0.5 rounded font-mono shadow-sm">
+                                    <span className="text-xs bg-white/80 dark:bg-slate-800 px-2 py-0.5 rounded font-mono shadow-sm">
                                         ⏱️ {testResult.latency_ms} ms
                                     </span>
                                 )}
@@ -223,8 +229,8 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
 
                         {/* OData URL */}
                         <div className="space-y-1.5">
-                            <Label htmlFor="url" className="text-xs font-semibold text-gray-700 uppercase">
-                                1C OData Endpoint URL
+                            <Label htmlFor="url" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
+                                {isRu ? 'URL публикации OData 1C' : '1C OData Endpoint URL'}
                             </Label>
                             <div className="relative">
                                 <Input
@@ -233,44 +239,47 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                                     onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                                     placeholder="http://1c-host/base/odata/standard.odata/"
                                     required
-                                    className="font-mono text-sm pr-10"
+                                    className="font-mono text-sm pr-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 />
-                                <Server className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                <Server className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
                             </div>
-                            <p className="text-[11px] text-gray-500">
-                                Target standard 1C OData publication URL. Use <code>mock</code> or <code>localhost</code> for offline testing.
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                                {isRu 
+                                    ? 'URL стандартного интерфейса OData публикации 1С. Для оффлайн-тестирования укажите mock или localhost.'
+                                    : 'Target standard 1C OData publication URL. Use mock or localhost for offline testing.'}
                             </p>
                         </div>
 
                         {/* Auth Type & Organization Code */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="auth_type" className="text-xs font-semibold text-gray-700 uppercase">
-                                    Authentication Method
+                                <Label htmlFor="auth_type" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
+                                    {isRu ? 'Метод авторизации' : 'Authentication Method'}
                                 </Label>
                                 <select
                                     id="auth_type"
                                     value={formData.auth_type}
                                     onChange={(e) => setFormData({ ...formData, auth_type: e.target.value })}
-                                    className="w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                                    className="w-full h-10 px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 >
-                                    <option value="basic">Basic Auth (Login & Password)</option>
-                                    <option value="token">Bearer Token / API Key</option>
+                                    <option value="basic">{isRu ? 'Basic Auth (Логин и Пароль)' : 'Basic Auth (Login & Password)'}</option>
+                                    <option value="token">{isRu ? 'Bearer Токен / API Ключ' : 'Bearer Token / API Key'}</option>
                                 </select>
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="company_code" className="text-xs font-semibold text-gray-700 uppercase">
-                                    1C Organization (Code/GUID)
+                                <Label htmlFor="company_code" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
+                                    {isRu ? 'Организация 1С (Код/ИНН/GUID)' : '1C Organization (Code/GUID)'}
                                 </Label>
                                 <div className="relative">
                                     <Input
                                         id="company_code"
                                         value={formData.company_code}
                                         onChange={(e) => setFormData({ ...formData, company_code: e.target.value })}
-                                        placeholder="e.g. 000000001 or GUID"
+                                        placeholder="000000001"
+                                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                     />
-                                    <Building className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                                    <Building className="absolute right-3 top-2.5 h-4 w-4 text-slate-400" />
                                 </div>
                             </div>
                         </div>
@@ -279,22 +288,23 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                         {formData.auth_type === 'basic' && (
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="username" className="text-xs font-semibold text-gray-700 uppercase">
-                                        1C Username
+                                    <Label htmlFor="username" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
+                                        {isRu ? 'Имя пользователя 1С' : '1C Username'}
                                     </Label>
                                     <Input
                                         id="username"
                                         value={formData.username}
                                         onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        placeholder="OData user"
+                                        placeholder="odata_user"
+                                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="password" className="text-xs font-semibold text-gray-700 uppercase flex items-center justify-between">
-                                        <span>Password</span>
+                                    <Label htmlFor="password" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase flex items-center justify-between">
+                                        <span>{isRu ? 'Пароль' : 'Password'}</span>
                                         {hasExistingPassword && (
-                                            <span className="text-[10px] text-emerald-600 font-normal">
-                                                (🔒 Encrypted password saved)
+                                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">
+                                                {isRu ? '(🔒 Пароль сохранён)' : '(🔒 Encrypted password saved)'}
                                             </span>
                                         )}
                                     </Label>
@@ -304,13 +314,13 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                                             type={showPassword ? 'text' : 'password'}
                                             value={formData.password}
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            placeholder={hasExistingPassword ? "•••••••• (Leave blank to keep)" : "Enter 1C password"}
-                                            className="pr-10"
+                                            placeholder={hasExistingPassword ? (isRu ? "•••••••• (Оставьте пустым)" : "•••••••• (Leave blank to keep)") : (isRu ? "Введите пароль 1С" : "Enter 1C password")}
+                                            className="pr-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                                         >
                                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </button>
@@ -322,11 +332,11 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                         {/* Token Auth */}
                         {formData.auth_type === 'token' && (
                             <div className="space-y-1.5">
-                                <Label htmlFor="api_token" className="text-xs font-semibold text-gray-700 uppercase flex items-center justify-between">
-                                    <span>Bearer Token / API Secret</span>
+                                <Label htmlFor="api_token" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase flex items-center justify-between">
+                                    <span>{isRu ? 'Bearer Токен / API Секрет' : 'Bearer Token / API Secret'}</span>
                                     {hasExistingToken && (
-                                        <span className="text-[10px] text-emerald-600 font-normal">
-                                            (🔒 Token saved)
+                                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal">
+                                            {isRu ? '(🔒 Токен сохранён)' : '(🔒 Token saved)'}
                                         </span>
                                     )}
                                 </Label>
@@ -336,13 +346,13 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                                         type={showToken ? 'text' : 'password'}
                                         value={formData.api_token}
                                         onChange={(e) => setFormData({ ...formData, api_token: e.target.value })}
-                                        placeholder={hasExistingToken ? "•••••••••••• (Leave blank to keep)" : "Enter Bearer Token"}
-                                        className="font-mono text-sm pr-10"
+                                        placeholder={hasExistingToken ? (isRu ? "•••••••••••• (Оставьте пустым)" : "•••••••••••• (Leave blank to keep)") : (isRu ? "Введите токен" : "Enter Bearer Token")}
+                                        className="font-mono text-sm pr-10 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowToken(!showToken)}
-                                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                                     >
                                         {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
@@ -357,32 +367,32 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                                 type="checkbox"
                                 checked={formData.verify_ssl}
                                 onChange={(e) => setFormData({ ...formData, verify_ssl: e.target.checked })}
-                                className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-amber-600 focus:ring-amber-500"
                             />
-                            <Label htmlFor="verify_ssl" className="text-xs text-gray-700 cursor-pointer flex items-center gap-1">
-                                <ShieldCheck className="h-3.5 w-3.5 text-gray-500" />
-                                Verify SSL Certificate (Disable for self-signed intranet 1C servers)
+                            <Label htmlFor="verify_ssl" className="text-xs text-slate-700 dark:text-slate-300 cursor-pointer flex items-center gap-1">
+                                <ShieldCheck className="h-3.5 w-3.5 text-slate-400" />
+                                {isRu ? 'Проверять SSL сертификат (отключите для самоподписанных интранет-серверов)' : 'Verify SSL Certificate (Disable for self-signed intranet 1C servers)'}
                             </Label>
                         </div>
 
                         {/* Dialog Actions */}
-                        <DialogFooter className="pt-4 border-t flex items-center justify-between gap-3 sm:justify-between">
+                        <DialogFooter className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 sm:justify-between">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={handleTestConnection}
                                 disabled={testing || saving}
-                                className="border-amber-300 text-amber-900 hover:bg-amber-50"
+                                className="border-amber-400/40 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
                             >
                                 {testing ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin text-amber-600" />
-                                        Testing Ping...
+                                        {isRu ? 'Проверка связи...' : 'Testing Ping...'}
                                     </>
                                 ) : (
                                     <>
                                         <Activity className="mr-2 h-4 w-4 text-amber-600" />
-                                        Test Connection
+                                        {isRu ? 'Проверить связь' : 'Test Connection'}
                                     </>
                                 )}
                             </Button>
@@ -390,11 +400,12 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                             <div className="flex items-center gap-2">
                                 <Button
                                     type="button"
-                                    variant="ghost"
+                                    variant="outline"
                                     onClick={onClose}
                                     disabled={saving}
+                                    className="border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    Cancel
+                                    {isRu ? 'Отмена' : 'Cancel'}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -404,12 +415,12 @@ export const OneCConfigModal: React.FC<OneCConfigModalProps> = ({
                                     {saving ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Encrypting & Saving...
+                                            {isRu ? 'Шифрование и сохранение...' : 'Encrypting & Saving...'}
                                         </>
                                     ) : (
                                         <>
                                             <Lock className="mr-2 h-4 w-4" />
-                                            Save Settings
+                                            {isRu ? 'Сохранить настройки' : 'Save Settings'}
                                         </>
                                     )}
                                 </Button>

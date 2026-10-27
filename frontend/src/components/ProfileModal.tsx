@@ -17,6 +17,7 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import api from '../lib/api';
+import { useTranslation } from 'react-i18next';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -26,6 +27,8 @@ interface ProfileModalProps {
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     const { user, refreshUser } = useAuth();
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
 
     const [activeTab, setActiveTab] = useState<'info' | 'security'>('info');
 
@@ -67,14 +70,14 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             });
             await refreshUser();
             toast({
-                title: "Профиль обновлен",
-                description: "Ваши личные данные успешно сохранены.",
+                title: isRu ? "Профиль обновлен" : "Profile Updated",
+                description: isRu ? "Ваши личные данные успешно сохранены." : "Your profile details have been saved.",
             });
         } catch (err: any) {
             toast({
                 variant: "destructive",
-                title: "Ошибка обновления",
-                description: err.response?.data?.detail || "Не удалось сохранить профиль.",
+                title: isRu ? "Ошибка обновления" : "Update Error",
+                description: err.response?.data?.detail || (isRu ? "Не удалось сохранить профиль." : "Failed to save profile."),
             });
         } finally {
             setIsSavingProfile(false);
@@ -87,17 +90,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         setPasswordSuccess(false);
 
         if (!currentPassword) {
-            setPasswordError("Введите текущий пароль");
+            setPasswordError(isRu ? "Введите текущий пароль" : "Please enter your current password");
             return;
         }
 
         if (newPassword.length < 8) {
-            setPasswordError("Новый пароль должен содержать не менее 8 символов");
+            setPasswordError(isRu ? "Новый пароль должен содержать не менее 8 символов" : "New password must be at least 8 characters long");
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setPasswordError("Новый пароль и подтверждение не совпадают");
+            setPasswordError(isRu ? "Новый пароль и подтверждение не совпадают" : "New password and confirmation do not match");
             return;
         }
 
@@ -118,15 +121,15 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             setConfirmPassword('');
 
             toast({
-                title: "Пароль изменён",
-                description: "Ваш пароль успешно обновлен. Активная сессия продлена.",
+                title: isRu ? "Пароль изменён" : "Password Changed",
+                description: isRu ? "Ваш пароль успешно обновлен. Активная сессия продлена." : "Your password was successfully updated.",
             });
         } catch (err: any) {
-            const msg = err.response?.data?.detail || "Не удалось изменить пароль. Проверьте правильность текущего пароля.";
+            const msg = err.response?.data?.detail || (isRu ? "Не удалось изменить пароль. Проверьте правильность текущего пароля." : "Failed to change password. Please check your current password.");
             setPasswordError(msg);
             toast({
                 variant: "destructive",
-                title: "Ошибка смены пароля",
+                title: isRu ? "Ошибка смены пароля" : "Password Change Error",
                 description: msg,
             });
         } finally {
@@ -135,55 +138,55 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
             <div 
-                className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+                className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-base shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-base shadow-sm">
                             {user.full_name ? user.full_name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-slate-900 leading-tight">
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 leading-tight">
                                 {user.full_name || user.email}
                             </h2>
-                            <p className="text-xs text-slate-500">{user.email}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-slate-100 px-6 bg-white">
+                <div className="flex border-b border-slate-100 dark:border-slate-800 px-6 bg-white dark:bg-slate-900">
                     <button
                         onClick={() => setActiveTab('info')}
                         className={`flex items-center gap-2 py-3 px-3 text-sm font-medium border-b-2 transition-all ${
                             activeTab === 'info'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                     >
                         <UserIcon className="w-4 h-4" />
-                        Данные аккаунта
+                        {isRu ? 'Данные аккаунта' : 'Account Details'}
                     </button>
                     <button
                         onClick={() => setActiveTab('security')}
                         className={`flex items-center gap-2 py-3 px-3 text-sm font-medium border-b-2 transition-all ${
                             activeTab === 'security'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                     >
                         <Lock className="w-4 h-4" />
-                        Безопасность и пароль
+                        {isRu ? 'Безопасность и пароль' : 'Security & Password'}
                     </button>
                 </div>
 
@@ -192,70 +195,74 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     {activeTab === 'info' && (
                         <form onSubmit={handleSaveProfile} className="space-y-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="email" className="text-xs font-semibold text-slate-600">
-                                    Email адрес (логин)
+                                <Label htmlFor="email" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    {isRu ? 'Email адрес (логин)' : 'Email Address (Login)'}
                                 </Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     value={user.email}
                                     disabled
-                                    className="bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed"
+                                    className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed"
                                 />
-                                <span className="text-[11px] text-slate-400">Email используется для входа и не подлежит изменению.</span>
+                                <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                    {isRu ? 'Email используется для входа и не подлежит изменению.' : 'Email is used for sign-in and cannot be changed.'}
+                                </span>
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="fullName" className="text-xs font-semibold text-slate-600">
-                                    Полное имя / Отображаемое имя
+                                <Label htmlFor="fullName" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    {isRu ? 'Полное имя / Отображаемое имя' : 'Full Name / Display Name'}
                                 </Label>
                                 <Input
                                     id="fullName"
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    placeholder="Иван Иванов"
-                                    className="border-slate-200 focus-visible:ring-blue-500"
+                                    placeholder={isRu ? "Иван Иванов" : "John Doe"}
+                                    className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500"
                                 />
                             </div>
 
                             {/* Meta badges */}
                             <div className="pt-2 grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2.5">
-                                    <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+                                    <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                                     <div className="overflow-hidden">
-                                        <div className="text-[11px] text-slate-400">Роль в системе</div>
-                                        <div className="text-xs font-semibold text-slate-800 capitalize truncate">
+                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{isRu ? 'Роль в системе' : 'System Role'}</div>
+                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">
                                             {user.role}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-2.5">
-                                    <Building className="w-4 h-4 text-indigo-600 shrink-0" />
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+                                    <Building className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                                     <div className="overflow-hidden">
-                                        <div className="text-[11px] text-slate-400">Организация / Тенант</div>
-                                        <div className="text-xs font-semibold text-slate-800 font-mono truncate">
+                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{isRu ? 'Организация / Тенант' : 'Organization / Tenant'}</div>
+                                        <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 font-mono truncate">
                                             {user.tenant_id ? user.tenant_id.slice(0, 12) + '...' : 'Default'}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={onClose}
-                                    className="text-slate-600"
+                                    className="text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    Закрыть
+                                    {isRu ? 'Закрыть' : 'Close'}
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={isSavingProfile}
                                     className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                 >
-                                    {isSavingProfile ? "Сохранение..." : "Сохранить изменения"}
+                                    {isSavingProfile 
+                                        ? (isRu ? "Сохранение..." : "Saving...") 
+                                        : (isRu ? "Сохранить изменения" : "Save Changes")}
                                 </Button>
                             </div>
                         </form>
@@ -266,7 +273,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             {passwordSuccess && (
                                 <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700 text-xs font-medium animate-in fade-in">
                                     <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600" />
-                                    <span>Пароль успешно обновлен! Новая сессия активирована.</span>
+                                    <span>
+                                        {isRu ? 'Пароль успешно обновлен! Новая сессия активирована.' : 'Password updated successfully! Active session refreshed.'}
+                                    </span>
                                 </div>
                             )}
 
@@ -278,8 +287,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             )}
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="currentPassword" className="text-xs font-semibold text-slate-600">
-                                    Текущий пароль
+                                <Label htmlFor="currentPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                     {isRu ? 'Текущий пароль' : 'Current Password'}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -288,12 +297,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                         value={currentPassword}
                                         onChange={(e) => setCurrentPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="border-slate-200 pr-10 focus-visible:ring-blue-500"
+                                        className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 pr-10 focus-visible:ring-blue-500"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                                     >
                                         {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -301,8 +310,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="newPassword" className="text-xs font-semibold text-slate-600">
-                                    Новый пароль (минимум 8 символов)
+                                <Label htmlFor="newPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                     {isRu ? 'Новый пароль (минимум 8 символов)' : 'New Password (at least 8 characters)'}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -311,12 +320,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         placeholder="••••••••"
-                                        className="border-slate-200 pr-10 focus-visible:ring-blue-500"
+                                        className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 pr-10 focus-visible:ring-blue-500"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowNewPassword(!showNewPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                                     >
                                         {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -324,8 +333,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             </div>
 
                             <div className="space-y-1.5">
-                                <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-600">
-                                    Подтвердите новый пароль
+                                <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                     {isRu ? 'Подтвердите новый пароль' : 'Confirm New Password'}
                                 </Label>
                                 <Input
                                     id="confirmPassword"
@@ -333,25 +342,27 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="border-slate-200 focus-visible:ring-blue-500"
+                                    className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500"
                                 />
                             </div>
 
-                            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                            <div className="pt-4 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={onClose}
-                                    className="text-slate-600"
+                                    className="text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    Отмена
+                                    {isRu ? 'Отмена' : 'Cancel'}
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={isChangingPassword}
                                     className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                 >
-                                    {isChangingPassword ? "Обновление..." : "Сменить пароль"}
+                                    {isChangingPassword 
+                                        ? (isRu ? "Обновление..." : "Updating...") 
+                                        : (isRu ? "Сменить пароль" : "Change Password")}
                                 </Button>
                             </div>
                         </form>

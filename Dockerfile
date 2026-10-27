@@ -20,6 +20,7 @@ WORKDIR /app
 # Install system dependencies (OCR, PDF rendering, curl)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    fonts-dejavu-core \
     tesseract-ocr \
     tesseract-ocr-rus \
     tesseract-ocr-eng \

@@ -19,6 +19,7 @@ def encrypt_secret(plaintext: Optional[str]) -> Optional[str]:
     """
     Encrypt a plaintext string using Fernet (AES-128-CBC + HMAC-SHA256).
     Returns None if input is None or empty.
+    Fails closed: raises RuntimeError on encryption failure to prevent storing unencrypted secrets.
     """
     if not plaintext:
         return None
@@ -27,9 +28,8 @@ def encrypt_secret(plaintext: Optional[str]) -> Optional[str]:
         encrypted_bytes = f.encrypt(plaintext.encode('utf-8'))
         return encrypted_bytes.decode('utf-8')
     except Exception as e:
-        logger.error(f"Error encrypting secret: {e}")
-        # Fallback to plain text with warning if encryption fails
-        return plaintext
+        logger.critical(f"Encryption failed for secret: {e}", exc_info=True)
+        raise RuntimeError("Secret encryption failed. Storing unencrypted credentials is prohibited.") from e
 
 def decrypt_secret(ciphertext: Optional[str]) -> Optional[str]:
     """

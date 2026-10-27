@@ -10,10 +10,14 @@ import { Building2, Save, Loader2 } from 'lucide-react';
 import { OneCConfigModal } from '../components/onec/OneCConfigModal';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { OneCSyncLogsTable } from '../components/onec/OneCSyncLogsTable';
+import { useTranslation } from 'react-i18next';
 
 export default function CompanySettingsPage() {
     const { user } = useAuth();
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [company, setCompany] = useState<any>(null);
@@ -27,34 +31,25 @@ export default function CompanySettingsPage() {
         logo_url: ''
     });
 
-    const companyId = (user as any)?.company_id; // Define companyId at a higher scope
+    const companyId = (user as any)?.company_id;
 
     useEffect(() => {
         const fetchCompany = async () => {
-            console.log('CompanySettingsPage - user:', user);
-            console.log('CompanySettingsPage - companyId:', companyId);
-
-            if (!companyId) {
-                console.log('No company_id found for user');
-                setLoading(false);
-                return;
-            }
-
             try {
                 let companyData = null;
-                try {
-                    const response = await api.get(`/companies/${companyId}`);
-                    companyData = response.data;
-                } catch (err: any) {
-                    if (err.response?.status === 404) {
-                        const fallbackRes = await api.get('/companies/');
-                        if (fallbackRes.data && fallbackRes.data.length > 0) {
-                            companyData = fallbackRes.data[0];
-                        } else {
-                            throw err;
-                        }
-                    } else {
-                        throw err;
+                if (companyId) {
+                    try {
+                        const response = await api.get(`/companies/${companyId}`);
+                        companyData = response.data;
+                    } catch (err: any) {
+                        console.warn('Company by ID not found, trying list', err);
+                    }
+                }
+                if (!companyData) {
+                    const fallbackRes = await api.get('/companies/');
+                    const list = Array.isArray(fallbackRes.data) ? fallbackRes.data : (Array.isArray(fallbackRes.data?.items) ? fallbackRes.data.items : []);
+                    if (list.length > 0) {
+                        companyData = list[0];
                     }
                 }
 
@@ -71,8 +66,8 @@ export default function CompanySettingsPage() {
             } catch (error) {
                 console.error('Failed to fetch company', error);
                 toast({
-                    title: "Error",
-                    description: "Failed to load company information",
+                    title: isRu ? "Ошибка" : "Error",
+                    description: isRu ? "Не удалось загрузить данные организации" : "Failed to load company information",
                     variant: "destructive"
                 });
             } finally {
@@ -96,21 +91,20 @@ export default function CompanySettingsPage() {
                 logo_url: formData.logo_url || null
             };
 
-            await api.put(`/companies/${companyId}/profile`, updateData);
+            await api.put(`/companies/${companyId || company?.id}/profile`, updateData);
 
             toast({
-                title: "Success",
-                description: "Company information updated successfully",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Информация об организации успешно обновлена" : "Company information updated successfully",
             });
 
-            // Refresh company data
-            const response = await api.get(`/companies/${companyId}`);
+            const response = await api.get(`/companies/${companyId || company?.id}`);
             setCompany(response.data);
         } catch (error: any) {
             console.error('Failed to update company', error);
             toast({
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to update company information",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось обновить профиль компании" : "Failed to update company information"),
                 variant: "destructive"
             });
         } finally {
@@ -135,7 +129,9 @@ export default function CompanySettingsPage() {
             <div className="p-8">
                 <Card>
                     <CardContent className="p-6">
-                        <p className="text-gray-500">No company information found.</p>
+                        <p className="text-gray-500">
+                            {isRu ? 'Информация об организации не найдена.' : 'No company information found.'}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -145,49 +141,55 @@ export default function CompanySettingsPage() {
     return (
         <div className="p-8 max-w-4xl mx-auto space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Company Settings</h1>
-                <p className="text-gray-500 mt-1">Manage your company's information and profile</p>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {isRu ? 'Настройки организации' : 'Company Settings'}
+                </h1>
+                <p className="text-gray-500 mt-1">
+                    {isRu ? 'Управление профилем компании, реквизитами и параметрами интеграций' : "Manage your company's information and profile"}
+                </p>
             </div>
 
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Building2 className="h-5 w-5" />
-                        Company Profile
+                        <Building2 className="h-5 w-5 text-blue-600" />
+                        {isRu ? 'Профиль организации' : 'Company Profile'}
                     </CardTitle>
                     <CardDescription>
-                        Update your company's public information
+                        {isRu ? 'Публичная информация и отраслевые параметры' : "Update your company's public information"}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Company Name (Read-only) */}
+                        {/* Company Name */}
                         <div className="space-y-2">
-                            <Label htmlFor="name">Company Name</Label>
+                            <Label htmlFor="name">{isRu ? 'Наименование компании' : 'Company Name'}</Label>
                             <Input
                                 id="name"
                                 value={company.name}
                                 disabled
                                 className="bg-gray-50"
                             />
-                            <p className="text-xs text-gray-500">Company name cannot be changed. Contact support if needed.</p>
+                            <p className="text-xs text-gray-500">
+                                {isRu ? 'Наименование закреплено в системе. Для смены обратитесь к суперадминистратору.' : 'Company name cannot be changed. Contact support if needed.'}
+                            </p>
                         </div>
 
                         {/* Description */}
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{isRu ? 'Описание деятельности' : 'Description'}</Label>
                             <textarea
                                 id="description"
                                 value={formData.description}
                                 onChange={(e) => handleChange('description', e.target.value)}
                                 className="w-full min-h-[100px] px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Brief description of your company..."
+                                placeholder={isRu ? 'Краткое описание деятельности организации...' : 'Brief description of your company...'}
                             />
                         </div>
 
                         {/* Website */}
                         <div className="space-y-2">
-                            <Label htmlFor="website">Website</Label>
+                            <Label htmlFor="website">{isRu ? 'Корпоративный веб-сайт' : 'Website'}</Label>
                             <Input
                                 id="website"
                                 type="url"
@@ -199,42 +201,42 @@ export default function CompanySettingsPage() {
 
                         {/* Industry */}
                         <div className="space-y-2">
-                            <Label htmlFor="industry">Industry</Label>
+                            <Label htmlFor="industry">{isRu ? 'Отрасль экономики' : 'Industry'}</Label>
                             <select
                                 id="industry"
                                 value={formData.industry}
                                 onChange={(e) => handleChange('industry', e.target.value)}
-                                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
                             >
-                                <option value="">Select an industry</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Finance">Finance</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Manufacturing">Manufacturing</option>
-                                <option value="Retail">Retail</option>
-                                <option value="Education">Education</option>
-                                <option value="Consulting">Consulting</option>
-                                <option value="Real Estate">Real Estate</option>
-                                <option value="Other">Other</option>
+                                <option value="">{isRu ? 'Выберите отрасль' : 'Select an industry'}</option>
+                                <option value="Technology">{isRu ? 'Информационные технологии (IT)' : 'Technology'}</option>
+                                <option value="Finance">{isRu ? 'Финансы и банкинг' : 'Finance'}</option>
+                                <option value="Healthcare">{isRu ? 'Здравоохранение и фармация' : 'Healthcare'}</option>
+                                <option value="Manufacturing">{isRu ? 'Производство и промышленность' : 'Manufacturing'}</option>
+                                <option value="Retail">{isRu ? 'Розничная торговля и e-commerce' : 'Retail'}</option>
+                                <option value="Education">{isRu ? 'Образование' : 'Education'}</option>
+                                <option value="Consulting">{isRu ? 'Консалтинг и аудит' : 'Consulting'}</option>
+                                <option value="Real Estate">{isRu ? 'Недвижимость и строительство' : 'Real Estate'}</option>
+                                <option value="Other">{isRu ? 'Другое' : 'Other'}</option>
                             </select>
                         </div>
 
                         {/* Employee Count */}
                         <div className="space-y-2">
-                            <Label htmlFor="employee_count">Employee Count</Label>
+                            <Label htmlFor="employee_count">{isRu ? 'Штатная численность сотрудников' : 'Employee Count'}</Label>
                             <Input
                                 id="employee_count"
                                 type="number"
                                 min="1"
                                 value={formData.employee_count}
                                 onChange={(e) => handleChange('employee_count', e.target.value)}
-                                placeholder="e.g., 50"
+                                placeholder="50"
                             />
                         </div>
 
                         {/* Logo URL */}
                         <div className="space-y-2">
-                            <Label htmlFor="logo_url">Logo URL</Label>
+                            <Label htmlFor="logo_url">{isRu ? 'URL логотипа' : 'Logo URL'}</Label>
                             <Input
                                 id="logo_url"
                                 type="url"
@@ -244,11 +246,11 @@ export default function CompanySettingsPage() {
                             />
                             {formData.logo_url && (
                                 <div className="mt-2">
-                                    <p className="text-xs text-gray-500 mb-2">Logo Preview:</p>
+                                    <p className="text-xs text-gray-500 mb-2">{isRu ? 'Предпросмотр логотипа:' : 'Logo Preview:'}</p>
                                     <img
                                         src={formData.logo_url}
                                         alt="Company logo preview"
-                                        className="h-16 w-auto border rounded"
+                                        className="h-16 w-auto border rounded p-1"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).style.display = 'none';
                                         }}
@@ -273,18 +275,18 @@ export default function CompanySettingsPage() {
                                 }}
                                 disabled={saving}
                             >
-                                Reset
+                                {isRu ? 'Сбросить' : 'Reset'}
                             </Button>
-                            <Button type="submit" disabled={saving}>
+                            <Button type="submit" disabled={saving} className="bg-blue-600 hover:bg-blue-700">
                                 {saving ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
+                                        {isRu ? 'Сохранение...' : 'Saving...'}
                                     </>
                                 ) : (
                                     <>
                                         <Save className="mr-2 h-4 w-4" />
-                                        Save Changes
+                                        {isRu ? 'Сохранить изменения' : 'Save Changes'}
                                     </>
                                 )}
                             </Button>
@@ -303,13 +305,15 @@ export default function CompanySettingsPage() {
                             </div>
                             <div>
                                 <CardTitle className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    1C:Enterprise 8.3 OData Integration
+                                    {isRu ? 'Интеграция 1С:Предприятие 8.3 (OData REST API)' : '1C:Enterprise 8.3 OData Integration'}
                                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-amber-100 text-amber-800 rounded font-bold border border-amber-300">
-                                        Two-Way Sync
+                                        {isRu ? 'Двусторонняя' : 'Two-Way Sync'}
                                     </span>
                                 </CardTitle>
                                 <CardDescription className="text-xs text-gray-600">
-                                    Direct integration with 1C:Accounting (Хозрасчетный) via standard OData v4 & REST protocols.
+                                    {isRu
+                                        ? 'Прямой обмен с планом счетов 1С:Бухгалтерия (Хозрасчетный) через протокол OData v4.'
+                                        : 'Direct integration with 1C:Accounting via standard OData v4 & REST protocols.'}
                                 </CardDescription>
                             </div>
                         </div>
@@ -321,14 +325,14 @@ export default function CompanySettingsPage() {
                                 onClick={() => setOneCConfigOpen(true)}
                                 className="border-amber-300 text-amber-900 hover:bg-amber-100/50 text-xs font-semibold"
                             >
-                                ⚙️ Connection Settings
+                                ⚙️ {isRu ? 'Настройки подключения' : 'Connection Settings'}
                             </Button>
                             <Button
                                 size="sm"
                                 onClick={() => setOneCSyncOpen(true)}
                                 className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold"
                             >
-                                ⚡ Open Sync Hub
+                                ⚡ {isRu ? 'Центр синхронизации' : 'Open Sync Hub'}
                             </Button>
                         </div>
                     </div>
@@ -351,13 +355,25 @@ export default function CompanySettingsPage() {
             {/* Additional Info Card */}
             <Card className="bg-blue-50 border-blue-200">
                 <CardHeader>
-                    <CardTitle className="text-blue-900 text-sm">ℹ️ Information</CardTitle>
+                    <CardTitle className="text-blue-900 text-sm">ℹ️ {isRu ? 'Справочная информация' : 'Information'}</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-blue-900">
                     <ul className="list-disc ml-5 space-y-1">
-                        <li>Changes to company information are visible to all users in your organization</li>
-                        <li>1C connection credentials are securely stored encrypted with AES-GCM / Fernet</li>
-                        <li>Logo images should be publicly accessible URLs (HTTPS recommended)</li>
+                        <li>
+                            {isRu
+                                ? 'Изменения в информации о компании видны всем авторизованным пользователям организации'
+                                : 'Changes to company information are visible to all users in your organization'}
+                        </li>
+                        <li>
+                            {isRu
+                                ? 'Данные доступа к 1С шифруются симметричным шифром AES-256 (Fernet) в базе данных'
+                                : '1C connection credentials are securely stored encrypted with AES-256 at rest'}
+                        </li>
+                        <li>
+                            {isRu
+                                ? 'Для корректного отображения логотипа указывайте защищенную ссылку (HTTPS)'
+                                : 'Logo images should be publicly accessible URLs (HTTPS recommended)'}
+                        </li>
                     </ul>
                 </CardContent>
             </Card>

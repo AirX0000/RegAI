@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
 import { Send, Trash2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CommentsProps {
     reportId: string;
@@ -15,6 +16,8 @@ export default function CommentsSection({ reportId }: CommentsProps) {
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
 
     useEffect(() => {
         if (reportId) {
@@ -25,7 +28,7 @@ export default function CommentsSection({ reportId }: CommentsProps) {
     const fetchComments = async () => {
         try {
             const res = await api.get(`/reports/${reportId}/comments`);
-            setComments(res.data);
+            setComments(Array.isArray(res.data) ? res.data : []);
         } catch (error) {
             console.error('Failed to fetch comments', error);
         }
@@ -41,15 +44,15 @@ export default function CommentsSection({ reportId }: CommentsProps) {
             });
             setNewComment('');
             toast({
-                title: "Success",
-                description: "Comment added",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Комментарий добавлен" : "Comment added",
             });
             fetchComments();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to add comment",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось добавить комментарий" : "Failed to add comment"),
             });
         } finally {
             setLoading(false);
@@ -57,44 +60,48 @@ export default function CommentsSection({ reportId }: CommentsProps) {
     };
 
     const handleDeleteComment = async (commentId: string) => {
-        if (!confirm('Delete this comment?')) return;
+        if (!confirm(isRu ? 'Удалить этот комментарий?' : 'Delete this comment?')) return;
 
         try {
             await api.delete(`/reports/${reportId}/comments/${commentId}`);
             toast({
-                title: "Success",
-                description: "Comment deleted",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Комментарий удален" : "Comment deleted",
             });
             fetchComments();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to delete comment",
+                title: isRu ? "Ошибка" : "Error",
+                description: isRu ? "Не удалось удалить комментарий" : "Failed to delete comment",
             });
         }
     };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleString();
+        return date.toLocaleString(isRu ? 'ru-RU' : 'en-US');
     };
 
     return (
         <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Comments</h3>
+            <h3 className="font-semibold text-lg text-gray-900">
+                {isRu ? 'Комментарии и обсуждение' : 'Comments'}
+            </h3>
 
             {/* Comments List */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
-                {comments.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No comments yet. Be the first to comment!</p>
+                {!Array.isArray(comments) || comments.length === 0 ? (
+                    <p className="text-gray-500 text-sm">
+                        {isRu ? 'Комментариев пока нет. Оставьте первый комментарий!' : 'No comments yet. Be the first to comment!'}
+                    </p>
                 ) : (
-                    comments.map((comment) => (
+                    (Array.isArray(comments) ? comments : []).map((comment) => (
                         <div key={comment.id} className="p-3 bg-gray-50 rounded-md border">
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium text-sm">{comment.user_email}</span>
+                                        <span className="font-medium text-sm text-gray-900">{comment.user_email}</span>
                                         <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
                                     </div>
                                     <p className="text-sm text-gray-700">{comment.comment}</p>
@@ -102,9 +109,9 @@ export default function CommentsSection({ reportId }: CommentsProps) {
                                 {(comment.user_id === user?.id || user?.role === 'admin' || user?.role === 'superadmin') && (
                                     <button
                                         onClick={() => handleDeleteComment(comment.id)}
-                                        className="p-1 hover:bg-gray-200 rounded"
+                                        className="p-1 hover:bg-gray-200 rounded text-red-600 transition-colors"
                                     >
-                                        <Trash2 className="h-4 w-4 text-red-600" />
+                                        <Trash2 className="h-4 w-4" />
                                     </button>
                                 )}
                             </div>
@@ -116,11 +123,11 @@ export default function CommentsSection({ reportId }: CommentsProps) {
             {/* Add Comment */}
             <div className="flex gap-2">
                 <textarea
-                    className="flex-1 rounded-md border p-2 text-sm"
+                    className="flex-1 rounded-md border p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     rows={2}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Add a comment..."
+                    placeholder={isRu ? "Напишите комментарий..." : "Add a comment..."}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.ctrlKey) {
                             handleAddComment();
@@ -131,11 +138,14 @@ export default function CommentsSection({ reportId }: CommentsProps) {
                     onClick={handleAddComment}
                     disabled={!newComment.trim() || loading}
                     size="sm"
+                    className="bg-blue-600 hover:bg-blue-700 text-white self-end h-10 px-4"
                 >
                     <Send className="h-4 w-4" />
                 </Button>
             </div>
-            <p className="text-xs text-gray-500">Press Ctrl+Enter to send</p>
+            <p className="text-xs text-gray-400">
+                {isRu ? 'Нажмите Ctrl+Enter для быстрой отправки' : 'Press Ctrl+Enter to send'}
+            </p>
         </div>
     );
 }

@@ -8,6 +8,7 @@ class DocumentType(str, enum.Enum):
     INVOICE = "invoice"
     CONTRACT = "contract"
     BANK_STATEMENT = "bank_statement"
+    TRIAL_BALANCE = "trial_balance"
     OTHER = "other"
 
 class DocumentStatus(str, enum.Enum):

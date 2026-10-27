@@ -28,8 +28,8 @@ class ReportTemplateUpdate(BaseModel):
 class ReportTemplate(ReportTemplateBase):
     id: UUID4
     created_by: UUID4
-    company_id: UUID4
-    tenant_id: UUID4
+    company_id: Optional[UUID4] = None
+    tenant_id: Optional[UUID4] = None
     created_at: datetime
     updated_at: datetime
 

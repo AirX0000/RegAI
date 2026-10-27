@@ -38,13 +38,14 @@ def login_access_token(
         security.verify_password("fake", "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxwKc.60VFE/AtzpvVSVPqkhL.yO.")
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
-    norm_pw = form_data.password.strip().lower()
-    demo_passwords = {"finbridge2026!", "regai2026!", "regai", "admin", "admin2026!", "password"}
-    is_valid_pw = (
-        norm_pw in demo_passwords
-        or form_data.password in ["FinBridge2026!", "RegAI2026!"]
-        or security.verify_password(form_data.password, user.hashed_password)
-    )
+    # Secure password verification: check bcrypt hash first
+    is_valid_pw = security.verify_password(form_data.password, user.hashed_password)
+    # Safe demo fallback: strictly forbidden in production, only allowed in dev/staging when ALLOW_DEMO_LOGIN is explicitly enabled
+    is_production = getattr(settings, "ENVIRONMENT", "").lower() == "production"
+    if not is_valid_pw and not is_production and getattr(settings, "ALLOW_DEMO_LOGIN", False) and not user.is_superuser:
+        if form_data.password in ["FinBridge2026!", "RegAI2026!"]:
+            is_valid_pw = True
+
     if not is_valid_pw:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
         
@@ -93,7 +94,7 @@ def refresh_access_token(
 def login_access_token_json(
     login_req: auth_schemas.LoginRequest,
     db: Session = Depends(get_db),
-    _: None = Depends(check_login_rate_limit),
+    _rate_limit: None = Depends(check_login_rate_limit),
 ) -> Any:
     """
     JSON login endpoint
@@ -113,13 +114,14 @@ def login_access_token_json(
         security.verify_password("fake", "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxwKc.60VFE/AtzpvVSVPqkhL.yO.")
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
-    norm_pw = login_req.password.strip().lower()
-    demo_passwords = {"finbridge2026!", "regai2026!", "regai", "admin", "admin2026!", "password"}
-    is_valid_pw = (
-        norm_pw in demo_passwords
-        or login_req.password in ["FinBridge2026!", "RegAI2026!"]
-        or security.verify_password(login_req.password, user.hashed_password)
-    )
+    # Secure password verification: check bcrypt hash first
+    is_valid_pw = security.verify_password(login_req.password, user.hashed_password)
+    # Safe demo fallback: strictly forbidden in production, only allowed in dev/staging when ALLOW_DEMO_LOGIN is explicitly enabled
+    is_production = getattr(settings, "ENVIRONMENT", "").lower() == "production"
+    if not is_valid_pw and not is_production and getattr(settings, "ALLOW_DEMO_LOGIN", False) and not user.is_superuser:
+        if login_req.password in ["FinBridge2026!", "RegAI2026!"]:
+            is_valid_pw = True
+
     if not is_valid_pw:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
         

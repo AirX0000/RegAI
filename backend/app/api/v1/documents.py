@@ -41,8 +41,9 @@ async def upload_document(
     if file_ext not in allowed_extensions:
         raise HTTPException(status_code=400, detail=f"File type {file_ext} not supported. Allowed: {allowed_extensions}")
     
-    # Save file
-    file_path = UPLOAD_DIR / f"{current_user.company_id}_{datetime.now().timestamp()}_{file.filename}"
+    # Save file safely (strip directory traversal characters)
+    safe_filename = Path(file.filename).name.replace("\x00", "")
+    file_path = UPLOAD_DIR / f"{current_user.company_id}_{datetime.now().timestamp()}_{safe_filename}"
     try:
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)

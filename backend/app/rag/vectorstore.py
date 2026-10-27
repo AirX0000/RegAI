@@ -11,7 +11,14 @@ _client = None
 def get_chroma_client():
     global _client
     if _client is None:
-        _client = chromadb.PersistentClient(path=settings.CHROMA_DIR)
+        if settings.CHROMA_SERVER_HOST:
+            _client = chromadb.HttpClient(
+                host=settings.CHROMA_SERVER_HOST,
+                port=settings.CHROMA_SERVER_PORT,
+                ssl=settings.CHROMA_SERVER_SSL
+            )
+        else:
+            _client = chromadb.PersistentClient(path=settings.CHROMA_DIR)
     return _client
 
 def get_collection(tenant_id: str):

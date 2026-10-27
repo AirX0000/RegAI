@@ -225,10 +225,10 @@ def get_dashboard_data(
     if not recent:
         now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
         recent = [
-            {"id": "demo-act-1", "action": "sync", "timestamp": now_iso, "details": "1C:Enterprise Trial Balance synchronized (14 accounts, 120M ₽)"},
-            {"id": "demo-act-2", "action": "transform", "timestamp": now_iso, "details": "IFRS 16 Operating Lease Capitalization adjustment executed (12.5M ₽)"},
-            {"id": "demo-act-3", "action": "review", "timestamp": now_iso, "details": "IFRS 9 Expected Credit Loss (ECL) Stage 2 provision booked (3.25M ₽)"},
-            {"id": "demo-act-4", "action": "compliance", "timestamp": now_iso, "details": "Regulatory baseline verified against Basel III and IFRS standards"},
+            {"id": "demo-act-1", "action": "sync", "timestamp": now_iso, "details": "1C:Enterprise Trial Balance синхронизирован (24 счёта, 120 млн UZS)"},
+            {"id": "demo-act-2", "action": "transform", "timestamp": now_iso, "details": "IFRS 16 Капитализация прав аренды проведена успешно (41.2 млн UZS)"},
+            {"id": "demo-act-3", "action": "review", "timestamp": now_iso, "details": "IFRS 9 Резерв под обесценение ECL Stage 2 утвержден аудитором (15.6 млн UZS)"},
+            {"id": "demo-act-4", "action": "compliance", "timestamp": now_iso, "details": "Налоговый протокол проверен: ставка CIT 15%, VAT 12%, ОНА 1.45 млн UZS"},
         ]
         
     return DashboardData(

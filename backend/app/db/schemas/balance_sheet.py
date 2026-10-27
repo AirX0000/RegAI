@@ -67,6 +67,7 @@ class BalanceSheetUpdate(BaseModel):
     period: Optional[datetime] = None
     status: Optional[BalanceSheetStatus] = None
     notes: Optional[str] = None
+    items: Optional[List[BalanceSheetItemCreate]] = None
 
 
 class BalanceSheet(BalanceSheetBase):

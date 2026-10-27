@@ -67,3 +67,49 @@ def test_report_template_model_configuration(db):
     assert "IFRS 16" in template.configuration["active_standards"]
     assert template.configuration["enforce_zero_delta"] is True
     assert template.configuration["ai_audit_enabled"] is True
+
+
+def test_templates_api_create_and_list(client, superuser_token_headers, db):
+    payload = {
+        "name": "API Created Smart Template",
+        "description": "Template created through API",
+        "report_type": "financial",
+        "country_code": "UZ",
+        "tax_types": ["vat", "corporate"],
+        "is_recurring": True,
+        "recurrence_pattern": "quarterly",
+        "configuration": {
+            "source_standard": "NAS",
+            "target_standard": "IFRS",
+            "data_source_type": "onec_sync",
+            "required_accounts": ["01", "02", "60", "67", "84"],
+            "strict_validation": True,
+            "active_standards": ["IFRS 16", "IAS 36", "IFRS 9"],
+            "enforce_zero_delta": True,
+            "ai_audit_enabled": True,
+            "ai_expert_role": "Senior IFRS Big 4 Auditor",
+            "ai_prompt": "Проверь классификацию договоров аренды",
+            "risk_triggers": ["unbalanced_equity"],
+            "output_language": "ru",
+            "approval_chain": ["accountant", "auditor", "admin"]
+        }
+    }
+    create_res = client.post("/api/v1/templates/", json=payload, headers=superuser_token_headers)
+    assert create_res.status_code == 200, create_res.text
+    created = create_res.json()
+    assert created["name"] == "API Created Smart Template"
+    assert created["configuration"]["target_standard"] == "IFRS"
+
+    list_res = client.get("/api/v1/templates/", headers=superuser_token_headers)
+    assert list_res.status_code == 200
+    items = list_res.json()
+    assert isinstance(items, list)
+    assert any(t["name"] == "API Created Smart Template" for t in items)
+
+    # Test use endpoint
+    template_id = created["id"]
+    use_res = client.post(f"/api/v1/templates/{template_id}/use", headers=superuser_token_headers)
+    assert use_res.status_code == 200
+    use_data = use_res.json()
+    assert use_data["template_name"] == "API Created Smart Template"
+

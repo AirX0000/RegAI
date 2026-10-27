@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-from alembic import context
+import alembic.context as context
 from dotenv import load_dotenv
 
 # Preload .env before importing settings

@@ -1,5 +1,15 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
+const isMockFallbackEnabled = import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'true' || import.meta.env.DEV;
+
+async function getMockResponse(config: any): Promise<any> {
+    if (!isMockFallbackEnabled) {
+        throw new Error('Backend is unreachable and mock fallback is disabled in production.');
+    }
+    const { handleMockApiRequest } = await import('./mockApi');
+    return handleMockApiRequest(config);
+}
+
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/api/v1',
     timeout: 45000,
@@ -34,9 +44,97 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 api.interceptors.response.use(
-    (response) => response,
+    async (response) => {
+        const isHtml =
+            typeof response.data === 'string' &&
+            (response.data.trim().toLowerCase().startsWith('<!doctype html') || response.data.includes('<html'));
+
+        if (isHtml) {
+            const config = response.config as any;
+            const currentBase = config.baseURL || api.defaults.baseURL || '';
+
+            // Auto port-swap fallback (8000 <-> 8001) in case of port collisions:
+            if (!config._portSwapped && (currentBase.includes(':8000') || currentBase.includes(':8001'))) {
+                config._portSwapped = true;
+                const altBase = currentBase.includes(':8000')
+                    ? currentBase.replace(':8000', ':8001')
+                    : currentBase.replace(':8001', ':8000');
+                try {
+                    const altRes = await axios({ ...config, baseURL: altBase });
+                    const altIsHtml =
+                        typeof altRes.data === 'string' &&
+                        (altRes.data.trim().toLowerCase().startsWith('<!doctype html') || altRes.data.includes('<html'));
+                    if (!altIsHtml) {
+                        api.defaults.baseURL = altBase;
+                        console.info('[RegAI API] Successfully auto-switched backend port to:', altBase);
+                        return altRes;
+                    }
+                } catch {
+                    // Fall back to mock below
+                }
+            }
+
+            console.warn('[RegAI API] Static Hosting HTML response detected, fallback to mock data:', response.config.url);
+            const mockData = await getMockResponse(response.config);
+            return {
+                ...response,
+                status: 200,
+                statusText: 'OK',
+                data: mockData,
+            };
+        }
+        return response;
+    },
     async (error: AxiosError) => {
-        const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+        const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean; _portSwapped?: boolean }) | undefined;
+
+        if (originalRequest) {
+            const isHtmlError =
+                error.response &&
+                typeof error.response.data === 'string' &&
+                (error.response.data.includes('<!doctype html') || error.response.data.includes('<html'));
+            const isNetworkOrOffline =
+                error.code === 'ERR_NETWORK' ||
+                error.message?.includes('Network Error') ||
+                error.response?.status === 503 ||
+                error.response?.status === 502 ||
+                error.response?.status === 404 ||
+                error.response?.status === 405 ||
+                Boolean(isHtmlError);
+
+            if (isHtmlError || isNetworkOrOffline) {
+                const currentBase = originalRequest.baseURL || api.defaults.baseURL || '';
+                if (!originalRequest._portSwapped && (currentBase.includes(':8000') || currentBase.includes(':8001'))) {
+                    originalRequest._portSwapped = true;
+                    const altBase = currentBase.includes(':8000')
+                        ? currentBase.replace(':8000', ':8001')
+                        : currentBase.replace(':8001', ':8000');
+                    try {
+                        const altRes = await axios({ ...originalRequest, baseURL: altBase });
+                        const altIsHtml =
+                            typeof altRes.data === 'string' &&
+                            (altRes.data.trim().toLowerCase().startsWith('<!doctype html') || altRes.data.includes('<html'));
+                        if (!altIsHtml) {
+                            api.defaults.baseURL = altBase;
+                            console.info('[RegAI API] Successfully auto-switched backend port to:', altBase);
+                            return altRes;
+                        }
+                    } catch {
+                        // Fall back to mock below
+                    }
+                }
+
+                console.warn('[RegAI API] Unreachable backend / HTML rewrite detected, serving mock data:', originalRequest.url);
+                const mockData = await getMockResponse(originalRequest);
+                return {
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {},
+                    config: originalRequest,
+                    data: mockData,
+                };
+            }
+        }
 
         if (!error.response || !originalRequest) {
             return Promise.reject(error);
@@ -46,8 +144,8 @@ api.interceptors.response.use(
             originalRequest.url?.includes('/auth/login') ||
             originalRequest.url?.includes('/auth/refresh');
 
-        // If /users/me fails with 401 or 404, the user session or user record is gone on backend
-        if (originalRequest.url?.includes('/users/me') && (error.response.status === 401 || error.response.status === 404)) {
+        // Only redirect on /users/me if it is an explicit 401 unauthorized and not offline/static hosting
+        if (originalRequest.url?.includes('/users/me') && error.response.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             if (window.location.pathname !== '/login') {

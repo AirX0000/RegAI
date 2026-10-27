@@ -19,13 +19,16 @@ def search_regulations(tenant_id: str, query: str, limit: int = 5) -> List[Dict]
     
     # Format results
     formatted_results = []
-    if results["ids"]:
+    if results.get("ids") and len(results["ids"]) > 0:
+        docs = results.get("documents", [[]])[0] if results.get("documents") else []
+        metas = results.get("metadatas", [[]])[0] if results.get("metadatas") else []
+        dists = results.get("distances", [[]])[0] if results.get("distances") else []
         for i in range(len(results["ids"][0])):
             formatted_results.append({
                 "id": results["ids"][0][i],
-                "content": results["documents"][0][i],
-                "metadata": results["metadatas"][0][i],
-                "distance": results["distances"][0][i] if results["distances"] else None
+                "content": docs[i] if i < len(docs) and docs[i] is not None else "",
+                "metadata": metas[i] if (i < len(metas) and metas[i] is not None) else {},
+                "distance": dists[i] if i < len(dists) else None
             })
             
     # Keyword-based Re-ranking (Simple fallback for mock embeddings)
@@ -34,9 +37,10 @@ def search_regulations(tenant_id: str, query: str, limit: int = 5) -> List[Dict]
     
     def calculate_score(doc):
         score = 0
-        content_lower = doc["content"].lower()
-        code_lower = doc["metadata"].get("code", "").lower()
-        title_lower = doc["metadata"].get("title", "").lower()
+        content_lower = (doc.get("content") or "").lower()
+        meta = doc.get("metadata") or {}
+        code_lower = str(meta.get("code") or "").lower()
+        title_lower = str(meta.get("title") or "").lower()
         
         for term in query_terms:
             if term in code_lower:

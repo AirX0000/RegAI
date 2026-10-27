@@ -129,10 +129,29 @@ def get_report_analyses(
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """
-    Get all analyses for a specific report.
+    Get all analyses for a specific report with strict authorization check.
     """
+    try:
+        report_uuid = uuid.UUID(report_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid report ID format")
+
+    report = db.query(Report).filter(Report.id == report_uuid).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Check permissions
+    if not (getattr(current_user, "is_superuser", False) or current_user.role in ["superadmin", "website_superadmin"]):
+        if report.tenant_id and current_user.tenant_id and report.tenant_id != current_user.tenant_id:
+            raise HTTPException(status_code=403, detail="Not authorized to access analyses for this report")
+        if current_user.role in ["accountant", "auditor", "user"]:
+            if report.submitted_by != current_user.id and (not current_user.company_id or report.company_id != current_user.company_id):
+                raise HTTPException(status_code=403, detail="Not authorized to access analyses for this report")
+        elif report.company_id != current_user.company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to access analyses for this report")
+
     analyses = db.query(ReportAnalysis).filter(
-        ReportAnalysis.report_id == uuid.UUID(report_id)
+        ReportAnalysis.report_id == report_uuid
     ).order_by(ReportAnalysis.created_at.desc()).all()
     
     return analyses

@@ -33,3 +33,10 @@ backend/chroma_db/
 chroma_db/
 *.bin
 *.pkl
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+

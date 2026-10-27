@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from sqlalchemy import Column, String, ForeignKey, DateTime, Boolean, Integer, Text, func
 from sqlalchemy import Uuid as UUID
 from app.db.session import Base
@@ -29,11 +30,12 @@ class OneCConnection(Base):
     def set_password(self, plain_password: str):
         self.password = encrypt_secret(plain_password)
 
-    def get_password(self) -> str:
+    def get_password(self) -> Optional[str]:
         return decrypt_secret(self.password)
 
     def set_api_token(self, plain_token: str):
         self.api_token = encrypt_secret(plain_token)
 
-    def get_api_token(self) -> str:
+    def get_api_token(self) -> Optional[str]:
         return decrypt_secret(self.api_token)
+

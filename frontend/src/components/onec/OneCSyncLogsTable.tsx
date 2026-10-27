@@ -47,7 +47,7 @@ export const OneCSyncLogsTable: React.FC = () => {
         setLoading(true);
         try {
             const res = await api.get('/integrations/1c/logs?limit=50');
-            setLogs(res.data);
+            setLogs(Array.isArray(res.data) ? res.data : []);
         } catch (err: any) {
             console.error('Failed to fetch 1C sync logs', err);
         } finally {
@@ -107,11 +107,11 @@ export const OneCSyncLogsTable: React.FC = () => {
                 </Button>
             </div>
 
-            {loading && logs.length === 0 ? (
+            {loading && (!Array.isArray(logs) || logs.length === 0) ? (
                 <div className="py-8 flex justify-center items-center">
                     <Loader2 className="h-6 w-6 animate-spin text-amber-600" />
                 </div>
-            ) : logs.length === 0 ? (
+            ) : (!Array.isArray(logs) || logs.length === 0) ? (
                 <div className="p-6 border border-dashed rounded-lg text-center text-xs text-gray-500">
                     No 1C synchronization operations recorded yet. Configure connection and trigger sync to view audit trail.
                 </div>
@@ -129,7 +129,7 @@ export const OneCSyncLogsTable: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 font-mono">
-                            {logs.map((log) => (
+                            {(Array.isArray(logs) ? logs : []).map((log) => (
                                 <tr key={log.id} className="hover:bg-gray-50/70 font-sans">
                                     <td className="px-3 py-2 text-gray-600 text-[11px]">
                                         {new Date(log.created_at).toLocaleString()}
@@ -179,41 +179,41 @@ export const OneCSyncLogsTable: React.FC = () => {
             {/* Log Detail Modal */}
             {selectedLog && (
                 <Dialog open={Boolean(selectedLog)} onOpenChange={() => setSelectedLog(null)}>
-                    <DialogContent className="max-w-xl bg-white">
+                    <DialogContent className="max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
                         <DialogHeader>
-                            <DialogTitle className="text-base font-bold flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-amber-600" />
+                            <DialogTitle className="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                                <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                                 1C Sync Audit Details ({selectedLog.sync_type})
                             </DialogTitle>
-                            <DialogDescription className="text-xs">
+                            <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
                                 Log ID: <span className="font-mono">{selectedLog.id}</span>
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-3 text-xs pt-2">
-                            <div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded border">
+                            <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-800/60 rounded border border-slate-200 dark:border-slate-700">
                                 <div>
-                                    <span className="text-gray-500 block">Timestamp:</span>
-                                    <span className="font-semibold">{new Date(selectedLog.created_at).toLocaleString()}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">Timestamp:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white">{new Date(selectedLog.created_at).toLocaleString()}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-500 block">Status:</span>
-                                    <span className="font-semibold">{selectedLog.status}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">Status:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.status}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-500 block">Records Processed:</span>
-                                    <span className="font-semibold">{selectedLog.records_processed}</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">Records Processed:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.records_processed}</span>
                                 </div>
                                 <div>
-                                    <span className="text-gray-500 block">Execution Time:</span>
-                                    <span className="font-semibold">{selectedLog.duration_ms} ms</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">Execution Time:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.duration_ms} ms</span>
                                 </div>
                             </div>
 
                             {selectedLog.error_details && (
                                 <div className="space-y-1">
-                                    <span className="font-semibold text-rose-700">Error Details:</span>
-                                    <pre className="p-3 bg-rose-50 border border-rose-200 rounded text-rose-900 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
+                                    <span className="font-semibold text-rose-600 dark:text-rose-400">Error Details:</span>
+                                    <pre className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded text-rose-900 dark:text-rose-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
                                         {selectedLog.error_details}
                                     </pre>
                                 </div>

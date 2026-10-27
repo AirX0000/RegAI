@@ -146,7 +146,7 @@ def update_tax_rate(
     if not tax_rate:
         raise HTTPException(status_code=404, detail="Tax rate not found")
 
-    update_data = tax_rate_in.dict(exclude_unset=True)
+    update_data = (tax_rate_in.model_dump(exclude_unset=True) if hasattr(tax_rate_in, "model_dump") else tax_rate_in.dict(exclude_unset=True))
     for field, value in update_data.items():
         setattr(tax_rate, field, value)
 

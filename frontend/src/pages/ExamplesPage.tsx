@@ -298,45 +298,45 @@ ${t('note_1_desc')}
     };
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8">
+        <div className="p-8 max-w-7xl mx-auto space-y-8 text-slate-900 dark:text-slate-100">
             {/* Header */}
             <div>
                 <h1 className="text-4xl font-bold tracking-tight">
                     📊 {t('examples_title')}
                 </h1>
-                <p className="text-gray-500 mt-2">
+                <p className="text-slate-500 dark:text-slate-400 mt-2">
                     {t('examples_subtitle')}
                 </p>
             </div>
 
             {/* Quick Navigation */}
-            <Card className="bg-gradient-to-r from-blue-50 to-emerald-50 border-blue-200">
+            <Card className="bg-gradient-to-r from-blue-50/70 to-emerald-50/70 dark:from-slate-900 dark:to-slate-900/90 border-blue-200 dark:border-slate-800">
                 <CardHeader>
-                    <CardTitle>🎯 {t('quick_navigation')}</CardTitle>
+                    <CardTitle className="dark:text-white">🎯 {t('quick_navigation')}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <a href="#accountants" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <a href="#accountants" className="p-3 bg-white dark:bg-slate-800/80 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200/60 dark:border-slate-700/60">
                         <div className="flex items-center gap-2">
-                            <Calculator className="h-5 w-5 text-blue-600" />
-                            <span className="font-medium">{t('for_accountants')}</span>
+                            <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <span className="font-medium text-slate-900 dark:text-slate-200">{t('for_accountants')}</span>
                         </div>
                     </a>
-                    <a href="#auditors" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <a href="#auditors" className="p-3 bg-white dark:bg-slate-800/80 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200/60 dark:border-slate-700/60">
                         <div className="flex items-center gap-2">
-                            <CheckCircle className="h-5 w-5 text-emerald-600" />
-                            <span className="font-medium">{t('for_auditors')}</span>
+                            <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                            <span className="font-medium text-slate-900 dark:text-slate-200">{t('for_auditors')}</span>
                         </div>
                     </a>
-                    <a href="#nas" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <a href="#nas" className="p-3 bg-white dark:bg-slate-800/80 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200/60 dark:border-slate-700/60">
                         <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="h-5 w-5 text-amber-600" />
-                            <span className="font-medium">{t('nas_examples')}</span>
+                            <FileSpreadsheet className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                            <span className="font-medium text-slate-900 dark:text-slate-200">{t('nas_examples')}</span>
                         </div>
                     </a>
-                    <a href="#ifrs" className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <a href="#ifrs" className="p-3 bg-white dark:bg-slate-800/80 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200/60 dark:border-slate-700/60">
                         <div className="flex items-center gap-2">
-                            <BookOpen className="h-5 w-5 text-purple-600" />
-                            <span className="font-medium">{t('ifrs_examples')}</span>
+                            <BookOpen className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <span className="font-medium text-slate-900 dark:text-slate-200">{t('ifrs_examples')}</span>
                         </div>
                     </a>
                 </CardContent>
@@ -347,7 +347,7 @@ ${t('note_1_desc')}
                 <h2 className="text-3xl font-bold mb-6">📊 {t('for_accountants')}</h2>
 
                 <Tabs defaultValue="balance-sheet" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-4 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-lg">
                         <TabsTrigger value="balance-sheet">{t('balance_sheet')}</TabsTrigger>
                         <TabsTrigger value="profit-loss">{t('profit_loss')}</TabsTrigger>
                         <TabsTrigger value="cash-flow">{t('cash_flow')}</TabsTrigger>
@@ -356,21 +356,21 @@ ${t('note_1_desc')}
 
                     {/* Balance Sheet Examples */}
                     <TabsContent value="balance-sheet" className="space-y-6">
-                        <Card>
+                        <Card className="dark:bg-slate-900 dark:border-slate-800">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <FileText className="h-5 w-5 text-blue-600" />
+                                <CardTitle className="flex items-center gap-2 dark:text-white">
+                                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                     {t('balance_sheet_example')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {/* NAS Example */}
                                 <div id="nas" className="border-l-4 border-blue-500 pl-4">
-                                    <h3 className="text-lg font-semibold mb-3">📘 {t('nas_standard')}</h3>
-                                    <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                                    <h3 className="text-lg font-semibold mb-3 dark:text-slate-100">📘 {t('nas_standard')}</h3>
+                                    <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg overflow-x-auto border border-slate-200/60 dark:border-slate-800">
                                         <table className="w-full text-sm">
                                             <thead>
-                                                <tr className="border-b-2 border-gray-300">
+                                                <tr className="border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                                     <th className="text-left p-2">{t('item_name')}</th>
                                                     <th className="text-center p-2">{t('line_code')}</th>
                                                     <th className="text-right p-2">{t('at_date')} 31.12.2024</th>
@@ -378,148 +378,148 @@ ${t('note_1_desc')}
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr className="bg-blue-100 font-semibold">
+                                                <tr className="bg-blue-100 dark:bg-blue-950/50 dark:text-blue-200 font-semibold">
                                                     <td colSpan={4} className="p-2">{t('assets')}</td>
                                                 </tr>
-                                                <tr className="bg-blue-50">
+                                                <tr className="bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300">
                                                     <td colSpan={4} className="p-2 font-medium">{t('non_current_assets')}</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('fixed_assets')}</td>
                                                     <td className="text-center p-2">010</td>
                                                     <td className="text-right p-2 font-mono">35,000,000</td>
                                                     <td className="text-right p-2 font-mono">30,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('intangible_assets')}</td>
                                                     <td className="text-center p-2">020</td>
                                                     <td className="text-right p-2 font-mono">4,000,000</td>
                                                     <td className="text-right p-2 font-mono">3,500,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('long_term_investments')}</td>
                                                     <td className="text-center p-2">030</td>
                                                     <td className="text-right p-2 font-mono">10,000,000</td>
                                                     <td className="text-right p-2 font-mono">8,000,000</td>
                                                 </tr>
-                                                <tr className="bg-blue-50 font-semibold border-b-2">
+                                                <tr className="bg-blue-50 dark:bg-blue-950/30 dark:text-blue-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('total_section_i')}</td>
                                                     <td className="text-center p-2">100</td>
                                                     <td className="text-right p-2 font-mono">49,000,000</td>
                                                     <td className="text-right p-2 font-mono">41,500,000</td>
                                                 </tr>
 
-                                                <tr className="bg-blue-50">
+                                                <tr className="bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300">
                                                     <td colSpan={4} className="p-2 font-medium">{t('current_assets')}</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('inventories')}</td>
                                                     <td className="text-center p-2">110</td>
                                                     <td className="text-right p-2 font-mono">24,500,000</td>
                                                     <td className="text-right p-2 font-mono">20,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('vat_acquired')}</td>
                                                     <td className="text-center p-2">120</td>
                                                     <td className="text-right p-2 font-mono">1,500,000</td>
                                                     <td className="text-right p-2 font-mono">1,200,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('receivables')}</td>
                                                     <td className="text-center p-2">130</td>
                                                     <td className="text-right p-2 font-mono">16,000,000</td>
                                                     <td className="text-right p-2 font-mono">14,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('cash_funds')}</td>
                                                     <td className="text-center p-2">140</td>
                                                     <td className="text-right p-2 font-mono">11,500,000</td>
                                                     <td className="text-right p-2 font-mono">9,000,000</td>
                                                 </tr>
-                                                <tr className="bg-blue-50 font-semibold border-b-2">
+                                                <tr className="bg-blue-50 dark:bg-blue-950/30 dark:text-blue-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('total_section_ii')}</td>
                                                     <td className="text-center p-2">200</td>
                                                     <td className="text-right p-2 font-mono">53,500,000</td>
                                                     <td className="text-right p-2 font-mono">44,200,000</td>
                                                 </tr>
 
-                                                <tr className="bg-blue-100 font-bold border-b-2">
+                                                <tr className="bg-blue-100 dark:bg-blue-950/50 dark:text-blue-200 font-bold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('balance_asset')}</td>
                                                     <td className="text-center p-2">300</td>
                                                     <td className="text-right p-2 font-mono">102,500,000</td>
                                                     <td className="text-right p-2 font-mono">85,700,000</td>
                                                 </tr>
 
-                                                <tr className="bg-emerald-100 font-semibold">
+                                                <tr className="bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200 font-semibold">
                                                     <td colSpan={4} className="p-2">{t('liabilities')}</td>
                                                 </tr>
-                                                <tr className="bg-emerald-50">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300">
                                                     <td colSpan={4} className="p-2 font-medium">{t('equity_reserves')}</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('authorized_capital')}</td>
                                                     <td className="text-center p-2">310</td>
                                                     <td className="text-right p-2 font-mono">20,000,000</td>
                                                     <td className="text-right p-2 font-mono">20,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('reserve_capital')}</td>
                                                     <td className="text-center p-2">320</td>
                                                     <td className="text-right p-2 font-mono">2,000,000</td>
                                                     <td className="text-right p-2 font-mono">1,500,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('retained_earnings')}</td>
                                                     <td className="text-center p-2">330</td>
                                                     <td className="text-right p-2 font-mono">23,500,000</td>
                                                     <td className="text-right p-2 font-mono">18,200,000</td>
                                                 </tr>
-                                                <tr className="bg-emerald-50 font-semibold border-b-2">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('total_section_iii')}</td>
                                                     <td className="text-center p-2">400</td>
                                                     <td className="text-right p-2 font-mono">45,500,000</td>
                                                     <td className="text-right p-2 font-mono">39,700,000</td>
                                                 </tr>
 
-                                                <tr className="bg-emerald-50">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300">
                                                     <td colSpan={4} className="p-2 font-medium">{t('long_term_liabilities')}</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('long_term_loans')}</td>
                                                     <td className="text-center p-2">410</td>
                                                     <td className="text-right p-2 font-mono">20,000,000</td>
                                                     <td className="text-right p-2 font-mono">15,000,000</td>
                                                 </tr>
-                                                <tr className="bg-emerald-50 font-semibold border-b-2">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('total_section_iv')}</td>
                                                     <td className="text-center p-2">500</td>
                                                     <td className="text-right p-2 font-mono">20,000,000</td>
                                                     <td className="text-right p-2 font-mono">15,000,000</td>
                                                 </tr>
 
-                                                <tr className="bg-emerald-50">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300">
                                                     <td colSpan={4} className="p-2 font-medium">{t('short_term_liabilities')}</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('short_term_loans')}</td>
                                                     <td className="text-center p-2">510</td>
                                                     <td className="text-right p-2 font-mono">10,000,000</td>
                                                     <td className="text-right p-2 font-mono">8,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('payables')}</td>
                                                     <td className="text-center p-2">520</td>
                                                     <td className="text-right p-2 font-mono">27,000,000</td>
                                                     <td className="text-right p-2 font-mono">23,000,000</td>
                                                 </tr>
-                                                <tr className="bg-emerald-50 font-semibold border-b-2">
+                                                <tr className="bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('total_section_v')}</td>
                                                     <td className="text-center p-2">600</td>
                                                     <td className="text-right p-2 font-mono">37,000,000</td>
                                                     <td className="text-right p-2 font-mono">31,000,000</td>
                                                 </tr>
 
-                                                <tr className="bg-emerald-100 font-bold border-b-2">
+                                                <tr className="bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200 font-bold border-b-2 border-slate-300 dark:border-slate-700">
                                                     <td className="p-2">{t('balance_liability')}</td>
                                                     <td className="text-center p-2">700</td>
                                                     <td className="text-right p-2 font-mono">102,500,000</td>
@@ -529,10 +529,10 @@ ${t('note_1_desc')}
                                         </table>
                                     </div>
 
-                                    <div className="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
-                                        <p className="text-sm font-medium text-blue-900 mb-2">✓ {t('check_balance')}</p>
-                                        <p className="text-sm text-blue-800">{t('balance_asset')} (102,500,000) = {t('balance_liability')} (102,500,000) ✓</p>
-                                        <p className="text-sm text-blue-800 mt-1">{t('formula_check')}</p>
+                                    <div className="mt-4 p-3 bg-blue-50/70 dark:bg-blue-950/40 rounded border border-blue-200 dark:border-blue-900/50">
+                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">✓ {t('check_balance')}</p>
+                                        <p className="text-sm text-blue-800 dark:text-blue-200">{t('balance_asset')} (102,500,000) = {t('balance_liability')} (102,500,000) ✓</p>
+                                        <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">{t('formula_check')}</p>
                                     </div>
 
                                     <div className="mt-4 flex gap-2">
@@ -540,7 +540,7 @@ ${t('note_1_desc')}
                                             <Download className="h-4 w-4" />
                                             {t('download_example_nas')}
                                         </Button>
-                                        <Button variant="outline" className="gap-2" onClick={() => downloadExample('notes_template.docx')}>
+                                        <Button variant="outline" className="gap-2 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800" onClick={() => downloadExample('notes_template.docx')}>
                                             <FileText className="h-4 w-4" />
                                             {t('notes_to_report')}
                                         </Button>
@@ -549,83 +549,83 @@ ${t('note_1_desc')}
 
                                 {/* IFRS Example */}
                                 <div id="ifrs" className="border-l-4 border-purple-500 pl-4 mt-6">
-                                    <h3 className="text-lg font-semibold mb-3">📗 {t('ifrs_standard')}</h3>
-                                    <div className="bg-gray-50 p-4 rounded-lg">
-                                        <p className="text-sm text-gray-700 mb-3">
+                                    <h3 className="text-lg font-semibold mb-3 dark:text-slate-100">📗 {t('ifrs_standard')}</h3>
+                                    <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                                        <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
                                             <strong>{t('statement_financial_position')}</strong>
                                         </p>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm">
                                                 <thead>
-                                                    <tr className="border-b-2 border-gray-300">
+                                                    <tr className="border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                                         <th className="text-left p-2">Item / Показатель</th>
                                                         <th className="text-right p-2">2024 (UZS)</th>
                                                         <th className="text-right p-2">2023 (UZS)</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <tr className="bg-purple-100 font-semibold">
+                                                    <tr className="bg-purple-100 dark:bg-purple-950/50 dark:text-purple-200 font-semibold">
                                                         <td colSpan={3} className="p-2">ASSETS / АКТИВЫ</td>
                                                     </tr>
-                                                    <tr className="bg-purple-50">
+                                                    <tr className="bg-purple-50 dark:bg-purple-950/30 dark:text-purple-300">
                                                         <td colSpan={3} className="p-2 font-medium">Non-current assets / Внеоборотные активы</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Property, plant and equipment</td>
                                                         <td className="text-right p-2 font-mono">35,000,000</td>
                                                         <td className="text-right p-2 font-mono">30,000,000</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Intangible assets</td>
                                                         <td className="text-right p-2 font-mono">4,000,000</td>
                                                         <td className="text-right p-2 font-mono">3,500,000</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Right-of-use assets (IFRS 16)</td>
                                                         <td className="text-right p-2 font-mono">5,000,000</td>
                                                         <td className="text-right p-2 font-mono">4,500,000</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Financial assets at FVOCI</td>
                                                         <td className="text-right p-2 font-mono">10,000,000</td>
                                                         <td className="text-right p-2 font-mono">8,000,000</td>
                                                     </tr>
-                                                    <tr className="bg-purple-50 font-semibold border-b-2">
+                                                    <tr className="bg-purple-50 dark:bg-purple-950/30 dark:text-purple-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                         <td className="p-2">Total non-current assets</td>
                                                         <td className="text-right p-2 font-mono">54,000,000</td>
                                                         <td className="text-right p-2 font-mono">46,000,000</td>
                                                     </tr>
 
-                                                    <tr className="bg-purple-50">
+                                                    <tr className="bg-purple-50 dark:bg-purple-950/30 dark:text-purple-300">
                                                         <td colSpan={3} className="p-2 font-medium">Current assets / Оборотные активы</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Inventories</td>
                                                         <td className="text-right p-2 font-mono">24,500,000</td>
                                                         <td className="text-right p-2 font-mono">20,000,000</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Trade and other receivables</td>
                                                         <td className="text-right p-2 font-mono">15,000,000</td>
                                                         <td className="text-right p-2 font-mono">13,000,000</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2 pl-6 text-xs">Less: ECL provision (IFRS 9)</td>
-                                                        <td className="text-right p-2 font-mono text-red-600">(500,000)</td>
-                                                        <td className="text-right p-2 font-mono text-red-600">(300,000)</td>
+                                                        <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(500,000)</td>
+                                                        <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(300,000)</td>
                                                     </tr>
-                                                    <tr className="border-b">
+                                                    <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                         <td className="p-2">Cash and cash equivalents</td>
                                                         <td className="text-right p-2 font-mono">11,500,000</td>
                                                         <td className="text-right p-2 font-mono">9,000,000</td>
                                                     </tr>
-                                                    <tr className="bg-purple-50 font-semibold border-b-2">
+                                                    <tr className="bg-purple-50 dark:bg-purple-950/30 dark:text-purple-200 font-semibold border-b-2 border-slate-300 dark:border-slate-700">
                                                         <td className="p-2">Total current assets</td>
                                                         <td className="text-right p-2 font-mono">50,500,000</td>
                                                         <td className="text-right p-2 font-mono">41,700,000</td>
                                                     </tr>
 
-                                                    <tr className="bg-purple-100 font-bold border-b-2">
+                                                    <tr className="bg-purple-100 dark:bg-purple-950/50 dark:text-purple-200 font-bold border-b-2 border-slate-300 dark:border-slate-700">
                                                         <td className="p-2">TOTAL ASSETS</td>
                                                         <td className="text-right p-2 font-mono">104,500,000</td>
                                                         <td className="text-right p-2 font-mono">87,700,000</td>
@@ -635,9 +635,9 @@ ${t('note_1_desc')}
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 p-3 bg-purple-50 rounded border border-purple-200">
-                                        <p className="text-sm font-medium text-purple-900 mb-2">📌 {t('key_differences_ifrs')}</p>
-                                        <ul className="text-sm text-purple-800 space-y-1 list-disc ml-5">
+                                    <div className="mt-4 p-3 bg-purple-50/70 dark:bg-purple-950/40 rounded border border-purple-200 dark:border-purple-900/50">
+                                        <p className="text-sm font-medium text-purple-900 dark:text-purple-300 mb-2">📌 {t('key_differences_ifrs')}</p>
+                                        <ul className="text-sm text-purple-800 dark:text-purple-200 space-y-1 list-disc ml-5">
                                             <li>Учет аренды по IFRS 16 (Right-of-use assets)</li>
                                             <li>Резерв по ожидаемым кредитным убыткам (ECL) по IFRS 9</li>
                                             <li>Классификация финансовых активов (FVOCI, FVTPL, AC)</li>
@@ -650,7 +650,7 @@ ${t('note_1_desc')}
                                             <Download className="h-4 w-4" />
                                             {t('download_example_ifrs')}
                                         </Button>
-                                        <Button variant="outline" className="gap-2" onClick={() => downloadExample('notes_template.docx')}>
+                                        <Button variant="outline" className="gap-2 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800" onClick={() => downloadExample('notes_template.docx')}>
                                             <FileText className="h-4 w-4" />
                                             {t('notes_to_report')}
                                         </Button>
@@ -662,72 +662,72 @@ ${t('note_1_desc')}
 
                     {/* Profit & Loss Examples */}
                     <TabsContent value="profit-loss" className="space-y-6">
-                        <Card>
+                        <Card className="dark:bg-slate-900 dark:border-slate-800">
                             <CardHeader>
-                                <CardTitle>{t('profit_loss_examples')}</CardTitle>
+                                <CardTitle className="dark:text-white">{t('profit_loss_examples')}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                                <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg overflow-x-auto border border-slate-200/60 dark:border-slate-800">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="border-b-2 border-gray-300">
+                                            <tr className="border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                                 <th className="text-left p-2">{t('item_name')}</th>
                                                 <th className="text-right p-2">2024</th>
                                                 <th className="text-right p-2">2023</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2 font-semibold">{t('revenue_sales')}</td>
                                                 <td className="text-right p-2 font-mono">150,000,000</td>
                                                 <td className="text-right p-2 font-mono">120,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('cost_sales')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(90,000,000)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(72,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(90,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(72,000,000)</td>
                                             </tr>
-                                            <tr className="bg-blue-50 border-b font-semibold">
+                                            <tr className="bg-blue-50/60 dark:bg-blue-950/30 border-b border-slate-200 dark:border-slate-800/60 font-semibold dark:text-blue-200">
                                                 <td className="p-2">{t('gross_profit')}</td>
                                                 <td className="text-right p-2 font-mono">60,000,000</td>
                                                 <td className="text-right p-2 font-mono">48,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('selling_expenses')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(15,000,000)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(12,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(15,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(12,000,000)</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('admin_expenses')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(20,000,000)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(16,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(20,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(16,000,000)</td>
                                             </tr>
-                                            <tr className="bg-emerald-50 border-b font-semibold">
+                                            <tr className="bg-emerald-50/60 dark:bg-emerald-950/30 border-b border-slate-200 dark:border-slate-800/60 font-semibold dark:text-emerald-200">
                                                 <td className="p-2">{t('profit_sales')}</td>
                                                 <td className="text-right p-2 font-mono">25,000,000</td>
                                                 <td className="text-right p-2 font-mono">20,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('other_income')}</td>
                                                 <td className="text-right p-2 font-mono">3,000,000</td>
                                                 <td className="text-right p-2 font-mono">2,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('other_expenses')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(2,000,000)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(1,500,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(2,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(1,500,000)</td>
                                             </tr>
-                                            <tr className="bg-blue-100 border-b font-bold">
+                                            <tr className="bg-blue-100 dark:bg-blue-950/50 border-b border-slate-200 dark:border-slate-800/60 font-bold dark:text-blue-200">
                                                 <td className="p-2">{t('profit_before_tax')}</td>
                                                 <td className="text-right p-2 font-mono">26,000,000</td>
                                                 <td className="text-right p-2 font-mono">20,500,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('income_tax')} (15%)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(3,900,000)</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(3,075,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(3,900,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(3,075,000)</td>
                                             </tr>
-                                            <tr className="bg-emerald-100 border-b-2 font-bold">
+                                            <tr className="bg-emerald-100 dark:bg-emerald-950/50 border-b-2 border-slate-300 dark:border-slate-700 font-bold dark:text-emerald-200">
                                                 <td className="p-2">{t('net_profit')}</td>
                                                 <td className="text-right p-2 font-mono">22,100,000</td>
                                                 <td className="text-right p-2 font-mono">17,425,000</td>
@@ -736,9 +736,9 @@ ${t('note_1_desc')}
                                     </table>
                                 </div>
 
-                                <div className="mt-4 p-3 bg-emerald-50 rounded border border-emerald-200">
-                                    <p className="text-sm font-medium text-emerald-900 mb-2">📊 {t('key_indicators')}</p>
-                                    <div className="grid grid-cols-2 gap-2 text-sm text-emerald-800">
+                                <div className="mt-4 p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded border border-emerald-200 dark:border-emerald-900/50">
+                                    <p className="text-sm font-medium text-emerald-900 dark:text-emerald-300 mb-2">📊 {t('key_indicators')}</p>
+                                    <div className="grid grid-cols-2 gap-2 text-sm text-emerald-800 dark:text-emerald-200">
                                         <div>• {t('return_sales')}: 16.7%</div>
                                         <div>• {t('gross_margin')}: 40%</div>
                                         <div>• {t('net_margin')}: 14.7%</div>
@@ -758,89 +758,89 @@ ${t('note_1_desc')}
 
                     {/* Cash Flow Examples */}
                     <TabsContent value="cash-flow" className="space-y-6">
-                        <Card>
+                        <Card className="dark:bg-slate-900 dark:border-slate-800">
                             <CardHeader>
-                                <CardTitle>{t('cash_flow_statement')}</CardTitle>
+                                <CardTitle className="dark:text-white">{t('cash_flow_statement')}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
+                                <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg overflow-x-auto border border-slate-200/60 dark:border-slate-800">
                                     <table className="w-full text-sm">
                                         <thead>
-                                            <tr className="border-b-2 border-gray-300">
+                                            <tr className="border-b-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                                 <th className="text-left p-2">{t('item_name')}</th>
                                                 <th className="text-right p-2">2024</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr className="bg-blue-100 font-semibold">
+                                            <tr className="bg-blue-100 dark:bg-blue-950/50 dark:text-blue-200 font-semibold">
                                                 <td colSpan={2} className="p-2">{t('cash_flow_operating')}</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('receipts_customers')}</td>
                                                 <td className="text-right p-2 font-mono">145,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('payments_suppliers')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(85,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(85,000,000)</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('payments_wages')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(25,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(25,000,000)</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('tax_payments')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(15,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(15,000,000)</td>
                                             </tr>
-                                            <tr className="bg-blue-50 border-b-2 font-semibold">
+                                            <tr className="bg-blue-50/60 dark:bg-blue-950/30 dark:text-blue-200 border-b-2 border-slate-300 dark:border-slate-700 font-semibold">
                                                 <td className="p-2">{t('net_cash_operating')}</td>
                                                 <td className="text-right p-2 font-mono">20,000,000</td>
                                             </tr>
 
-                                            <tr className="bg-purple-100 font-semibold">
+                                            <tr className="bg-purple-100 dark:bg-purple-950/50 dark:text-purple-200 font-semibold">
                                                 <td colSpan={2} className="p-2">{t('cash_flow_investing')}</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('purchase_fixed_assets')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(8,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(8,000,000)</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('sale_fixed_assets')}</td>
                                                 <td className="text-right p-2 font-mono">1,000,000</td>
                                             </tr>
-                                            <tr className="bg-purple-50 border-b-2 font-semibold">
+                                            <tr className="bg-purple-50/60 dark:bg-purple-950/30 dark:text-purple-200 border-b-2 border-slate-300 dark:border-slate-700 font-semibold">
                                                 <td className="p-2">{t('net_cash_investing')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(7,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(7,000,000)</td>
                                             </tr>
 
-                                            <tr className="bg-emerald-100 font-semibold">
+                                            <tr className="bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-200 font-semibold">
                                                 <td colSpan={2} className="p-2">{t('cash_flow_financing')}</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('loans_received')}</td>
                                                 <td className="text-right p-2 font-mono">10,000,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('loans_repaid')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(5,000,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(5,000,000)</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('dividends_paid')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(15,500,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(15,500,000)</td>
                                             </tr>
-                                            <tr className="bg-emerald-50 border-b-2 font-semibold">
+                                            <tr className="bg-emerald-50/60 dark:bg-emerald-950/30 dark:text-emerald-200 border-b-2 border-slate-300 dark:border-slate-700 font-semibold">
                                                 <td className="p-2">{t('net_cash_financing')}</td>
-                                                <td className="text-right p-2 font-mono text-red-600">(10,500,000)</td>
+                                                <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(10,500,000)</td>
                                             </tr>
 
-                                            <tr className="bg-gray-100 border-b-2 font-bold">
+                                            <tr className="bg-slate-100 dark:bg-slate-800 border-b-2 border-slate-300 dark:border-slate-700 font-bold text-slate-900 dark:text-slate-100">
                                                 <td className="p-2">{t('net_change_cash')}</td>
                                                 <td className="text-right p-2 font-mono">2,500,000</td>
                                             </tr>
-                                            <tr className="border-b">
+                                            <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                 <td className="p-2">{t('cash_start_year')}</td>
                                                 <td className="text-right p-2 font-mono">9,000,000</td>
                                             </tr>
-                                            <tr className="bg-blue-100 border-b-2 font-bold">
+                                            <tr className="bg-blue-100 dark:bg-blue-950/50 dark:text-blue-200 border-b-2 border-slate-300 dark:border-slate-700 font-bold">
                                                 <td className="p-2">{t('cash_end_year')}</td>
                                                 <td className="text-right p-2 font-mono">11,500,000</td>
                                             </tr>
@@ -860,24 +860,24 @@ ${t('note_1_desc')}
 
                     {/* Notes Examples */}
                     <TabsContent value="notes" className="space-y-6">
-                        <Card>
+                        <Card className="dark:bg-slate-900 dark:border-slate-800">
                             <CardHeader>
-                                <CardTitle>{t('notes_financial_statements')}</CardTitle>
+                                <CardTitle className="dark:text-white">{t('notes_financial_statements')}</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="p-4 bg-amber-50 rounded border border-amber-200">
-                                    <h4 className="font-semibold text-amber-900 mb-2">{t('note_1_policy')}</h4>
-                                    <p className="text-sm text-amber-800">
+                                <div className="p-4 bg-amber-50/70 dark:bg-amber-950/30 rounded border border-amber-200 dark:border-amber-900/50">
+                                    <h4 className="font-semibold text-amber-900 dark:text-amber-300 mb-2">{t('note_1_policy')}</h4>
+                                    <p className="text-sm text-amber-800 dark:text-amber-200">
                                         {t('note_1_desc')}
                                     </p>
                                 </div>
 
-                                <div className="p-4 bg-blue-50 rounded border border-blue-200">
-                                    <h4 className="font-semibold text-blue-900 mb-2">{t('note_2_fixed_assets')}</h4>
+                                <div className="p-4 bg-blue-50/70 dark:bg-blue-950/30 rounded border border-blue-200 dark:border-blue-900/50">
+                                    <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">{t('note_2_fixed_assets')}</h4>
                                     <div className="overflow-x-auto mt-2">
                                         <table className="w-full text-sm">
                                             <thead>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                                     <th className="text-left p-2">{t('group_fa')}</th>
                                                     <th className="text-right p-2">{t('initial_cost')}</th>
                                                     <th className="text-right p-2">{t('depreciation')}</th>
@@ -885,22 +885,22 @@ ${t('note_1_desc')}
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('buildings')}</td>
                                                     <td className="text-right p-2 font-mono">30,000,000</td>
-                                                    <td className="text-right p-2 font-mono">(5,000,000)</td>
+                                                    <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(5,000,000)</td>
                                                     <td className="text-right p-2 font-mono">25,000,000</td>
                                                 </tr>
-                                                <tr className="border-b">
+                                                <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                                     <td className="p-2">{t('equipment')}</td>
                                                     <td className="text-right p-2 font-mono">15,000,000</td>
-                                                    <td className="text-right p-2 font-mono">(5,000,000)</td>
+                                                    <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(5,000,000)</td>
                                                     <td className="text-right p-2 font-mono">10,000,000</td>
                                                 </tr>
-                                                <tr className="bg-blue-50 font-semibold">
+                                                <tr className="bg-blue-50/60 dark:bg-blue-950/40 dark:text-blue-200 font-semibold">
                                                     <td className="p-2">Итого</td>
                                                     <td className="text-right p-2 font-mono">45,000,000</td>
-                                                    <td className="text-right p-2 font-mono">(10,000,000)</td>
+                                                    <td className="text-right p-2 font-mono text-red-600 dark:text-red-400">(10,000,000)</td>
                                                     <td className="text-right p-2 font-mono">35,000,000</td>
                                                 </tr>
                                             </tbody>
@@ -924,18 +924,18 @@ ${t('note_1_desc')}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Audit Program Example */}
-                    <Card>
+                    <Card className="dark:bg-slate-900 dark:border-slate-800">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <CheckCircle className="h-5 w-5 text-emerald-600" />
+                            <CardTitle className="flex items-center gap-2 dark:text-white">
+                                <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                 {t('audit_program')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                <div className="p-3 bg-gray-50 rounded border">
-                                    <h4 className="font-semibold text-sm mb-2">{t('audit_fa')}</h4>
-                                    <ul className="text-xs space-y-1 text-gray-700">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-950/70 rounded border border-slate-200 dark:border-slate-800">
+                                    <h4 className="font-semibold text-sm mb-2 dark:text-slate-200">{t('audit_fa')}</h4>
+                                    <ul className="text-xs space-y-1 text-slate-700 dark:text-slate-300">
                                         <li>☑ {t('check_inventory')}</li>
                                         <li>☑ {t('check_depreciation')}</li>
                                         <li>☑ {t('check_docs')}</li>
@@ -943,18 +943,18 @@ ${t('note_1_desc')}
                                     </ul>
                                 </div>
 
-                                <div className="p-3 bg-gray-50 rounded border">
-                                    <h4 className="font-semibold text-sm mb-2">{t('audit_inventory')}</h4>
-                                    <ul className="text-xs space-y-1 text-gray-700">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-950/70 rounded border border-slate-200 dark:border-slate-800">
+                                    <h4 className="font-semibold text-sm mb-2 dark:text-slate-200">{t('audit_inventory')}</h4>
+                                    <ul className="text-xs space-y-1 text-slate-700 dark:text-slate-300">
                                         <li>☑ {t('inventory_presence')}</li>
                                         <li>☑ {t('check_valuation')}</li>
                                         <li>☐ {t('check_reserve')}</li>
                                     </ul>
                                 </div>
 
-                                <div className="p-3 bg-gray-50 rounded border">
-                                    <h4 className="font-semibold text-sm mb-2">{t('audit_receivables')}</h4>
-                                    <ul className="text-xs space-y-1 text-gray-700">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-950/70 rounded border border-slate-200 dark:border-slate-800">
+                                    <h4 className="font-semibold text-sm mb-2 dark:text-slate-200">{t('audit_receivables')}</h4>
+                                    <ul className="text-xs space-y-1 text-slate-700 dark:text-slate-300">
                                         <li>☑ {t('confirmations_received')}</li>
                                         <li>☐ {t('reserve_checked')}</li>
                                         <li>☐ Реальность взыскания оценена</li>
@@ -970,18 +970,18 @@ ${t('note_1_desc')}
                     </Card>
 
                     {/* Materiality Calculation */}
-                    <Card>
+                    <Card className="dark:bg-slate-900 dark:border-slate-800">
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Calculator className="h-5 w-5 text-blue-600" />
+                            <CardTitle className="flex items-center gap-2 dark:text-white">
+                                <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                                 {t('materiality_calc')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="bg-gray-50 p-4 rounded">
+                            <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded border border-slate-200 dark:border-slate-800">
                                 <table className="w-full text-sm">
                                     <thead>
-                                        <tr className="border-b">
+                                        <tr className="border-b border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200">
                                             <th className="text-left p-2">{t('item_name')}</th>
                                             <th className="text-right p-2">{t('value')}</th>
                                             <th className="text-center p-2">{t('percent')}</th>
@@ -989,36 +989,36 @@ ${t('note_1_desc')}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="border-b">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                             <td className="p-2">{t('revenue')}</td>
                                             <td className="text-right p-2 font-mono">500,000,000</td>
                                             <td className="text-center p-2">1%</td>
                                             <td className="text-right p-2 font-mono">5,000,000</td>
                                         </tr>
-                                        <tr className="border-b">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                             <td className="p-2">Активы</td>
                                             <td className="text-right p-2 font-mono">200,000,000</td>
                                             <td className="text-center p-2">2%</td>
                                             <td className="text-right p-2 font-mono">4,000,000</td>
                                         </tr>
-                                        <tr className="border-b">
+                                        <tr className="border-b border-slate-200 dark:border-slate-800/60">
                                             <td className="p-2">{t('profit')}</td>
                                             <td className="text-right p-2 font-mono">30,000,000</td>
                                             <td className="text-center p-2">5%</td>
-                                            <td className="text-right p-2 font-mono bg-yellow-100">1,500,000</td>
+                                            <td className="text-right p-2 font-mono bg-yellow-100 dark:bg-amber-950/50 dark:text-amber-200">1,500,000</td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <div className="mt-4 p-3 bg-emerald-50 rounded border border-emerald-200">
-                                    <p className="text-sm font-semibold text-emerald-900">{t('selected_materiality')}</p>
-                                    <p className="text-2xl font-bold text-emerald-700 mt-1">1,500,000 сум</p>
-                                    <p className="text-xs text-emerald-600 mt-1">{t('lowest_value')}</p>
+                                <div className="mt-4 p-3 bg-emerald-50/70 dark:bg-emerald-950/40 rounded border border-emerald-200 dark:border-emerald-900/50">
+                                    <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-300">{t('selected_materiality')}</p>
+                                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 mt-1">1,500,000 сум</p>
+                                    <p className="text-xs text-emerald-600 dark:text-emerald-300 mt-1">{t('lowest_value')}</p>
                                 </div>
 
-                                <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
-                                    <p className="text-sm font-semibold text-blue-900">{t('technical_level')}</p>
-                                    <p className="text-xl font-bold text-blue-700">1,050,000 сум</p>
+                                <div className="mt-3 p-3 bg-blue-50/70 dark:bg-blue-950/40 rounded border border-blue-200 dark:border-blue-900/50">
+                                    <p className="text-sm font-semibold text-blue-900 dark:text-blue-300">{t('technical_level')}</p>
+                                    <p className="text-xl font-bold text-blue-700 dark:text-blue-400">1,050,000 сум</p>
                                 </div>
                             </div>
 
@@ -1030,12 +1030,12 @@ ${t('note_1_desc')}
                     </Card>
 
                     {/* Working Papers Example */}
-                    <Card className="md:col-span-2">
+                    <Card className="md:col-span-2 dark:bg-slate-900 dark:border-slate-800">
                         <CardHeader>
-                            <CardTitle>{t('working_paper_sample')}</CardTitle>
+                            <CardTitle className="dark:text-white">{t('working_paper_sample')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="bg-gray-50 p-4 rounded border">
+                            <div className="bg-slate-50 dark:bg-slate-950/70 p-4 rounded border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200">
                                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                                     <div>
                                         <p><strong>{t('client')}:</strong> ООО "Торговая компания"</p>
@@ -1047,12 +1047,12 @@ ${t('note_1_desc')}
                                     </div>
                                 </div>
 
-                                <h4 className="font-semibold mb-2">{t('test_control_revenue')}</h4>
-                                <div className="bg-white p-3 rounded">
+                                <h4 className="font-semibold mb-2 dark:text-white">{t('test_control_revenue')}</h4>
+                                <div className="bg-white dark:bg-slate-900/80 p-3 rounded border border-slate-200/80 dark:border-slate-800 text-slate-900 dark:text-slate-200">
                                     <p className="text-sm mb-2"><strong>{t('objective')}</strong></p>
                                     <p className="text-sm mb-2"><strong>{t('sample_size')}</strong></p>
                                     <p className="text-sm mb-2"><strong>{t('result')}</strong></p>
-                                    <ul className="text-sm space-y-1 ml-5 list-disc">
+                                    <ul className="text-sm space-y-1 ml-5 list-disc text-slate-700 dark:text-slate-300">
                                         <li>28 операций соответствуют требованиям (93%)</li>
                                         <li>2 исключения - отсутствие подписи на накладной</li>
                                     </ul>
@@ -1065,7 +1065,7 @@ ${t('note_1_desc')}
                                     <Download className="h-4 w-4" />
                                     {t('download_wp_template')}
                                 </Button>
-                                <Button variant="outline" className="gap-2" onClick={downloadAllWPTemplates}>
+                                <Button variant="outline" className="gap-2 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800" onClick={downloadAllWPTemplates}>
                                     <FileText className="h-4 w-4" />
                                     {t('all_wp_templates')}
                                 </Button>
@@ -1096,117 +1096,117 @@ ${t('note_1_desc')}
 
             {/* Formulas Modal/Panel */}
             {showFormulas && (
-                <Card className="border-2 border-purple-200">
-                    <CardHeader className="bg-purple-50">
-                        <CardTitle className="flex items-center gap-2">
-                            <Calculator className="h-5 w-5 text-purple-600" />
+                <Card className="border-2 border-purple-200 dark:border-purple-900/50 dark:bg-slate-900">
+                    <CardHeader className="bg-purple-50 dark:bg-purple-950/50">
+                        <CardTitle className="flex items-center gap-2 dark:text-purple-200">
+                            <Calculator className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                             Financial Statement Formulas & Calculations
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
                         {/* Balance Sheet Formulas */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-3 text-purple-900">📊 Balance Sheet (Бухгалтерский баланс)</h3>
-                            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-300">📊 Balance Sheet (Бухгалтерский баланс)</h3>
+                            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
                                 <div className="border-l-4 border-blue-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-blue-900">Assets = Liabilities + Equity</p>
-                                    <p className="text-sm text-gray-600 mt-1">Активы = Обязательства + Капитал</p>
+                                    <p className="font-mono text-sm font-semibold text-blue-900 dark:text-blue-300">Assets = Liabilities + Equity</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Активы = Обязательства + Капитал</p>
                                 </div>
                                 <div className="border-l-4 border-emerald-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-emerald-900">Total Assets = Non-Current Assets + Current Assets</p>
-                                    <p className="text-sm text-gray-600 mt-1">Line 300 = Line 100 + Line 200</p>
+                                    <p className="font-mono text-sm font-semibold text-emerald-900 dark:text-emerald-300">Total Assets = Non-Current Assets + Current Assets</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Line 300 = Line 100 + Line 200</p>
                                 </div>
                                 <div className="border-l-4 border-amber-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-amber-900">Total Liabilities = Equity + Long-term + Short-term</p>
-                                    <p className="text-sm text-gray-600 mt-1">Line 700 = Line 400 + Line 500 + Line 600</p>
+                                    <p className="font-mono text-sm font-semibold text-amber-900 dark:text-amber-300">Total Liabilities = Equity + Long-term + Short-term</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Line 700 = Line 400 + Line 500 + Line 600</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* P&L Formulas */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-3 text-purple-900">💰 Profit & Loss (Отчет о прибылях и убытках)</h3>
-                            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-300">💰 Profit & Loss (Отчет о прибылях и убытках)</h3>
+                            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
                                 <div className="border-l-4 border-blue-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-blue-900">Gross Profit = Revenue - Cost of Sales</p>
-                                    <p className="text-sm text-gray-600 mt-1">Валовая прибыль = Выручка - Себестоимость</p>
+                                    <p className="font-mono text-sm font-semibold text-blue-900 dark:text-blue-300">Gross Profit = Revenue - Cost of Sales</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Валовая прибыль = Выручка - Себестоимость</p>
                                 </div>
                                 <div className="border-l-4 border-emerald-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-emerald-900">Operating Profit = Gross Profit - Operating Expenses</p>
-                                    <p className="text-sm text-gray-600 mt-1">Операционная прибыль = Валовая прибыль - Операционные расходы</p>
+                                    <p className="font-mono text-sm font-semibold text-emerald-900 dark:text-emerald-300">Operating Profit = Gross Profit - Operating Expenses</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Операционная прибыль = Валовая прибыль - Операционные расходы</p>
                                 </div>
                                 <div className="border-l-4 border-amber-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-amber-900">Net Profit = Profit Before Tax - Income Tax</p>
-                                    <p className="text-sm text-gray-600 mt-1">Чистая прибыль = Прибыль до налога - Налог на прибыль</p>
+                                    <p className="font-mono text-sm font-semibold text-amber-900 dark:text-amber-300">Net Profit = Profit Before Tax - Income Tax</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Чистая прибыль = Прибыль до налога - Налог на прибыль</p>
                                 </div>
                                 <div className="border-l-4 border-purple-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-purple-900">Income Tax = Profit Before Tax × Tax Rate (15%)</p>
-                                    <p className="text-sm text-gray-600 mt-1">Налог на прибыль = Прибыль до налога × 15%</p>
+                                    <p className="font-mono text-sm font-semibold text-purple-900 dark:text-purple-300">Income Tax = Profit Before Tax × Tax Rate (15%)</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Налог на прибыль = Прибыль до налога × 15%</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Cash Flow Formulas */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-3 text-purple-900">💵 Cash Flow (Отчет о движении денежных средств)</h3>
-                            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-300">💵 Cash Flow (Отчет о движении денежных средств)</h3>
+                            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
                                 <div className="border-l-4 border-blue-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-blue-900">Net Cash from Operating = Receipts - Payments</p>
-                                    <p className="text-sm text-gray-600 mt-1">Денежный поток от операций = Поступления - Платежи</p>
+                                    <p className="font-mono text-sm font-semibold text-blue-900 dark:text-blue-300">Net Cash from Operating = Receipts - Payments</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Денежный поток от операций = Поступления - Платежи</p>
                                 </div>
                                 <div className="border-l-4 border-emerald-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-emerald-900">Net Change in Cash = Operating + Investing + Financing</p>
-                                    <p className="text-sm text-gray-600 mt-1">Изменение денежных средств = Операционная + Инвестиционная + Финансовая</p>
+                                    <p className="font-mono text-sm font-semibold text-emerald-900 dark:text-emerald-300">Net Change in Cash = Operating + Investing + Financing</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Изменение денежных средств = Операционная + Инвестиционная + Финансовая</p>
                                 </div>
                                 <div className="border-l-4 border-amber-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-amber-900">Cash End of Year = Cash Start + Net Change</p>
-                                    <p className="text-sm text-gray-600 mt-1">Денежные средства на конец = Начало + Изменение</p>
+                                    <p className="font-mono text-sm font-semibold text-amber-900 dark:text-amber-300">Cash End of Year = Cash Start + Net Change</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Денежные средства на конец = Начало + Изменение</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Financial Ratios */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-3 text-purple-900">📈 Key Financial Ratios (Ключевые показатели)</h3>
-                            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-300">📈 Key Financial Ratios (Ключевые показатели)</h3>
+                            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
                                 <div className="border-l-4 border-blue-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-blue-900">ROA (Return on Assets) = Net Profit / Total Assets × 100%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Рентабельность активов</p>
+                                    <p className="font-mono text-sm font-semibold text-blue-900 dark:text-blue-300">ROA (Return on Assets) = Net Profit / Total Assets × 100%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Рентабельность активов</p>
                                 </div>
                                 <div className="border-l-4 border-emerald-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-emerald-900">ROE (Return on Equity) = Net Profit / Equity × 100%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Рентабельность капитала</p>
+                                    <p className="font-mono text-sm font-semibold text-emerald-900 dark:text-emerald-300">ROE (Return on Equity) = Net Profit / Equity × 100%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Рентабельность капитала</p>
                                 </div>
                                 <div className="border-l-4 border-amber-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-amber-900">Current Ratio = Current Assets / Current Liabilities</p>
-                                    <p className="text-sm text-gray-600 mt-1">Коэффициент текущей ликвидности</p>
+                                    <p className="font-mono text-sm font-semibold text-amber-900 dark:text-amber-300">Current Ratio = Current Assets / Current Liabilities</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Коэффициент текущей ликвидности</p>
                                 </div>
                                 <div className="border-l-4 border-purple-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-purple-900">Gross Margin = Gross Profit / Revenue × 100%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Валовая маржа</p>
+                                    <p className="font-mono text-sm font-semibold text-purple-900 dark:text-purple-300">Gross Margin = Gross Profit / Revenue × 100%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Валовая маржа</p>
                                 </div>
                                 <div className="border-l-4 border-pink-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-pink-900">Net Margin = Net Profit / Revenue × 100%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Чистая маржа</p>
+                                    <p className="font-mono text-sm font-semibold text-pink-900 dark:text-pink-300">Net Margin = Net Profit / Revenue × 100%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Чистая маржа</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Audit Materiality */}
                         <div>
-                            <h3 className="text-lg font-semibold mb-3 text-purple-900">🔍 Audit Materiality (Существенность в аудите)</h3>
-                            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold mb-3 text-purple-900 dark:text-purple-300">🔍 Audit Materiality (Существенность в аудите)</h3>
+                            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/70 p-4 rounded-lg border border-slate-200/60 dark:border-slate-800">
                                 <div className="border-l-4 border-blue-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-blue-900">Overall Materiality = 0.5-1% of Revenue or 5% of Profit Before Tax</p>
-                                    <p className="text-sm text-gray-600 mt-1">Общая существенность = 0.5-1% от выручки или 5% от прибыли до налога</p>
+                                    <p className="font-mono text-sm font-semibold text-blue-900 dark:text-blue-300">Overall Materiality = 0.5-1% of Revenue or 5% of Profit Before Tax</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Общая существенность = 0.5-1% от выручки или 5% от прибыли до налога</p>
                                 </div>
                                 <div className="border-l-4 border-emerald-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-emerald-900">Performance Materiality = Overall Materiality × 75%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Рабочая существенность = Общая существенность × 75%</p>
+                                    <p className="font-mono text-sm font-semibold text-emerald-900 dark:text-emerald-300">Performance Materiality = Overall Materiality × 75%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Рабочая существенность = Общая существенность × 75%</p>
                                 </div>
                                 <div className="border-l-4 border-amber-500 pl-4">
-                                    <p className="font-mono text-sm font-semibold text-amber-900">Trivial Threshold = Overall Materiality × 5%</p>
-                                    <p className="text-sm text-gray-600 mt-1">Порог явной незначительности = Общая существенность × 5%</p>
+                                    <p className="font-mono text-sm font-semibold text-amber-900 dark:text-amber-300">Trivial Threshold = Overall Materiality × 5%</p>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Порог явной незначительности = Общая существенность × 5%</p>
                                 </div>
                             </div>
                         </div>

@@ -263,7 +263,7 @@ class OneCParser:
         """
         Maps standard Russian Chart of Accounts (План счетов РСБУ) to RegAI categories & subcategories.
         """
-        clean_code = str(code).strip().replace(".", "")[:2]
+        clean_code = code.strip().replace(".", "")[:2]
         
         try:
             num = int(clean_code)
@@ -481,11 +481,19 @@ class OneCService:
         start_time = time.time()
         
         # Allow test overrides (e.g. from modal before saving)
-        url = (test_override.get("url") if test_override else None) or connection.url
+        override_url = test_override.get("url") if test_override else None
+        url = override_url or connection.url
         auth_type = (test_override.get("auth_type") if test_override else None) or connection.auth_type
         username = (test_override.get("username") if test_override else None) or connection.username
-        password = (test_override.get("password") if test_override else None) or connection.get_password()
-        api_token = (test_override.get("api_token") if test_override else None) or connection.get_api_token()
+        
+        # Security: NEVER reuse existing saved credentials if caller changed the target URL!
+        if override_url and override_url.rstrip("/") != (connection.url or "").rstrip("/"):
+            password = test_override.get("password") if test_override else None
+            api_token = test_override.get("api_token") if test_override else None
+        else:
+            password = (test_override.get("password") if test_override else None) or connection.get_password()
+            api_token = (test_override.get("api_token") if test_override else None) or connection.get_api_token()
+
         verify_ssl = (test_override.get("verify_ssl") if test_override and "verify_ssl" in test_override else None)
         if verify_ssl is None:
             verify_ssl = connection.verify_ssl

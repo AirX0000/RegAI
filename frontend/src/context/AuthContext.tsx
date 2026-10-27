@@ -9,6 +9,7 @@ interface User {
     role: string;
     tenant_id: string;
     company_id?: string;
+    company_name?: string;
 }
 
 interface AuthContextType {
@@ -21,13 +22,38 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function resolveDefaultFullName(decoded: any): string {
+    if (decoded.full_name && decoded.full_name !== 'User') return decoded.full_name;
+    if (decoded.name && decoded.name !== 'User') return decoded.name;
+    const email = decoded.email || decoded.sub || '';
+    if (email.includes('@')) {
+        const prefix = email.split('@')[0].toLowerCase();
+        if (prefix === 'superadmin') return 'System Administrator';
+        if (prefix === 'owner') return 'Сардор Рахимов';
+        if (prefix === 'accountant') return 'Елена Васильева';
+        if (prefix === 'admin') return 'Камилла Каримова';
+        if (prefix === 'auditor') return 'Дмитрий Ким';
+        if (prefix === 'analyst') return 'Алишер Умаров';
+    }
+    if (decoded.role === 'superadmin') return 'System Administrator';
+    if (decoded.role === 'company_owner') return 'Собственник бизнеса';
+    if (decoded.role === 'accountant') return 'Главный бухгалтер';
+    if (decoded.role === 'admin') return 'Администратор';
+    if (decoded.role === 'auditor') return 'Аудитор';
+    return 'Финансовый аналитик';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     // 1. Synchronously initialize user from cached storage to prevent flicker or premature redirect
     const [user, setUser] = useState<User | null>(() => {
         const cached = localStorage.getItem('user');
         if (cached) {
             try {
-                return JSON.parse(cached);
+                const parsed = JSON.parse(cached);
+                if (parsed.full_name === 'User') {
+                    parsed.full_name = resolveDefaultFullName(parsed);
+                }
+                return parsed;
             } catch (e) {
                 // ignore
             }
@@ -38,8 +64,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const decoded: any = jwtDecode(token);
                 return {
                     id: decoded.sub,
-                    email: decoded.sub,
-                    full_name: decoded.role === 'admin' ? 'Administrator' : 'User',
+                    email: decoded.email || decoded.sub,
+                    full_name: resolveDefaultFullName(decoded),
                     role: decoded.role || 'user',
                     tenant_id: decoded.tid || '',
                     company_id: decoded.cid || '',
@@ -155,8 +181,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const decoded: any = jwtDecode(token);
             optimisticUser = {
                 id: decoded.sub,
-                email: decoded.sub,
-                full_name: decoded.role === 'admin' ? 'Administrator' : 'User',
+                email: decoded.email || decoded.sub,
+                full_name: resolveDefaultFullName(decoded),
                 role: decoded.role || 'user',
                 tenant_id: decoded.tid || '',
                 company_id: decoded.cid || '',

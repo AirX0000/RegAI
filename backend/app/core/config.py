@@ -1,5 +1,5 @@
 import os
-from typing import List, Union
+from typing import List, Union, Optional
 from pydantic import AnyHttpUrl, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from dotenv import load_dotenv
@@ -20,7 +20,15 @@ class Settings(BaseSettings):
     
     EMBEDDINGS_PROVIDER: str = "openai"
     OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+    ANTIGRAVITY_LOCAL_MODEL_PATH: str = ""
+    ANTIGRAVITY_VERTEX_ENABLED: bool = False
+    ANTIGRAVITY_GCP_PROJECT: str = ""
+    ANTIGRAVITY_GCP_LOCATION: str = "us-central1"
     CHROMA_DIR: str = "./chroma_db"
+    CHROMA_SERVER_HOST: Optional[str] = None
+    CHROMA_SERVER_PORT: int = 8000
+    CHROMA_SERVER_SSL: bool = False
     
     # Store as string in env, parse to list
     CORS_ORIGINS: Union[str, List[str]] = ["http://localhost:5173", "http://localhost:3000"]
@@ -33,6 +41,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 600
     TENANT_DEFAULT_PLAN: str = "free"
     LOG_JSON: bool = False
+    ENVIRONMENT: str = "production"
+    ALLOW_DEMO_LOGIN: bool = False
+    DEMO_MODE: bool = False
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=env_path, extra="ignore")
 
@@ -47,5 +58,22 @@ class Settings(BaseSettings):
                 # Fallback for CSV
                 data["CORS_ORIGINS"] = [x.strip() for x in data["CORS_ORIGINS"].split(",")]
         return data
+
+    @model_validator(mode="after")
+    def validate_production_security(self) -> "Settings":
+        env = (self.ENVIRONMENT or "").lower()
+        if env == "production":
+            insecure_keys = {
+                "dev_secret_key_change_in_prod",
+                "change_this_to_a_secure_random_hex_key_32_bytes",
+                "secret",
+                "changeme",
+            }
+            if not self.SECRET_KEY or self.SECRET_KEY in insecure_keys or len(self.SECRET_KEY) < 32:
+                raise ValueError(
+                    "CRITICAL SECURITY CONFIGURATION ERROR: SECRET_KEY is missing, using an insecure default, or shorter than 32 characters in production. "
+                    "Set a strong SECRET_KEY in your environment or .env file."
+                )
+        return self
 
 settings = Settings()

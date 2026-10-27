@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -161,7 +161,7 @@ def update_alert(
     
     # Set resolved_at if status changed to resolved
     if alert_update.status == AlertStatus.RESOLVED and not alert.resolved_at:
-        alert.resolved_at = datetime.utcnow()
+        alert.resolved_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(alert)
@@ -200,7 +200,7 @@ def bulk_update_alerts(
             setattr(alert, field, value)
         
         if update_data.status == AlertStatus.RESOLVED and not alert.resolved_at:
-            alert.resolved_at = datetime.utcnow()
+            alert.resolved_at = datetime.now(timezone.utc)
         
         updated_count += 1
     
@@ -235,6 +235,8 @@ def export_alerts_excel(
     # Create workbook
     wb = Workbook()
     ws = wb.active
+    if ws is None:
+        ws = wb.create_sheet()
     ws.title = "Compliance Alerts"
     
     # Header styling

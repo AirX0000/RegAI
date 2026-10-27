@@ -57,6 +57,17 @@ export default {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
                 },
+                axiaris: {
+                    space: "#050814",
+                    night: "#080d22",
+                    card: "#0b1228",
+                    elevated: "#101935",
+                    border: "#162244",
+                    cyan: "#00d2ff",
+                    blue: "#2563eb",
+                    violet: "#8b5cf6",
+                    glow: "rgba(0, 210, 255, 0.25)",
+                },
             },
             borderRadius: {
                 lg: "var(--radius)",

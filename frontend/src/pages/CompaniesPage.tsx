@@ -14,9 +14,11 @@ export default function CompaniesPage() {
     const fetchCompanies = async () => {
         try {
             const res = await api.get('/companies/');
-            setCompanies(res.data);
+            const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            setCompanies(data);
         } catch (error) {
             console.error(error);
+            setCompanies([]);
         }
     };
 
@@ -39,31 +41,39 @@ export default function CompaniesPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {companies.map((company) => (
-                            <tr key={company.id} className="border-b last:border-0 hover:bg-gray-50">
-                                <td className="p-4 font-medium">{company.name}</td>
-                                <td className="p-4 text-gray-500">{company.domain}</td>
-                                <td className="p-4">
-                                    <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                        {t('active')}
-                                    </span>
-                                </td>
-                                <td className="p-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-2 w-24 rounded-full bg-gray-200">
-                                            <div
-                                                className="h-2 rounded-full bg-blue-600"
-                                                style={{ width: `${Math.random() * 100}%` }}
-                                            />
-                                        </div>
-                                        <span className="text-xs text-gray-500">
-                                            {Math.floor(Math.random() * 100)}/100
+                        {Array.isArray(companies) && companies.length > 0 ? (
+                            companies.map((company) => (
+                                <tr key={company.id} className="border-b last:border-0 hover:bg-gray-50">
+                                    <td className="p-4 font-medium">{company.name}</td>
+                                    <td className="p-4 text-gray-500">{company.domain}</td>
+                                    <td className="p-4">
+                                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                            {t('active')}
                                         </span>
-                                    </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-2 w-24 rounded-full bg-gray-200">
+                                                <div
+                                                    className="h-2 rounded-full bg-blue-600"
+                                                    style={{ width: `${Math.random() * 100}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-xs text-gray-500">
+                                                {Math.floor(Math.random() * 100)}/100
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-gray-500">{new Date(company.created_at).toLocaleDateString()}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={5} className="p-8 text-center text-gray-500">
+                                    {t('no_companies_found') || 'Компании не найдены'}
                                 </td>
-                                <td className="p-4 text-gray-500">{new Date(company.created_at).toLocaleDateString()}</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

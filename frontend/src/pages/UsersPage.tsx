@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from 'react-i18next';
+import { Building2, Users as UsersIcon } from 'lucide-react';
 
 export default function UsersPage() {
     const { t } = useTranslation();
@@ -31,8 +32,11 @@ export default function UsersPage() {
     useEffect(() => {
         fetchUsers();
         api.get('/companies/')
-            .then(res => setCompanies(res.data || []))
-            .catch(err => console.warn('Failed to load companies:', err));
+            .then(res => setCompanies(Array.isArray(res?.data) ? res.data : []))
+            .catch(err => {
+                console.warn('Failed to load companies:', err);
+                setCompanies([]);
+            });
     }, [selectedCompanyId]);
 
     const fetchUsers = async () => {
@@ -42,23 +46,29 @@ export default function UsersPage() {
                 params.company_id = selectedCompanyId;
             }
             const res = await api.get('/users/', { params });
-            setUsers(res.data || []);
+            const list = Array.isArray(res?.data) ? res.data : [];
+            const filtered = user?.role === 'superadmin' ? list : list.filter((u: any) => u.role !== 'superadmin');
+            setUsers(filtered);
         } catch (err) {
             console.warn('Failed to load users:', err);
+            setUsers([]);
         }
     };
 
     const handleInvite = async () => {
         try {
-            await api.post('/users/invite', inviteData);
+            const payload = {
+                ...inviteData,
+                company_id: user?.role === 'superadmin' ? (inviteData.company_id || user?.company_id) : user?.company_id
+            };
+            await api.post('/users/invite', payload);
             toast({
                 title: t('success'),
                 description: t('user_invited_successfully'),
             });
             setIsInviteOpen(false);
             // Refresh users list
-            const res = await api.get('/users/');
-            setUsers(res.data);
+            fetchUsers();
             // Reset form
             setInviteData({
                 email: '',
@@ -113,12 +123,20 @@ export default function UsersPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold">{t('users')}</h1>
-                <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{t('users')}</h1>
+                    {user?.role !== 'superadmin' && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
+                            <Building2 className="h-3.5 w-3.5 text-cyan-500" />
+                            {user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-3">
                     {user?.role === 'superadmin' && (
                         <select
-                            className="rounded-md border p-2"
+                            className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                             value={selectedCompanyId}
                             onChange={(e) => setSelectedCompanyId(e.target.value)}
                         >
@@ -128,35 +146,44 @@ export default function UsersPage() {
                             ))}
                         </select>
                     )}
-                    <Button onClick={() => setIsInviteOpen(true)}>{t('invite_user')}</Button>
+                    <Button onClick={() => setIsInviteOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">{t('invite_user')}</Button>
                 </div>
             </div>
 
+            {user?.role !== 'superadmin' && (
+                <div className="flex items-center gap-2.5 p-3 rounded-lg bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/60 text-xs text-blue-900 dark:text-blue-200">
+                    <UsersIcon className="h-4 w-4 text-cyan-500 shrink-0" />
+                    <span>
+                        Реестр сотрудников: отображаются только пользователи компании <strong className="font-semibold">{user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}</strong>. Новые сотрудники автоматически закрепляются за данной организацией.
+                    </span>
+                </div>
+            )}
+
             {/* Edit Modal */}
             {isEditOpen && editingUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-xl font-bold">Edit User</h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl text-slate-900 dark:text-slate-100">
+                        <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Edit User</h2>
                         <div className="space-y-4">
                             {user?.role === 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Email</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
                                     <input
                                         type="email"
-                                        className="w-full rounded-md border p-2"
+                                        className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                         value={editData.email}
                                         onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                                         placeholder={editingUser.email}
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Leave blank to keep current email</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Leave blank to keep current email</p>
                                 </div>
                             )}
                             {user?.role !== 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Email</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
                                     <input
                                         type="email"
-                                        className="w-full rounded-md border p-2 bg-gray-50"
+                                        className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 p-2 text-sm cursor-not-allowed"
                                         value={editingUser.email}
                                         disabled
                                     />
@@ -164,21 +191,21 @@ export default function UsersPage() {
                             )}
                             {user?.role === 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">New Password</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">New Password</label>
                                     <input
                                         type="password"
-                                        className="w-full rounded-md border p-2"
+                                        className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                         value={editData.password}
                                         onChange={(e) => setEditData({ ...editData, password: e.target.value })}
                                         placeholder="Leave blank to keep current password"
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Only fill if you want to reset password</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Only fill if you want to reset password</p>
                                 </div>
                             )}
                             <div>
-                                <label className="mb-1 block text-sm font-medium">{t('role')}</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('role')}</label>
                                 <select
-                                    className="w-full rounded-md border p-2"
+                                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                     value={editData.role}
                                     onChange={(e) => setEditData({ ...editData, role: e.target.value })}
                                 >
@@ -190,8 +217,8 @@ export default function UsersPage() {
                                 </select>
                             </div>
                             <div className="flex justify-end gap-2 pt-4">
-                                <Button variant="outline" onClick={() => setIsEditOpen(false)}>{t('cancel')}</Button>
-                                <Button onClick={handleUpdateUser}>{t('save')}</Button>
+                                <Button variant="outline" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200" onClick={() => setIsEditOpen(false)}>{t('cancel')}</Button>
+                                <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">{t('save')}</Button>
                             </div>
                         </div>
                     </div>
@@ -200,44 +227,44 @@ export default function UsersPage() {
 
             {/* Invite Modal (Mock) */}
             {isInviteOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-xl font-bold">{t('invite_new_user')}</h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl text-slate-900 dark:text-slate-100">
+                        <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">{t('invite_new_user')}</h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="mb-1 block text-sm font-medium">{t('email_address')}</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('email_address')}</label>
                                 <input
                                     type="email"
-                                    className="w-full rounded-md border p-2"
+                                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                     placeholder="colleague@example.com"
                                     value={inviteData.email}
                                     onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm font-medium">{t('full_name')}</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('full_name')}</label>
                                 <input
                                     type="text"
-                                    className="w-full rounded-md border p-2"
+                                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                     placeholder="John Doe"
                                     value={inviteData.full_name}
                                     onChange={(e) => setInviteData({ ...inviteData, full_name: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm font-medium">{t('password')}</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('password')}</label>
                                 <input
                                     type="password"
-                                    className="w-full rounded-md border p-2"
+                                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                     placeholder={t('temporary_password')}
                                     value={inviteData.password}
                                     onChange={(e) => setInviteData({ ...inviteData, password: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="mb-1 block text-sm font-medium">{t('role')}</label>
+                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('role')}</label>
                                 <select
-                                    className="w-full rounded-md border p-2"
+                                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                     value={inviteData.role}
                                     onChange={(e) => setInviteData({ ...inviteData, role: e.target.value })}
                                 >
@@ -249,9 +276,9 @@ export default function UsersPage() {
                             </div>
                             {user?.role === 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">{t('company')}</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('company')}</label>
                                     <select
-                                        className="w-full rounded-md border p-2"
+                                        className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                         value={inviteData.company_id}
                                         onChange={(e) => setInviteData({ ...inviteData, company_id: e.target.value })}
                                     >
@@ -263,53 +290,62 @@ export default function UsersPage() {
                                 </div>
                             )}
                             <div className="flex justify-end gap-2 pt-4">
-                                <Button variant="outline" onClick={() => setIsInviteOpen(false)}>{t('cancel')}</Button>
-                                <Button onClick={handleInvite}>{t('submit')}</Button>
+                                <Button variant="outline" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200" onClick={() => setIsInviteOpen(false)}>{t('cancel')}</Button>
+                                <Button onClick={handleInvite} className="bg-blue-600 hover:bg-blue-700 text-white font-medium">{t('submit')}</Button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="rounded-md border bg-white shadow-sm">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm overflow-hidden text-slate-900 dark:text-slate-100">
                 <table className="w-full text-sm">
-                    <thead className="border-b bg-gray-50">
+                    <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
                         <tr>
-                            <th className="p-4 text-left font-medium">{t('email')}</th>
-                            <th className="p-4 text-left font-medium">{t('role')}</th>
-                            {user?.role === 'superadmin' && <th className="p-4 text-left font-medium">{t('company')}</th>}
-                            <th className="p-4 text-left font-medium">{t('status')}</th>
-                            <th className="p-4 text-right font-medium">{t('actions')}</th>
+                            <th className="p-4 text-left font-medium text-slate-600 dark:text-slate-300">{t('email')}</th>
+                            <th className="p-4 text-left font-medium text-slate-600 dark:text-slate-300">{t('role')}</th>
+                            {user?.role === 'superadmin' && <th className="p-4 text-left font-medium text-slate-600 dark:text-slate-300">{t('company')}</th>}
+                            <th className="p-4 text-left font-medium text-slate-600 dark:text-slate-300">{t('status')}</th>
+                            <th className="p-4 text-right font-medium text-slate-600 dark:text-slate-300">{t('actions')}</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {users.map((u) => (
-                            <tr key={u.id} className="border-b last:border-0 hover:bg-gray-50">
-                                <td className="p-4">{u.email}</td>
-                                <td className="p-4">
-                                    <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${u.role === 'admin' ? 'bg-purple-50 text-purple-700 ring-purple-700/10' :
-                                        u.role === 'auditor' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
-                                            u.role === 'accountant' ? 'bg-green-50 text-green-700 ring-green-700/10' :
-                                                'bg-gray-50 text-gray-600 ring-gray-500/10'
-                                        }`}>
-                                        {u.role}
-                                    </span>
-                                </td>
-                                {user?.role === 'superadmin' && (
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {Array.isArray(users) && users.length > 0 ? (
+                            users.map((u) => (
+                                <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    <td className="p-4 font-medium text-slate-900 dark:text-slate-100">{u.email}</td>
                                     <td className="p-4">
-                                        {companies.find(c => c.id === u.company_id)?.name || '-'}
+                                        <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${u.role === 'admin' ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 ring-purple-700/20' :
+                                            u.role === 'auditor' ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 ring-blue-700/20' :
+                                                u.role === 'accountant' ? 'bg-green-50 dark:bg-green-950/50 text-green-700 dark:text-green-300 ring-green-700/20' :
+                                                    u.role === 'superadmin' ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 ring-indigo-700/20' :
+                                                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 ring-slate-500/20'
+                                            }`}>
+                                            {u.role}
+                                        </span>
                                     </td>
-                                )}
-                                <td className="p-4">
-                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${u.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                        {u.is_active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-right">
-                                    <Button variant="ghost" size="sm" onClick={() => handleEdit(u)}>Edit</Button>
+                                    {user?.role === 'superadmin' && (
+                                        <td className="p-4 text-slate-600 dark:text-slate-400">
+                                            {Array.isArray(companies) ? companies.find(c => c.id === u.company_id)?.name || '-' : '-'}
+                                        </td>
+                                    )}
+                                    <td className="p-4">
+                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${u.is_active ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'}`}>
+                                            {u.is_active ? 'Active' : 'Inactive'}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(u)} className="hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">Edit</Button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={user?.role === 'superadmin' ? 5 : 4} className="p-8 text-center text-slate-500 dark:text-slate-400">
+                                    {t('no_users_found') || 'Пользователи не найдены'}
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

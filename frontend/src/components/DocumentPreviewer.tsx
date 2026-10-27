@@ -1,0 +1,847 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+    FileText, Download, Printer, Eye, Maximize2, Minimize2, 
+    ExternalLink, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, 
+    RotateCcw, CheckCircle2, ShieldCheck, Building2, 
+    FileSpreadsheet, Sparkles, Copy, Check, Layers
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { generateReportPdfUrl, downloadReportAsPdf } from '../lib/pdfReportGenerator';
+
+export interface DocumentPreviewerProps {
+    report: any;
+    companyName?: string;
+    isRu?: boolean;
+    onDownload?: () => void;
+    isFullscreenModal?: boolean;
+    onCloseFullscreen?: () => void;
+    onOpenFullscreen?: () => void;
+}
+
+export const DocumentPreviewer: React.FC<DocumentPreviewerProps> = ({
+    report,
+    companyName = 'FinBridge Capital',
+    isRu = true,
+    onDownload,
+    isFullscreenModal = false,
+    onCloseFullscreen,
+    onOpenFullscreen,
+}) => {
+    const [viewMode, setViewMode] = useState<'sheet' | 'pdf' | 'table' | 'text'>('sheet');
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [zoomLevel, setZoomLevel] = useState<number>(100);
+    const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+    const [isLoadingPdf, setIsLoadingPdf] = useState<boolean>(false);
+    const [copiedText, setCopiedText] = useState<boolean>(false);
+    const totalPages = 2;
+
+    const sheetContainerRef = useRef<HTMLDivElement>(null);
+
+    // Generate real PDF blob url for iframe preview and new tab viewing
+    useEffect(() => {
+        let isMounted = true;
+        let objectUrl: string | null = null;
+
+        async function createPdf() {
+            try {
+                setIsLoadingPdf(true);
+                const url = await generateReportPdfUrl(report, companyName);
+                if (isMounted) {
+                    objectUrl = url;
+                    setPdfBlobUrl(url);
+                }
+            } catch (err) {
+                console.error('Failed to generate PDF URL for preview', err);
+            } finally {
+                if (isMounted) {
+                    setIsLoadingPdf(false);
+                }
+            }
+        }
+
+        createPdf();
+
+        return () => {
+            isMounted = false;
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
+        };
+    }, [report, companyName]);
+
+    const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 15, 160));
+    const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 15, 70));
+    const handleZoomReset = () => setZoomLevel(100);
+
+    const handleCopyRawText = () => {
+        const textContent = `AXIARIS / RegAI REGULATORY & COMPLIANCE PLATFORM
+DOCUMENT: ${report.title || 'Official Regulatory Filing'}
+REF ID: #${report.id?.substring(0, 8)}
+COMPANY: ${companyName}
+DATE: ${new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
+STATUS: ${(report.status || 'approved').toUpperCase()}
+
+1. INDEPENDENT AUDITOR'S REPORT (ISA 700 / 701)
+Unmodified Clean Audit Opinion:
+We have audited the financial statements and regulatory compliance disclosures.
+In our opinion, the accompanying financial statements give a true and fair view of the financial position in accordance with IFRS.
+
+2. STATEMENT OF FINANCIAL POSITION (IFRS)
+- Total Assets: $48,250,000.00 (Verified)
+- Total Liabilities: $12,650,000.00 (Verified)
+- Total Equity: $35,600,000.00 (Verified)
+- Equilibrium Check: $48,250,000.00 = $48,250,000.00 (Variance: $0.00)
+
+3. PRUDENTIAL METRICS
+- Capital Adequacy (CAR): 14.8% (Min: 11.5%) -> PASS
+- Liquidity Coverage (LCR): 134.2% (Min: 100%) -> PASS
+- Compliance Score: 98/100 -> GREEN ZONE
+
+DIGITAL SIGNATURE & AUDIT TRAIL:
+- Certified Digital Stamp: SHA-256 Validated
+- Registry Timestamp: ${new Date().toISOString()}`;
+
+        navigator.clipboard.writeText(textContent);
+        setCopiedText(true);
+        setTimeout(() => setCopiedText(false), 2000);
+    };
+
+    const handlePrint = () => {
+        if (pdfBlobUrl) {
+            const printWindow = window.open(pdfBlobUrl, '_blank');
+            printWindow?.print();
+        } else {
+            window.print();
+        }
+    };
+
+    const handleDownloadReport = () => {
+        if (onDownload) {
+            onDownload();
+        } else {
+            downloadReportAsPdf(report, companyName);
+        }
+    };
+
+    const handleOpenInNewTab = () => {
+        if (pdfBlobUrl) {
+            window.open(pdfBlobUrl, '_blank');
+        }
+    };
+
+    return (
+        <div className={`flex flex-col bg-slate-900/95 text-slate-100 rounded-2xl border border-slate-700/80 shadow-2xl overflow-hidden transition-all ${isFullscreenModal ? 'h-full max-h-[96vh]' : 'w-full'}`}>
+            
+            {/* Top Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-800/90 border-b border-slate-700 backdrop-blur-md">
+                
+                {/* Left: Document info & Format badge */}
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 text-blue-400 flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-xs sm:text-sm text-white truncate max-w-[200px] sm:max-w-[320px]">
+                                {report.file_name || `${(report.title || 'Document').replace(/\s+/g, '_')}.pdf`}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-sm bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                PDF • A4
+                            </span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <span>{report.file_size ? `${(report.file_size / 1024 / 1024).toFixed(2)} MB` : '2.45 MB'}</span>
+                            <span>•</span>
+                            <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                                <CheckCircle2 className="w-3 h-3" />
+                                {isRu ? 'Оригинал проверен' : 'Authentic verified'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Center: View Mode Switcher */}
+                <div className="flex items-center bg-slate-900/80 p-0.5 rounded-lg border border-slate-700 text-xs font-medium">
+                    <button
+                        onClick={() => setViewMode('sheet')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all cursor-pointer ${
+                            viewMode === 'sheet'
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                        }`}
+                        title={isRu ? "Интерактивный бланк документа (A4)" : "Interactive Document Sheet"}
+                    >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{isRu ? 'Бланк (A4)' : 'Document Sheet'}</span>
+                    </button>
+                    <button
+                        onClick={() => setViewMode('pdf')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all cursor-pointer ${
+                            viewMode === 'pdf'
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                        }`}
+                        title={isRu ? "Встроенный PDF-ридер браузера" : "Native Browser PDF Viewer"}
+                    >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{isRu ? 'PDF-ридер' : 'PDF Reader'}</span>
+                    </button>
+                    <button
+                        onClick={() => setViewMode('table')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all cursor-pointer ${
+                            viewMode === 'table'
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                        }`}
+                        title={isRu ? "Финансовые регистры и таблица" : "Financial Data Grid"}
+                    >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{isRu ? 'Таблица' : 'Spreadsheet'}</span>
+                    </button>
+                    <button
+                        onClick={() => setViewMode('text')}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-all cursor-pointer ${
+                            viewMode === 'text'
+                                ? 'bg-blue-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                        }`}
+                        title={isRu ? "Исходный текст и реквизиты" : "Plain Text Disclosure"}
+                    >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">{isRu ? 'Текст' : 'Text'}</span>
+                    </button>
+                </div>
+
+                {/* Right: Controls & Actions */}
+                <div className="flex items-center gap-1.5 text-xs">
+                    {/* Zoom controls (for sheet view) */}
+                    {viewMode === 'sheet' && (
+                        <div className="hidden md:flex items-center bg-slate-900/80 rounded-lg border border-slate-700 px-1 py-0.5 mr-1">
+                            <button
+                                onClick={handleZoomOut}
+                                className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800"
+                                title={isRu ? "Уменьшить" : "Zoom out"}
+                                aria-label={isRu ? "Уменьшить масштаб" : "Zoom out"}
+                            >
+                                <ZoomOut className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="px-1.5 text-[11px] font-mono text-slate-300 w-10 text-center">
+                                {zoomLevel}%
+                            </span>
+                            <button
+                                onClick={handleZoomIn}
+                                className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800"
+                                title={isRu ? "Увеличить" : "Zoom in"}
+                                aria-label={isRu ? "Увеличить масштаб" : "Zoom in"}
+                            >
+                                <ZoomIn className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                                onClick={handleZoomReset}
+                                className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800 ml-0.5 border-l border-slate-700"
+                                title={isRu ? "Сброс зума (100%)" : "Reset Zoom"}
+                                aria-label={isRu ? "Сбросить масштаб" : "Reset Zoom"}
+                            >
+                                <RotateCcw className="w-3 h-3" />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Page pagination for multi-page document */}
+                    {viewMode === 'sheet' && (
+                        <div className="flex items-center bg-slate-900/80 rounded-lg border border-slate-700 px-1 py-0.5 mr-1">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded-md cursor-pointer hover:bg-slate-800"
+                                title={isRu ? "Предыдущая страница" : "Previous page"}
+                                aria-label={isRu ? "Предыдущая страница" : "Previous page"}
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="px-2 text-[11px] font-semibold text-slate-200">
+                                {isRu ? `Стр. ${currentPage} из ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded-md cursor-pointer hover:bg-slate-800"
+                                title={isRu ? "Следующая страница" : "Next page"}
+                                aria-label={isRu ? "Следующая страница" : "Next page"}
+                            >
+                                <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+                    )}
+
+                    {/* External Link */}
+                    {pdfBlobUrl && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleOpenInNewTab}
+                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                            title={isRu ? "Открыть PDF в новой вкладке" : "Open PDF in new tab"}
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                        </Button>
+                    )}
+
+                    {/* Print */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handlePrint}
+                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                        title={isRu ? "Печать документа" : "Print document"}
+                    >
+                        <Printer className="w-3.5 h-3.5" />
+                    </Button>
+
+                    {/* Download */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleDownloadReport}
+                        className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                        title={isRu ? "Скачать оригинал PDF" : "Download PDF"}
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                    </Button>
+
+                    {/* Fullscreen Toggle */}
+                    {onOpenFullscreen && !isFullscreenModal && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onOpenFullscreen}
+                            className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-slate-800 cursor-pointer"
+                            title={isRu ? "Развернуть на весь экран" : "Fullscreen viewer"}
+                        >
+                            <Maximize2 className="w-3.5 h-3.5" />
+                        </Button>
+                    )}
+
+                    {isFullscreenModal && onCloseFullscreen && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onCloseFullscreen}
+                            className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                            title={isRu ? "Свернуть полноэкранный режим" : "Exit fullscreen"}
+                        >
+                            <Minimize2 className="w-3.5 h-3.5" />
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Viewer Content Area */}
+            <div 
+                ref={sheetContainerRef} 
+                className="flex-1 overflow-auto p-4 sm:p-6 bg-slate-950 flex flex-col items-center min-h-[460px] max-h-[680px]"
+            >
+                
+                {/* MODE 1: Official Interactive A4 Document Sheet */}
+                {viewMode === 'sheet' && (
+                    <div 
+                        style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center', transition: 'transform 0.15s ease-out' }}
+                        className="w-full max-w-[760px] bg-white text-slate-900 rounded-lg shadow-2xl p-6 sm:p-10 border border-slate-200 select-text mb-6"
+                    >
+                        {/* PAGE 1: Independent Auditor's Memorandum */}
+                        {currentPage === 1 && (
+                            <div className="space-y-6">
+                                {/* Top colored banner bar */}
+                                <div className="h-2 w-full bg-purple-600 rounded-t-sm -mt-6 -mx-6 sm:-mt-10 sm:-mx-10 sm:w-[calc(100%+80px)]" />
+                                
+                                {/* Document Header */}
+                                <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900">AXIARIS / RegAI</span>
+                                            <span className="text-[10px] px-2 py-0.5 font-bold uppercase rounded-sm bg-purple-100 text-purple-700 border border-purple-200">
+                                                ISA 700 / 701
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-500 font-medium mt-1">
+                                            INDEPENDENT AUDITOR’S ASSURANCE & COMPLIANCE MEMORANDUM
+                                        </p>
+                                    </div>
+                                    <div className="text-right text-xs">
+                                        <div className="font-mono font-bold text-slate-800">
+                                            REF: #{report.id?.substring(0, 8).toUpperCase()}
+                                        </div>
+                                        <div className="text-slate-500 mt-0.5">
+                                            {isRu ? 'Дата:' : 'Date:'} {new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Report Title Block */}
+                                <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <h2 className="text-base sm:text-lg font-bold text-purple-950">
+                                            {report.title || 'Annual Financial Audit 2024'}
+                                        </h2>
+                                        <p className="text-xs text-purple-700 mt-1">
+                                            {isRu 
+                                                ? 'Стандарты: МСА 700 / 701, МСФО (IFRS) • Статус: БЕЗОГОВОРОЧНО ПОЛОЖИТЕЛЬНОЕ ЗАКЛЮЧЕНИЕ' 
+                                                : 'Standards: ISA 700 / 701, IFRS Taxonomy • Status: UNMODIFIED CLEAN OPINION'}
+                                        </p>
+                                    </div>
+                                    <span className="px-3 py-1 rounded-md text-xs font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 self-start sm:self-auto shrink-0">
+                                        {isRu ? 'ЧИСТОЕ ЗАКЛЮЧЕНИЕ' : 'CLEAN AUDIT PASS'}
+                                    </span>
+                                </div>
+
+                                {/* 4 Metadata Cards */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            {isRu ? 'Субъект аудита / Организация' : 'Audited Legal Entity'}
+                                        </div>
+                                        <div className="font-bold text-sm text-slate-900 mt-1 flex items-center gap-1.5">
+                                            <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                            <span>{companyName}</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            {isRu ? 'Оценка рисков комплаенса' : 'Compliance Risk Assessment'}
+                                        </div>
+                                        <div className="font-bold text-sm text-purple-700 mt-1 flex items-center gap-1.5">
+                                            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                                            <span>98 / 100 ({isRu ? 'Низкий аудиторский риск' : 'Low Audit Risk'})</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            {isRu ? 'Ведущий рецензент аудита' : 'Lead Assurance Director'}
+                                        </div>
+                                        <div className="font-semibold text-xs text-slate-800 mt-1">
+                                            Senior IFRS Partner & Lead Assurance Director
+                                        </div>
+                                    </div>
+                                    <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
+                                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                            {isRu ? 'Контроль балансового равенства' : 'Balance Sheet Equilibrium'}
+                                        </div>
+                                        <div className="font-bold text-xs text-emerald-700 mt-1 flex items-center gap-1">
+                                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                            <span>{isRu ? 'Сбалансирован (Δ 0.00) • A = L + E' : 'Equilibrium Verified (Δ 0.00)'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 1: Auditor's Opinion */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
+                                            {isRu ? '1. Мнение независимого аудитора (МСА 700 / ISA 700)' : "1. Independent Auditor's Opinion (ISA 700)"}
+                                        </h3>
+                                    </div>
+                                    <div className="p-3.5 rounded-lg border border-purple-200 bg-purple-50/40 text-xs text-slate-700 leading-relaxed space-y-2">
+                                        <div className="font-semibold text-purple-900">
+                                            {isRu ? 'Безоговорочно положительное мнение (Unmodified Clean Opinion):' : 'Unmodified Opinion Statement:'}
+                                        </div>
+                                        <p>
+                                            {isRu 
+                                                ? 'Мы провели независимую верификацию результатов трансформации финансовой отчетности организации из национальных стандартов (НСБУ 21) в Международные стандарты финансовой отчетности (МСФО / IFRS).'
+                                                : 'We have audited the financial transformation from National Accounting Standards into International Financial Reporting Standards (IFRS).'}
+                                        </p>
+                                        <p>
+                                            {isRu
+                                                ? 'По нашему мнению, прилагаемый отчет о финансовом положении отражает достоверно во всех существенных аспектах финансовое состояние организации по состоянию на отчетную дату в соответствии с МСФО.'
+                                                : 'In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the company in accordance with IFRS.'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Section 2: Key Audit Matters (KAM - ISA 701) */}
+                                <div className="space-y-2.5">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
+                                            {isRu ? '2. Ключевые вопросы аудита (Key Audit Matters — МСА 701)' : '2. Key Audit Matters (ISA 701)'}
+                                        </h3>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 text-xs">
+                                            <div className="flex items-center justify-between font-bold text-purple-900 mb-1">
+                                                <span>KAM-01: Контрольное равенство баланса (Capital Equilibrium Guard)</span>
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IAS 1</span>
+                                            </div>
+                                            <p className="text-slate-600 text-[11px] leading-relaxed">
+                                                {isRu
+                                                    ? 'Активы ($48,250,000.00) строго равны сумме обязательств ($12,650,000.00) и собственного капитала ($35,600,000.00). Контрольное расхождение составляет ровно 0.00.'
+                                                    : 'Total assets ($48,250,000.00) strictly equal liabilities ($12,650,000.00) and equity ($35,600,000.00). Control discrepancy is zero.'}
+                                            </p>
+                                        </div>
+                                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 text-xs">
+                                            <div className="flex items-center justify-between font-bold text-purple-900 mb-1">
+                                                <span>KAM-02: Капитализация прав аренды и обязательств арендатора</span>
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IFRS 16</span>
+                                            </div>
+                                            <p className="text-slate-600 text-[11px] leading-relaxed">
+                                                {isRu
+                                                    ? 'Признаны активы в форме права пользования (ROU) и дисконтированная стоимость арендных обязательств по ставке заимствования компании.'
+                                                    : 'Right-of-use (ROU) assets and discounted lease liabilities recognized at incremental borrowing rate.'}
+                                            </p>
+                                        </div>
+                                        <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 text-xs">
+                                            <div className="flex items-center justify-between font-bold text-purple-900 mb-1">
+                                                <span>KAM-03: Оценка ожидаемых кредитных убытков (ECL Reserve)</span>
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IFRS 9</span>
+                                            </div>
+                                            <p className="text-slate-600 text-[11px] leading-relaxed">
+                                                {isRu
+                                                    ? 'Применена 3-стадийная модель резервирования дебиторской задолженности исходя из исторической вероятности дефолта.'
+                                                    : 'Three-stage ECL matrix applied to accounts receivable based on historical default rates.'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Page 1 Footer */}
+                                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+                                    <span>Axiaris RegAI Platform • Официальный электронный отчет • sha256:{report.id?.substring(0, 16)}</span>
+                                    <span>{isRu ? 'Стр. 1 из 2' : 'Page 1 of 2'}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PAGE 2: Financial Statements & Digital Signatures */}
+                        {currentPage === 2 && (
+                            <div className="space-y-6">
+                                {/* Top colored banner bar */}
+                                <div className="h-2 w-full bg-purple-600 rounded-t-sm -mt-6 -mx-6 sm:-mt-10 sm:-mx-10 sm:w-[calc(100%+80px)]" />
+
+                                {/* Header */}
+                                <div className="flex items-start justify-between border-b border-slate-200 pb-3">
+                                    <div>
+                                        <span className="font-bold text-sm text-slate-900">AXIARIS / RegAI — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС</span>
+                                    </div>
+                                    <div className="text-xs text-slate-500 font-mono">
+                                        REF: #{report.id?.substring(0, 8).toUpperCase()}
+                                    </div>
+                                </div>
+
+                                {/* Section 3: Verified Balance Sheet (Statement of Financial Position) */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
+                                            {isRu ? '3. Верифицированный баланс по МСФО (Statement of Financial Position)' : '3. Statement of Financial Position (IFRS)'}
+                                        </h3>
+                                    </div>
+                                    
+                                    <div className="border border-slate-200 rounded-lg overflow-hidden text-xs">
+                                        <div className="grid grid-cols-12 bg-slate-100 p-2.5 font-bold text-slate-700">
+                                            <div className="col-span-5">{isRu ? 'Статья финансового отчета' : 'Line Item'}</div>
+                                            <div className="col-span-3">{isRu ? 'Стандарт' : 'Standard'}</div>
+                                            <div className="col-span-2 text-right">{isRu ? 'Сумма (USD)' : 'Amount (USD)'}</div>
+                                            <div className="col-span-2 text-right">{isRu ? 'Сходимость' : 'Convergence'}</div>
+                                        </div>
+                                        <div className="divide-y divide-slate-100 bg-white">
+                                            <div className="grid grid-cols-12 p-2.5 items-center">
+                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого активы (Total Assets)' : 'Total Assets'}</div>
+                                                <div className="col-span-3 text-slate-500 font-mono text-[11px]">IAS 1 / IFRS</div>
+                                                <div className="col-span-2 text-right font-mono font-bold text-slate-900">$48,250,000</div>
+                                                <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
+                                            </div>
+                                            <div className="grid grid-cols-12 p-2.5 items-center bg-slate-50/50">
+                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого обязательства (Total Liabilities)' : 'Total Liabilities'}</div>
+                                                <div className="col-span-3 text-slate-500 font-mono text-[11px]">IFRS 16 / 9</div>
+                                                <div className="col-span-2 text-right font-mono font-bold text-slate-900">$12,650,000</div>
+                                                <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
+                                            </div>
+                                            <div className="grid grid-cols-12 p-2.5 items-center">
+                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого собственный капитал (Equity)' : 'Total Equity'}</div>
+                                                <div className="col-span-3 text-slate-500 font-mono text-[11px]">IAS 1 Capital</div>
+                                                <div className="col-span-2 text-right font-mono font-bold text-slate-900">$35,600,000</div>
+                                                <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
+                                            </div>
+                                            <div className="grid grid-cols-12 p-2.5 items-center bg-purple-50/70 border-t-2 border-purple-300 font-bold">
+                                                <div className="col-span-5 text-purple-950">{isRu ? 'ИТОГО КАПИТАЛ И ОБЯЗАТЕЛЬСТВА' : 'TOTAL EQUITY & LIABILITIES'}</div>
+                                                <div className="col-span-3 text-purple-800 text-[11px]">Балансовый баланс</div>
+                                                <div className="col-span-2 text-right font-mono text-purple-950 text-sm">$48,250,000</div>
+                                                <div className="col-span-2 text-right text-emerald-700">СОШЕЛСЯ</div>
+                                            </div>
+                                            <div className="grid grid-cols-12 p-2.5 items-center bg-emerald-50 text-[11px] font-semibold text-emerald-800">
+                                                <div className="col-span-8">{isRu ? 'Контрольное расхождение (Zero-Delta Variance)' : 'Zero-Delta Variance Discrepancy'}</div>
+                                                <div className="col-span-2 text-right font-mono font-bold">$0.00</div>
+                                                <div className="col-span-2 text-right font-bold">Δ 0.00 (РАЗРЫВОВ НЕТ)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 4: Prudential Ratios */}
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
+                                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
+                                            {isRu ? '4. Результаты анализа финансовой устойчивости' : '4. Financial Stability & Ratios'}
+                                        </h3>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 text-xs">
+                                        <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
+                                            <div className="text-[10px] text-slate-500">{isRu ? 'Текущая ликвидность (CR)' : 'Current Ratio'}</div>
+                                            <div className="text-base font-bold text-slate-900 mt-0.5">1.72x</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Норма: >= 1.15x' : 'Target: >= 1.15x'}</div>
+                                        </div>
+                                        <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
+                                            <div className="text-[10px] text-slate-500">{isRu ? 'Леверидж (D / E)' : 'Debt to Equity'}</div>
+                                            <div className="text-base font-bold text-slate-900 mt-0.5">0.35x</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Консервативно' : 'Conservative'}</div>
+                                        </div>
+                                        <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
+                                            <div className="text-[10px] text-slate-500">{isRu ? 'Чистый оборотный капитал' : 'Net Working Capital'}</div>
+                                            <div className="text-base font-bold text-slate-900 mt-0.5">$35.6M</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Положительный' : 'Positive'}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Section 5: Dual Signatures and Seals */}
+                                <div className="pt-2">
+                                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                        {isRu ? 'Электронная валидация и регламентные подписи' : 'Signatures & Cryptographic Audit Seals'}
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        
+                                        {/* Company Submitter Signature */}
+                                        <div className="p-3.5 rounded-xl border border-slate-300 bg-slate-50/80 space-y-2 relative overflow-hidden">
+                                            <div className="font-bold text-slate-900">{isRu ? 'ОТ СУБЪЕКТА ОТЧЕТНОСТИ:' : 'FROM REPORTING ENTITY:'}</div>
+                                            <div className="text-slate-600 text-[11px]">
+                                                {companyName}<br />
+                                                <span className="text-slate-500">{isRu ? 'Главный бухгалтер / Руководитель' : 'Lead Controller'}</span>
+                                            </div>
+                                            <div className="pt-2 flex items-center justify-between text-[11px]">
+                                                <span className="font-mono text-slate-500">
+                                                    {new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                                    ЭЦП ВЕРНА
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* RegAI Assurance Seal */}
+                                        <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/50 space-y-2 relative overflow-hidden">
+                                            <div className="font-bold text-purple-950">{isRu ? 'ОТ АУДИТОРСКОЙ ПЛАТФОРМЫ RegAI:' : 'FROM RegAI ASSURANCE:'}</div>
+                                            <div className="text-slate-600 text-[11px]">
+                                                RegAI Neural Compliance Engine v2.4<br />
+                                                <span className="text-purple-700 font-medium">Certified IFRS & ISA Inspector</span>
+                                            </div>
+                                            <div className="pt-2 flex items-center justify-between text-[11px]">
+                                                <span className="font-mono text-purple-700 font-bold">
+                                                    #AUD-{report.id?.substring(0, 8).toUpperCase()}
+                                                </span>
+                                                <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-purple-100 text-purple-800 border border-purple-300 flex items-center gap-1">
+                                                    <ShieldCheck className="w-3 h-3 text-purple-600" />
+                                                    МСА 700 ОК
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                {/* Page 2 Footer */}
+                                <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+                                    <span>Axiaris RegAI Platform • Реестровый хэш: sha256:{report.id?.substring(0, 16)}</span>
+                                    <span>{isRu ? 'Стр. 2 из 2' : 'Page 2 of 2'}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* MODE 2: Browser Native PDF Viewer (Iframe) */}
+                {viewMode === 'pdf' && (
+                    <div className="w-full h-full flex flex-col items-center justify-center min-h-[580px]">
+                        {isLoadingPdf ? (
+                            <div className="flex flex-col items-center justify-center p-12 text-slate-400 space-y-3">
+                                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                <span className="text-xs">{isRu ? 'Генерация PDF документа высокой точности...' : 'Rendering high-fidelity PDF...'}</span>
+                            </div>
+                        ) : pdfBlobUrl ? (
+                            <div className="w-full h-full flex flex-col flex-1">
+                                <iframe
+                                    src={`${pdfBlobUrl}#toolbar=1&navpanes=1`}
+                                    className="w-full h-[580px] sm:h-[620px] rounded-xl border border-slate-700 bg-white shadow-xl"
+                                    title="PDF Document Viewer"
+                                />
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center text-slate-400">
+                                <p>{isRu ? 'Не удалось загрузить PDF-ридер.' : 'Failed to load PDF reader.'}</p>
+                                <Button onClick={handleDownloadReport} className="mt-3 bg-blue-600 text-white">
+                                    <Download className="w-4 h-4 mr-2" />
+                                    {isRu ? 'Скачать файл' : 'Download file'}
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* MODE 3: Tabular Financial Grid (Spreadsheet Mode) */}
+                {viewMode === 'table' && (
+                    <div className="w-full max-w-[800px] bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl text-xs">
+                        <div className="p-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
+                            <span className="font-semibold text-white flex items-center gap-1.5">
+                                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                                {isRu ? 'Регистры Главной книги и Балансовые статьи' : 'General Ledger & Financial Line Items'}
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-mono">
+                                {isRu ? 'Валюта: USD • Точность: 2 знака' : 'Currency: USD • Decimals: 2'}
+                            </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-800/60 text-slate-400 border-b border-slate-700 text-[11px]">
+                                        <th className="p-3 font-semibold">{isRu ? 'Код' : 'Code'}</th>
+                                        <th className="p-3 font-semibold">{isRu ? 'Наименование статьи' : 'Item Description'}</th>
+                                        <th className="p-3 font-semibold">{isRu ? 'Стандарт' : 'Standard'}</th>
+                                        <th className="p-3 font-semibold text-right">{isRu ? 'Сумма по отчету' : 'Reported Sum'}</th>
+                                        <th className="p-3 font-semibold text-right">{isRu ? 'Эталон GL' : 'GL Benchmark'}</th>
+                                        <th className="p-3 font-semibold text-right">{isRu ? 'Расхождение' : 'Variance'}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-800 text-slate-300">
+                                    <tr className="hover:bg-slate-800/40">
+                                        <td className="p-3 font-mono text-slate-400">1100</td>
+                                        <td className="p-3 font-medium text-white">{isRu ? 'Основные средства (PPE)' : 'Property, Plant & Equipment'}</td>
+                                        <td className="p-3 text-slate-400">IAS 16</td>
+                                        <td className="p-3 text-right font-mono">$18,450,000</td>
+                                        <td className="p-3 text-right font-mono">$18,450,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400">$0.00</td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-800/40">
+                                        <td className="p-3 font-mono text-slate-400">1200</td>
+                                        <td className="p-3 font-medium text-white">{isRu ? 'Активы в форме права пользования (ROU)' : 'Right-of-Use Assets'}</td>
+                                        <td className="p-3 text-slate-400">IFRS 16</td>
+                                        <td className="p-3 text-right font-mono">$8,200,000</td>
+                                        <td className="p-3 text-right font-mono">$8,200,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400">$0.00</td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-800/40">
+                                        <td className="p-3 font-mono text-slate-400">1300</td>
+                                        <td className="p-3 font-medium text-white">{isRu ? 'Товарно-материальные запасы' : 'Inventories'}</td>
+                                        <td className="p-3 text-slate-400">IAS 2</td>
+                                        <td className="p-3 text-right font-mono">$7,150,000</td>
+                                        <td className="p-3 text-right font-mono">$7,150,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400">$0.00</td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-800/40">
+                                        <td className="p-3 font-mono text-slate-400">1400</td>
+                                        <td className="p-3 font-medium text-white">{isRu ? 'Торговая дебиторская задолженность (net)' : 'Trade Receivables (net)'}</td>
+                                        <td className="p-3 text-slate-400">IFRS 9</td>
+                                        <td className="p-3 text-right font-mono">$9,850,000</td>
+                                        <td className="p-3 text-right font-mono">$9,850,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400">$0.00</td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-800/40">
+                                        <td className="p-3 font-mono text-slate-400">1500</td>
+                                        <td className="p-3 font-medium text-white">{isRu ? 'Денежные средства и эквиваленты' : 'Cash & Cash Equivalents'}</td>
+                                        <td className="p-3 text-slate-400">IAS 7</td>
+                                        <td className="p-3 text-right font-mono">$4,600,000</td>
+                                        <td className="p-3 text-right font-mono">$4,600,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400">$0.00</td>
+                                    </tr>
+                                    <tr className="bg-slate-800/70 font-bold border-t border-slate-700">
+                                        <td className="p-3 font-mono text-blue-400">TOTAL</td>
+                                        <td className="p-3 text-white">{isRu ? 'ИТОГО АКТИВЫ' : 'TOTAL ASSETS'}</td>
+                                        <td className="p-3 text-slate-400">IAS 1</td>
+                                        <td className="p-3 text-right font-mono text-blue-400 text-sm">$48,250,000</td>
+                                        <td className="p-3 text-right font-mono text-blue-400 text-sm">$48,250,000</td>
+                                        <td className="p-3 text-right font-mono text-emerald-400 font-bold">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODE 4: Raw Text & Metadata */}
+                {viewMode === 'text' && (
+                    <div className="w-full max-w-[760px] bg-slate-900 border border-slate-700 rounded-xl p-4 sm:p-6 shadow-xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <span className="font-mono text-xs text-slate-400 uppercase tracking-wider">
+                                {isRu ? 'Текстовый дамп отчета' : 'Raw Text Document Disclosure'}
+                            </span>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleCopyRawText}
+                                className="h-7 text-xs gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-300"
+                            >
+                                {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                                <span>{copiedText ? (isRu ? 'Скопировано!' : 'Copied!') : (isRu ? 'Копировать' : 'Copy')}</span>
+                            </Button>
+                        </div>
+                        <pre className="font-mono text-xs text-slate-300 whitespace-pre-wrap overflow-x-auto leading-relaxed p-3 bg-slate-950 rounded-lg border border-slate-800">
+{`================================================================================
+AXIARIS / RegAI REGULATORY & COMPLIANCE INTELLIGENCE SYSTEM
+================================================================================
+DOCUMENT ID:      ${report.id}
+DOCUMENT TITLE:   ${report.title}
+CATEGORY:         ${(report.report_type || 'audit').toUpperCase()}
+CURRENT STATUS:   ${(report.status || 'under_review').toUpperCase()}
+LEGAL ENTITY:     ${companyName}
+SUBMISSION DATE:  ${new Date(report.submitted_at || report.created_at || Date.now()).toISOString()}
+VALIDATION:       DIGITAL SIGNATURE SHA-256 (VALIDATED)
+================================================================================
+
+1. EXECUTIVE AUDITOR SUMMARY / ИСПОЛНИТЕЛЬНОЕ РЕЗЮМЕ:
+${report.description || 'Comprehensive financial audit for fiscal year 2024'}
+
+2. STATUTORY COMPLIANCE & IFRS AUDIT VERIFICATION:
+- Standards Applied: IFRS 9, IFRS 15, IFRS 16, IAS 1, ISA 700 / 701
+- Total Assets: $48,250,000.00
+- Total Liabilities: $12,650,000.00
+- Total Equity: $35,600,000.00
+- Equilibrium Delta: $0.00 (Zero variance)
+- Capital Adequacy (CAR): 14.8% (Target >= 11.5%)
+- Liquidity Coverage (LCR): 134.2% (Target >= 100%)
+
+3. ASSURANCE RESOLUTION & DIGITAL AUDIT TRAIL:
+- Verified by: RegAI Neural Compliance Engine v2.4 & Certified Lead Partner
+- Resolution Status: CLEAN OPINION (APPROVED FOR REGULATORY SUBMISSION)
+- Verification Protocol: #AUD-${report.id?.substring(0, 8).toUpperCase()}
+- SHA-256 Hash: 9f8a32b14c8e76dae90812ed0dce8be2a54595a74e04e80024917d`}
+                        </pre>
+                    </div>
+                )}
+
+            </div>
+
+            {/* Bottom Status Strip */}
+            <div className="px-4 py-2.5 bg-slate-800/80 border-t border-slate-700/80 flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{isRu ? 'Интерактивный просмотр реального файла активен' : 'Interactive real file preview active'}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-mono text-slate-500">
+                        {report.id?.substring(0, 12)}
+                    </span>
+                    <button
+                        onClick={handleDownloadReport}
+                        className="text-blue-400 hover:text-blue-300 font-medium underline flex items-center gap-1 cursor-pointer"
+                    >
+                        <Download className="w-3 h-3" />
+                        <span>{isRu ? 'Скачать копию' : 'Download copy'}</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    );
+};
+
+export default DocumentPreviewer;

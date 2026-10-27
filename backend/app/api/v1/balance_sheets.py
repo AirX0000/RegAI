@@ -18,8 +18,17 @@ from app.db.schemas.balance_sheet import (
 )
 from app.core import deps
 from app.db.models.user import User
+from app.db.models.audit_log import AuditLog
 
 router = APIRouter()
+
+
+def check_balance_sheet_access(user: User, balance_sheet: BalanceSheet) -> bool:
+    """Check if the user has permission to access/modify the balance sheet."""
+    is_super = user.role in ["superadmin", "website_superadmin"] or getattr(user, "is_superuser", False)
+    if is_super:
+        return True
+    return bool(user.company_id and balance_sheet.company_id == user.company_id)
 
 
 @router.post("/", response_model=BalanceSheetSchema, status_code=status.HTTP_201_CREATED)
@@ -96,7 +105,7 @@ def get_balance_sheet(
         )
     
     # Check access permissions
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to access this balance sheet"
@@ -124,7 +133,7 @@ def update_balance_sheet(
         )
     
     # Check access permissions
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this balance sheet"
@@ -132,9 +141,36 @@ def update_balance_sheet(
     
     # Update fields
     update_data = balance_sheet_data.dict(exclude_unset=True)
+    items_data = update_data.pop("items", None)
     for field, value in update_data.items():
         setattr(balance_sheet, field, value)
+
+    if items_data is not None:
+        db.query(BalanceSheetItem).filter(BalanceSheetItem.balance_sheet_id == balance_sheet.id).delete()
+        for item_dict in items_data:
+            item = BalanceSheetItem(
+                balance_sheet_id=balance_sheet.id,
+                **item_dict
+            )
+            db.add(item)
     
+    # Audit trail
+    tenant_id = getattr(current_user, "tenant_id", None)
+    if tenant_id:
+        try:
+            audit_entry = AuditLog(
+                tenant_id=tenant_id,
+                user_id=current_user.id,
+                action="update_balance_sheet",
+                resource_type="balance_sheet",
+                resource_id=str(balance_sheet.id),
+                details=f"Updated balance sheet {balance_sheet.id} (status: {balance_sheet.status})",
+                success=True
+            )
+            db.add(audit_entry)
+        except Exception:
+            pass
+
     db.commit()
     db.refresh(balance_sheet)
     return balance_sheet
@@ -158,7 +194,7 @@ def delete_balance_sheet(
         )
     
     # Check access permissions
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this balance sheet"
@@ -187,7 +223,7 @@ def get_transformation_results(
         )
     
     # Check access permissions
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to access this balance sheet"
@@ -233,7 +269,7 @@ def transform_balance_sheet(
         )
     
     # Check access permissions
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to transform this balance sheet"
@@ -398,7 +434,7 @@ def add_adjustment(
     if not balance_sheet:
         raise HTTPException(status_code=404, detail="Balance sheet not found")
         
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     # Handle list or single item
@@ -438,7 +474,7 @@ def delete_adjustment(
         
     # Check permissions via balance sheet
     balance_sheet = db.query(BalanceSheet).filter(BalanceSheet.id == adj.balance_sheet_id).first()
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(status_code=403, detail="Not authorized")
         
     db.delete(adj)
@@ -464,7 +500,7 @@ def export_transformation_excel(
     if not balance_sheet:
         raise HTTPException(status_code=404, detail="Balance sheet not found")
 
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     excel_stream = ExcelExportService.generate_reconciliation_workbook(balance_sheet)
@@ -499,7 +535,7 @@ def run_ai_audit(
     if not balance_sheet:
         raise HTTPException(status_code=404, detail="Balance sheet not found")
 
-    if current_user.role != "superadmin" and balance_sheet.company_id != current_user.company_id:
+    if not check_balance_sheet_access(current_user, balance_sheet):
         raise HTTPException(status_code=403, detail="Not authorized")
 
     req = audit_req or AIAuditRequest()

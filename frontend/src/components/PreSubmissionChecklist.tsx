@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
 import { CheckCircle, Circle, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ChecklistProps {
     reportId: string;
@@ -14,6 +15,8 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
     const [checklist, setChecklist] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
 
     useEffect(() => {
         fetchChecklist();
@@ -34,8 +37,8 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
         if (!checklist?.can_submit) {
             toast({
                 variant: "destructive",
-                title: "Cannot Submit",
-                description: "Please complete all required items before submitting",
+                title: isRu ? "Невозможно отправить" : "Cannot Submit",
+                description: isRu ? "Пожалуйста, выполните все обязательные пункты перед отправкой" : "Please complete all required items before submitting",
             });
             return;
         }
@@ -51,20 +54,26 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
     }
 
     if (!checklist) {
-        return <div className="text-center p-8 text-gray-500">Failed to load checklist</div>;
+        return (
+            <div className="text-center p-8 text-gray-500">
+                {isRu ? 'Не удалось загрузить чек-лист' : 'Failed to load checklist'}
+            </div>
+        );
     }
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Pre-Submission Checklist</h3>
-                <div className="text-sm text-gray-600">
-                    {checklist.completed_items}/{checklist.total_items} completed
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {isRu ? 'Чек-лист перед отправкой отчета' : 'Pre-Submission Checklist'}
+                </h3>
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {checklist.completed_items}/{checklist.total_items} {isRu ? 'выполнено' : 'completed'}
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2">
                 <div
                     className="bg-blue-600 h-2 rounded-full transition-all"
                     style={{ width: `${checklist.completion_percentage}%` }}
@@ -73,30 +82,30 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
 
             {/* Checklist Items */}
             <div className="space-y-2">
-                {checklist.items.map((item: any) => (
+                {(Array.isArray(checklist?.items) ? checklist.items : []).map((item: any) => (
                     <div
                         key={item.id}
-                        className={`flex items-start gap-3 p-3 rounded-md border ${item.completed
-                                ? 'bg-green-50 border-green-200'
+                        className={`flex items-start gap-3 p-3 rounded-lg border ${item.completed
+                                ? 'bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50'
                                 : item.required
-                                    ? 'bg-red-50 border-red-200'
-                                    : 'bg-gray-50 border-gray-200'
+                                    ? 'bg-red-50/80 dark:bg-red-950/30 border-red-200 dark:border-red-900/50'
+                                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
                             }`}
                     >
                         {item.completed ? (
-                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                            <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
                         ) : item.required ? (
-                            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                         ) : (
-                            <Circle className="h-5 w-5 text-gray-400 mt-0.5" />
+                            <Circle className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
                         )}
                         <div className="flex-1">
-                            <p className="font-medium text-sm">{item.label}</p>
+                            <p className="font-medium text-sm text-slate-900 dark:text-slate-100">{item.label}</p>
                             {item.required && !item.completed && (
-                                <p className="text-xs text-red-600 mt-1">Required</p>
+                                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{isRu ? 'Обязательно' : 'Required'}</p>
                             )}
                             {!item.required && (
-                                <p className="text-xs text-gray-500 mt-1">Optional</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{isRu ? 'Опционально' : 'Optional'}</p>
                             )}
                         </div>
                     </div>
@@ -105,24 +114,28 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
 
             {/* Warning if can't submit */}
             {!checklist.can_submit && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-sm text-yellow-800">
-                        ⚠️ Complete all required items ({checklist.completed_required}/{checklist.required_items}) before submitting
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-lg">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                        ⚠️ {isRu 
+                            ? `Выполните все обязательные пункты (${checklist.completed_required}/${checklist.required_items}) перед отправкой` 
+                            : `Complete all required items (${checklist.completed_required}/${checklist.required_items}) before submitting`}
                     </p>
                 </div>
             )}
 
             {/* Actions */}
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <Button
                     onClick={handleSubmit}
                     disabled={!checklist.can_submit}
-                    className="flex-1"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                 >
-                    {checklist.can_submit ? 'Submit Report' : 'Complete Required Items'}
+                    {checklist.can_submit 
+                        ? (isRu ? 'Отправить отчет' : 'Submit Report') 
+                        : (isRu ? 'Заполните обязательные поля' : 'Complete Required Items')}
                 </Button>
-                <Button onClick={onClose} variant="outline" className="flex-1">
-                    Cancel
+                <Button onClick={onClose} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                    {isRu ? 'Отмена' : 'Cancel'}
                 </Button>
             </div>
         </div>

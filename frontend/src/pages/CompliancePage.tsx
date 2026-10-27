@@ -95,9 +95,11 @@ export default function CompliancePage() {
                 ...(filters.search && { search: filters.search }),
             });
             const res = await api.get(`/compliance/alerts?${params}`);
-            setAlerts(res.data);
+            const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            setAlerts(data);
         } catch (error) {
             console.error('Failed to fetch alerts', error);
+            setAlerts([]);
         }
     };
 
@@ -246,15 +248,15 @@ export default function CompliancePage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">{t('compliance_dashboard')}</h1>
-                    <p className="text-gray-500">{t('gap_analysis_subtitle')}</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t('compliance_dashboard')}</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{t('gap_analysis_subtitle')}</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleExport}>
+                    <Button variant="outline" onClick={handleExport} className="dark:border-slate-700 dark:hover:bg-slate-800">
                         <Download className="mr-2 h-4 w-4" />
                         {t('export_excel')}
                     </Button>
-                    <Button onClick={runCheck} disabled={isChecking}>
+                    <Button onClick={runCheck} disabled={isChecking} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
                         {isChecking ? t('running') : t('run_compliance_check')}
                     </Button>
                 </div>
@@ -263,25 +265,25 @@ export default function CompliancePage() {
             {/* Summary Cards */}
             {stats && (
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div className="bg-white p-4 rounded-lg shadow border">
-                        <div className="text-sm text-gray-600">{t('total_alerts')}</div>
-                        <div className="text-3xl font-bold">{stats.total}</div>
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800">
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('total_alerts')}</div>
+                        <div className="text-3xl font-bold text-slate-900 dark:text-white mt-1">{stats.total}</div>
                     </div>
-                    <div className="bg-red-50 p-4 rounded-lg shadow border border-red-200">
-                        <div className="text-sm text-red-600">{t('critical')}</div>
-                        <div className="text-3xl font-bold text-red-600">{stats.critical}</div>
+                    <div className="bg-red-50/80 dark:bg-red-950/30 p-5 rounded-xl shadow-xs border border-red-200 dark:border-red-900/50">
+                        <div className="text-sm font-medium text-red-600 dark:text-red-400">{t('critical')}</div>
+                        <div className="text-3xl font-bold text-red-600 dark:text-red-400 mt-1">{stats.critical}</div>
                     </div>
-                    <div className="bg-orange-50 p-4 rounded-lg shadow border border-orange-200">
-                        <div className="text-sm text-orange-600">{t('high')}</div>
-                        <div className="text-3xl font-bold text-orange-600">{stats.high}</div>
+                    <div className="bg-orange-50/80 dark:bg-orange-950/30 p-5 rounded-xl shadow-xs border border-orange-200 dark:border-orange-900/50">
+                        <div className="text-sm font-medium text-orange-600 dark:text-orange-400">{t('high')}</div>
+                        <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-1">{stats.high}</div>
                     </div>
-                    <div className="bg-blue-50 p-4 rounded-lg shadow border border-blue-200">
-                        <div className="text-sm text-blue-600">{t('in_progress')}</div>
-                        <div className="text-3xl font-bold text-blue-600">{stats.in_progress}</div>
+                    <div className="bg-blue-50/80 dark:bg-blue-950/30 p-5 rounded-xl shadow-xs border border-blue-200 dark:border-blue-900/50">
+                        <div className="text-sm font-medium text-blue-600 dark:text-blue-400">{t('in_progress')}</div>
+                        <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats.in_progress}</div>
                     </div>
-                    <div className="bg-green-50 p-4 rounded-lg shadow border border-green-200">
-                        <div className="text-sm text-green-600">{t('compliance_score')}</div>
-                        <div className="text-3xl font-bold text-green-600">{stats.compliance_score}%</div>
+                    <div className="bg-emerald-50/80 dark:bg-emerald-950/30 p-5 rounded-xl shadow-xs border border-emerald-200 dark:border-emerald-900/50">
+                        <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400">{t('compliance_score')}</div>
+                        <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">{stats.compliance_score}%</div>
                     </div>
                 </div>
             )}
@@ -289,68 +291,72 @@ export default function CompliancePage() {
             {/* Charts */}
             {stats && stats.total > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-4">{t('alerts_by_severity')}</h3>
-                        <p className="text-xs text-gray-500 mb-2">💡 {t('click_severity_filter')}</p>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <PieChart>
-                                <Pie
-                                    data={severityData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, value }) => `${name}: ${value}`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                    onClick={(data) => setFilters({ ...filters, severity: data.name.toLowerCase() })}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    {severityData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 min-w-0">
+                        <h3 className="text-lg font-semibold mb-1 text-slate-900 dark:text-white">{t('alerts_by_severity')}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">💡 {t('click_severity_filter')}</p>
+                        <div className="w-full h-[220px] min-w-0" style={{ minHeight: 220 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={severityData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, value }) => `${name}: ${value}`}
+                                        outerRadius={80}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                        onClick={(data) => setFilters({ ...filters, severity: data.name.toLowerCase() })}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        {severityData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
-                    <div className="bg-white p-4 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-4">{t('status_distribution')}</h3>
-                        <p className="text-xs text-gray-500 mb-2">💡 {t('click_status_filter')}</p>
-                        <ResponsiveContainer width="100%" height={200}>
-                            <BarChart
-                                data={[
-                                    { name: t('open'), value: stats.open, status: 'open' },
-                                    { name: t('in_progress'), value: stats.in_progress, status: 'in_progress' },
-                                    { name: t('resolved'), value: stats.resolved, status: 'resolved' },
-                                    { name: t('dismissed'), value: stats.dismissed, status: 'dismissed' },
-                                ]}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar
-                                    dataKey="value"
-                                    fill="#3B82F6"
-                                    onClick={(data: any) => setFilters({ ...filters, status: data.status })}
-                                    style={{ cursor: 'pointer' }}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 min-w-0">
+                        <h3 className="text-lg font-semibold mb-1 text-slate-900 dark:text-white">{t('status_distribution')}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">💡 {t('click_status_filter')}</p>
+                        <div className="w-full h-[220px] min-w-0" style={{ minHeight: 220 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={[
+                                        { name: t('open'), value: stats.open, status: 'open' },
+                                        { name: t('in_progress'), value: stats.in_progress, status: 'in_progress' },
+                                        { name: t('resolved'), value: stats.resolved, status: 'resolved' },
+                                        { name: t('dismissed'), value: stats.dismissed, status: 'dismissed' },
+                                    ]}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                                    <XAxis dataKey="name" stroke="#94a3b8" />
+                                    <YAxis stroke="#94a3b8" />
+                                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc' }} />
+                                    <Bar
+                                        dataKey="value"
+                                        fill="#3B82F6"
+                                        onClick={(data: any) => setFilters({ ...filters, status: data.status })}
+                                        style={{ cursor: 'pointer' }}
+                                    />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-lg shadow">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center gap-2 mb-4">
-                    <Filter className="h-5 w-5 text-gray-600" />
-                    <h3 className="font-semibold">{t('filters')}</h3>
+                    <Filter className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{t('filters')}</h3>
                     {(filters.severity || filters.status || filters.regulation || filters.search) && (
                         <button
                             onClick={() => setFilters({ severity: '', status: '', regulation: '', search: '' })}
-                            className="ml-auto text-sm text-blue-600 hover:underline"
+                            className="ml-auto text-sm text-blue-600 dark:text-blue-400 hover:underline"
                         >
                             {t('clear_all_filters')}
                         </button>
@@ -358,24 +364,24 @@ export default function CompliancePage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t('search')}</label>
+                        <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">{t('search')}</label>
                         <div className="relative">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                             <Input
                                 type="text"
                                 placeholder={t('search_alerts')}
                                 value={filters.search}
                                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                className="pl-8"
+                                className="pl-9 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t('severity')}</label>
+                        <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">{t('severity')}</label>
                         <select
                             value={filters.severity}
                             onChange={(e) => setFilters({ ...filters, severity: e.target.value })}
-                            className="w-full border rounded-md p-2"
+                            className="w-full border rounded-lg p-2 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         >
                             <option value="">{t('all')}</option>
                             <option value="critical">{t('critical')}</option>
@@ -385,11 +391,11 @@ export default function CompliancePage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t('status')}</label>
+                        <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">{t('status')}</label>
                         <select
                             value={filters.status}
                             onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                            className="w-full border rounded-md p-2"
+                            className="w-full border rounded-lg p-2 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         >
                             <option value="">{t('all')}</option>
                             <option value="open">{t('open')}</option>
@@ -399,12 +405,13 @@ export default function CompliancePage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-1">{t('regulation')}</label>
+                        <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">{t('regulation')}</label>
                         <Input
                             type="text"
-                            placeholder="e.g., GDPR, CCPA"
+                            placeholder="e.g., GDPR, CCPA, IFRS"
                             value={filters.regulation}
                             onChange={(e) => setFilters({ ...filters, regulation: e.target.value })}
+                            className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         />
                     </div>
                 </div>
@@ -412,17 +419,17 @@ export default function CompliancePage() {
 
             {/* Bulk Actions */}
             {selectedAlerts.length > 0 && (
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="bg-blue-50/90 dark:bg-blue-950/40 p-4 rounded-xl border border-blue-200 dark:border-blue-900/60">
                     <div className="flex items-center justify-between">
-                        <span className="font-medium">{selectedAlerts.length} {t('alerts_selected')}</span>
+                        <span className="font-medium text-blue-950 dark:text-blue-100">{selectedAlerts.length} {t('alerts_selected')}</span>
                         <div className="flex gap-2">
-                            <Button size="sm" onClick={() => handleBulkUpdate('in_progress')}>
+                            <Button size="sm" onClick={() => handleBulkUpdate('in_progress')} className="bg-blue-600 hover:bg-blue-700 text-white">
                                 {t('mark_in_progress')}
                             </Button>
-                            <Button size="sm" onClick={() => handleBulkUpdate('resolved')}>
+                            <Button size="sm" onClick={() => handleBulkUpdate('resolved')} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                                 {t('mark_resolved')}
                             </Button>
-                            <Button size="sm" variant="outline" onClick={() => setSelectedAlerts([])}>
+                            <Button size="sm" variant="outline" onClick={() => setSelectedAlerts([])} className="dark:border-slate-700 dark:hover:bg-slate-800">
                                 {t('clear_selection')}
                             </Button>
                         </div>
@@ -431,15 +438,15 @@ export default function CompliancePage() {
             )}
 
             {/* Alerts List */}
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-4 border-b">
-                    <h3 className="font-semibold">{t('alerts')} ({alerts.length})</h3>
+            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xs border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">{t('alerts')} ({Array.isArray(alerts) ? alerts.length : 0})</h3>
                 </div>
-                <div className="divide-y">
-                    {alerts.map((alert) => (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                    {Array.isArray(alerts) && alerts.map((alert) => (
                         <div
                             key={alert.id}
-                            className={`p-4 hover:bg-gray-50 transition-colors ${selectedAlerts.includes(alert.id) ? 'bg-blue-50' : ''
+                            className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${selectedAlerts.includes(alert.id) ? 'bg-blue-50/70 dark:bg-blue-950/40' : ''
                                 }`}
                         >
                             <div className="flex items-start gap-4">
@@ -447,7 +454,7 @@ export default function CompliancePage() {
                                     type="checkbox"
                                     checked={selectedAlerts.includes(alert.id)}
                                     onChange={() => toggleSelectAlert(alert.id)}
-                                    className="mt-1"
+                                    className="mt-1 rounded border-slate-300 dark:border-slate-700 cursor-pointer"
                                 />
                                 <div className="flex-shrink-0 mt-1">
                                     {getSeverityIcon(alert.severity)}
@@ -455,32 +462,33 @@ export default function CompliancePage() {
                                 <div className="flex-1">
                                     <div className="flex items-start justify-between">
                                         <div
-                                            className="flex-1 cursor-pointer hover:text-blue-600 transition-colors"
+                                            className="flex-1 cursor-pointer group"
                                             onClick={() => {
                                                 setSelectedAlert(alert);
                                                 setShowAlertModal(true);
                                             }}
                                             title={t('click_to_view')}
                                         >
-                                            <h4 className="font-medium text-gray-900">{alert.message}</h4>
-                                            <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                                                <span className="flex items-center gap-1">
+                                            <h4 className="font-medium text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{alert.message}</h4>
+                                            <div className="flex items-center gap-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                                <span className="flex items-center gap-1 font-medium capitalize">
                                                     {getStatusIcon(alert.status)}
                                                     {alert.status.replace('_', ' ')}
                                                 </span>
                                                 <span className="capitalize">{alert.severity}</span>
-                                                {alert.regulation && <span>• {alert.regulation}</span>}
+                                                {alert.regulation && <span className="font-mono text-xs">• {alert.regulation}</span>}
                                                 <span>• {new Date(alert.created_at).toLocaleDateString()}</span>
                                             </div>
                                             {alert.notes && (
-                                                <p className="text-sm text-gray-600 mt-2 line-clamp-2">{alert.notes}</p>
+                                                <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 line-clamp-2">{alert.notes}</p>
                                             )}
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2 ml-4">
                                             {alert.status === 'open' && (
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
+                                                    className="dark:border-slate-700 dark:hover:bg-slate-800"
                                                     onClick={() => handleUpdateStatus(alert.id, 'in_progress')}
                                                 >
                                                     {t('start')}
@@ -489,6 +497,7 @@ export default function CompliancePage() {
                                             {alert.status === 'in_progress' && (
                                                 <Button
                                                     size="sm"
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
                                                     onClick={() => handleUpdateStatus(alert.id, 'resolved')}
                                                 >
                                                     {t('resolve')}
@@ -502,9 +511,9 @@ export default function CompliancePage() {
                     ))}
                 </div>
 
-                {alerts.length === 0 && (
-                    <div className="text-center py-12 text-gray-500">
-                        <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                {(!Array.isArray(alerts) || alerts.length === 0) && (
+                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                        <TrendingUp className="h-12 w-12 mx-auto mb-4 text-slate-400 dark:text-slate-600" />
                         <p>{t('no_alerts_found')}</p>
                     </div>
                 )}
@@ -512,21 +521,21 @@ export default function CompliancePage() {
 
             {/* Alert Details Modal */}
             {showAlertModal && selectedAlert && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowAlertModal(false)}>
-                    <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-start justify-between mb-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" onClick={() => setShowAlertModal(false)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 shadow-2xl text-slate-900 dark:text-slate-100" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-start justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-3">
                                 {getSeverityIcon(selectedAlert.severity)}
                                 <div>
-                                    <h3 className="text-xl font-bold">{selectedAlert.message}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{selectedAlert.message}</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                         {t('created_at')} {new Date(selectedAlert.created_at).toLocaleString()}
                                     </p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setShowAlertModal(false)}
-                                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-2xl leading-none p-1 rounded-md"
                             >
                                 ×
                             </button>
@@ -535,30 +544,30 @@ export default function CompliancePage() {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">{t('severity')}</label>
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('severity')}</label>
                                     <p className="mt-1 capitalize">
-                                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${selectedAlert.severity === 'critical' ? 'bg-red-100 text-red-800' :
-                                            selectedAlert.severity === 'high' ? 'bg-orange-100 text-orange-800' :
-                                                selectedAlert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                    'bg-green-100 text-green-800'
+                                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${selectedAlert.severity === 'critical' ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300' :
+                                            selectedAlert.severity === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300' :
+                                                selectedAlert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300' :
+                                                    'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300'
                                             }`}>
                                             {selectedAlert.severity}
                                         </span>
                                     </p>
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">{t('status')}</label>
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('status')}</label>
                                     <p className="mt-1 capitalize flex items-center gap-1">
                                         {getStatusIcon(selectedAlert.status)}
-                                        <span className="font-medium">{selectedAlert.status.replace('_', ' ')}</span>
+                                        <span className="font-medium text-slate-900 dark:text-slate-100">{selectedAlert.status.replace('_', ' ')}</span>
                                     </p>
                                 </div>
                             </div>
 
                             {selectedAlert.regulation && (
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">{t('related_regulation')}</label>
-                                    <p className="mt-1 font-mono text-sm bg-gray-100 px-3 py-2 rounded inline-block">
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('related_regulation')}</label>
+                                    <p className="mt-1 font-mono text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 rounded-lg inline-block border border-slate-200 dark:border-slate-700">
                                         {selectedAlert.regulation}
                                     </p>
                                 </div>
@@ -566,23 +575,23 @@ export default function CompliancePage() {
 
                             {selectedAlert.notes && (
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">{t('notes')}</label>
-                                    <p className="mt-1 text-gray-700 bg-gray-50 p-3 rounded border">{selectedAlert.notes}</p>
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('notes')}</label>
+                                    <p className="mt-1 text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-lg border border-slate-200 dark:border-slate-700">{selectedAlert.notes}</p>
                                 </div>
                             )}
 
                             {selectedAlert.resolved_at && (
                                 <div>
-                                    <label className="text-sm font-medium text-gray-600">{t('resolved_at')}</label>
-                                    <p className="mt-1 text-gray-700 flex items-center gap-2">
-                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('resolved_at')}</label>
+                                    <p className="mt-1 text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                        <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                         {new Date(selectedAlert.resolved_at).toLocaleString()}
                                     </p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="mt-6 flex gap-2 justify-end border-t pt-4">
+                        <div className="mt-6 flex gap-2 justify-end border-t border-slate-100 dark:border-slate-800 pt-4">
                             {selectedAlert.status === 'open' && (
                                 <Button onClick={() => {
                                     handleUpdateStatus(selectedAlert.id, 'in_progress');
@@ -595,11 +604,11 @@ export default function CompliancePage() {
                                 <Button onClick={() => {
                                     handleUpdateStatus(selectedAlert.id, 'resolved');
                                     setShowAlertModal(false);
-                                }}>
+                                }} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                                     {t('mark_resolved')}
                                 </Button>
                             )}
-                            <Button variant="outline" onClick={() => setShowAlertModal(false)}>
+                            <Button variant="outline" onClick={() => setShowAlertModal(false)} className="dark:border-slate-700 dark:hover:bg-slate-800">
                                 {t('close')}
                             </Button>
                         </div>

@@ -84,9 +84,19 @@ def ingest_regulation(tenant_id: str, code: str, content: str, metadata: dict) -
     ids = [f"{code}_{i}" for i in range(len(chunks))]
     embeddings = embeddings_model.embed_documents(chunks)
 
+    clean_base_meta = {}
+    if metadata:
+        for k, v in metadata.items():
+            if isinstance(v, (str, int, float, bool)):
+                clean_base_meta[str(k)] = v
+            elif v is None:
+                clean_base_meta[str(k)] = ""
+            else:
+                clean_base_meta[str(k)] = str(v)
+
     metadatas = []
     for i in range(len(chunks)):
-        meta = metadata.copy()
+        meta = clean_base_meta.copy()
         meta["chunk_index"] = i
         meta["total_chunks"] = len(chunks)
         meta["code"] = code

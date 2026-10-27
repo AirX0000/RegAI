@@ -22,7 +22,7 @@ import {
 interface TemplateWizardModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (savedTemplate?: any) => void;
     initialTemplate?: any;
 }
 
@@ -212,20 +212,23 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
 
         try {
             setSubmitting(true);
+            let savedResult: any = null;
             if (initialTemplate?.id) {
-                await api.put(`/templates/${initialTemplate.id}`, payload);
+                const res = await api.put(`/templates/${initialTemplate.id}`, payload);
+                savedResult = res?.data || { ...initialTemplate, ...payload };
                 toast({
                     title: 'Успешно',
                     description: 'Шаблон обновлен с полной конфигурацией',
                 });
             } else {
-                await api.post('/templates/', payload);
+                const res = await api.post('/templates/', payload);
+                savedResult = res?.data || { id: 'tmpl-' + Date.now(), ...payload };
                 toast({
                     title: 'Шаблон создан',
                     description: 'Интеллектуальный шаблон готов к использованию',
                 });
             }
-            onSuccess();
+            onSuccess(savedResult);
             onClose();
         } catch (error: any) {
             console.error('Failed to save template', error);
@@ -241,32 +244,33 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden text-slate-900 dark:text-slate-100">
                 {/* Modal Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-blue-50/40">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50/40 dark:from-slate-900 dark:to-slate-800/80">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-500/20">
                             <Sparkles className="h-5 w-5" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">
-                                {initialTemplate ? 'Редактирование Smart-Шаблона' : 'Конструктор Smart-Шаблона RegAI'}
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                {initialTemplate ? 'Редактирование Smart-Шаблона' : 'Конструктор Smart-Шаблона Axiaris'}
                             </h2>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                 Интеллектуальный регламентный пайплайн финансовой трансформации и комплаенса
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="Закрыть окно конструктора"
+                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
                 {/* Stepper Progress Bar */}
-                <div className="px-6 py-3 border-b bg-gray-50/50">
+                <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="grid grid-cols-5 gap-2">
                         {STEPS.map((step) => {
                             const Icon = step.icon;
@@ -282,8 +286,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                         isCurrent
                                             ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
                                             : isCompleted
-                                            ? 'bg-blue-50 text-blue-800 hover:bg-blue-100'
-                                            : 'bg-white text-gray-400 border hover:border-gray-300'
+                                            ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-900/50'
+                                            : 'bg-white dark:bg-slate-800/70 text-slate-400 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                     }`}
                                 >
                                     <div
@@ -292,14 +296,14 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                 ? 'bg-white/20 text-white'
                                                 : isCompleted
                                                 ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-100 text-gray-600'
+                                                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                                         }`}
                                     >
                                         {isCompleted ? <Check className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                                     </div>
                                     <div className="min-w-0 hidden sm:block">
-                                        <div className="text-xs font-bold truncate leading-tight">{step.title}</div>
-                                        <div className={`text-[10px] truncate ${isCurrent ? 'text-blue-100' : 'text-gray-400'}`}>
+                                        <div className="text-xs font-bold truncate leading-tight text-slate-800 dark:text-slate-100">{step.title}</div>
+                                        <div className={`text-[10px] truncate ${isCurrent ? 'text-blue-100' : 'text-slate-400 dark:text-slate-500'}`}>
                                             {step.desc}
                                         </div>
                                     </div>
@@ -315,42 +319,42 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     {currentStep === 1 && (
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                    <Scale className="h-5 w-5 text-blue-600" /> Шаг 1: Название, назначение и юрисдикция
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 1: Название, назначение и юрисдикция
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Определите регуляторную сферу применения шаблона и стандарты финансового учета
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-xs font-semibold text-gray-700">Название шаблона *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Название шаблона *</label>
                                     <Input
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Например: Трансформация МСФО 16: Аренда и сверка капитала"
-                                        className="h-10 text-sm font-medium"
+                                        className="h-10 text-sm font-medium bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-xs font-semibold text-gray-700">Описание и назначение</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Описание и назначение</label>
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Опишите цель формирования отчета, обязательные раскрытия и контролируемые риски..."
                                         rows={2}
-                                        className="w-full text-xs rounded-lg border border-input p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700">Категория отчета *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Категория отчета *</label>
                                     <select
                                         value={reportType}
                                         onChange={(e) => setReportType(e.target.value)}
-                                        className="w-full h-10 rounded-lg border border-input px-3 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="financial">МСФО Трансформация (Financial)</option>
                                         <option value="compliance">Налоговый комплаенс (Compliance)</option>
@@ -360,11 +364,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700">Юрисдикция / Страна *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Юрисдикция / Страна *</label>
                                     <select
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
-                                        className="w-full h-10 rounded-lg border border-input px-3 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="UZ">🇺🇿 Узбекистан (Uzbekistan)</option>
                                         <option value="KZ">🇰🇿 Казахстан (Kazakhstan)</option>
@@ -376,11 +380,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700">Исходный стандарт учета</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Исходный стандарт учета</label>
                                     <select
                                         value={sourceStandard}
                                         onChange={(e) => setSourceStandard(e.target.value)}
-                                        className="w-full h-10 rounded-lg border border-input px-3 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="NAS">НСБУ Республики Узбекистан (NAS / НАС)</option>
                                         <option value="1C_COA">1С:Типовой план счетов (План счетов 1С)</option>
@@ -390,11 +394,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-gray-700">Целевой стандарт комплаенса</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Целевой стандарт комплаенса</label>
                                     <select
                                         value={targetStandard}
                                         onChange={(e) => setTargetStandard(e.target.value)}
-                                        className="w-full h-10 rounded-lg border border-input px-3 text-xs bg-white font-medium focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="IFRS">МСФО (IFRS — International Standards)</option>
                                         <option value="TAX_CODE">Налоговый кодекс (ГНК РУз / Налоговые декларации)</option>
@@ -410,10 +414,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     {currentStep === 2 && (
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                    <Server className="h-5 w-5 text-blue-600" /> Шаг 2: Источник данных и счета учета
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 2: Источник данных и счета учета
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Укажите, откуда шаблон будет получать исходную оборотно-сальдовую ведомость (ОСВ)
                                 </p>
                             </div>
@@ -452,17 +456,17 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                             onClick={() => setDataSourceType(src.id as any)}
                                             className={`p-3.5 rounded-xl border-2 text-left transition-all ${
                                                 isSelected
-                                                    ? 'border-blue-600 bg-blue-50/50 shadow-sm'
-                                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                                    ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/40 shadow-sm'
+                                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/80'
                                             }`}
                                         >
                                             <div className="flex items-center gap-2 mb-1.5">
-                                                <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                                                <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                                     <Icon className="h-4 w-4" />
                                                 </div>
-                                                <span className="text-xs font-bold text-gray-900">{src.title}</span>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-white">{src.title}</span>
                                             </div>
-                                            <p className="text-[11px] text-gray-500 leading-tight">{src.subtitle}</p>
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">{src.subtitle}</p>
                                         </button>
                                     );
                                 })}
@@ -471,13 +475,13 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                             {/* Required Accounts Picker */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <label className="text-xs font-semibold text-gray-700">
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                         Обязательные классы счетов ОСВ ({requiredAccounts.length} выбрано):
                                     </label>
                                     <button
                                         type="button"
                                         onClick={() => setRequiredAccounts(ACCOUNT_OPTIONS.map(a => a.code))}
-                                        className="text-[11px] text-blue-600 hover:underline font-medium"
+                                        className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium"
                                     >
                                         Выбрать все счета
                                     </button>
@@ -492,11 +496,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                 onClick={() => toggleAccount(acc.code)}
                                                 className={`flex items-center gap-2 p-2 rounded-lg border text-left text-xs transition-colors ${
                                                     isChecked
-                                                        ? 'bg-blue-50 border-blue-400 text-blue-900 font-medium'
-                                                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                        ? 'bg-blue-50 dark:bg-blue-950/50 border-blue-400 dark:border-blue-600 text-blue-900 dark:text-blue-200 font-medium'
+                                                        : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                                                 }`}
                                             >
-                                                <span className="font-mono font-bold px-1.5 py-0.5 bg-white rounded border text-[10px]">
+                                                <span className="font-mono font-bold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded border border-slate-200 dark:border-slate-600 text-[10px]">
                                                     {acc.code}
                                                 </span>
                                                 <span className="truncate">{acc.name}</span>
@@ -506,10 +510,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 </div>
                             </div>
 
-                            <div className="p-3 bg-gray-50 rounded-xl border flex items-center justify-between">
+                            <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <div className="text-xs font-semibold text-gray-900">Строгая верификация структуры колонок</div>
-                                    <div className="text-[11px] text-gray-500">
+                                    <div className="text-xs font-semibold text-slate-900 dark:text-white">Строгая верификация структуры колонок</div>
+                                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
                                         Требовать обязательное наличие сальдо на начало, оборотов Дт/Кт и конечного сальдо
                                     </div>
                                 </div>
@@ -527,16 +531,16 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     {currentStep === 3 && (
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                    <Layers className="h-5 w-5 text-blue-600" /> Шаг 3: Бухгалтерская логика и пакеты МСФО
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 3: Бухгалтерская логика и пакеты МСФО
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Настройте автоматические корректировки и правила защиты двойной записи
                                 </p>
                             </div>
 
                             <div className="space-y-2.5">
-                                <label className="text-xs font-semibold text-gray-700">
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                     Активные пакеты трансформационных проводок:
                                 </label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -548,12 +552,12 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                 onClick={() => toggleStandard(std.id)}
                                                 className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${
                                                     isChecked
-                                                        ? 'border-indigo-500 bg-indigo-50/40 shadow-xs'
-                                                        : 'border-gray-200 bg-white hover:border-gray-300'
+                                                        ? 'border-indigo-500 dark:border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/40 shadow-xs'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-600'
                                                 }`}
                                             >
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-xs font-bold text-gray-900">{std.label}</span>
+                                                    <span className="text-xs font-bold text-slate-900 dark:text-white">{std.label}</span>
                                                     <input
                                                         type="checkbox"
                                                         checked={isChecked}
@@ -561,7 +565,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                         className="h-4 w-4 rounded text-indigo-600"
                                                     />
                                                 </div>
-                                                <p className="text-[11px] text-gray-600 leading-snug">{std.desc}</p>
+                                                <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-snug">{std.desc}</p>
                                             </div>
                                         );
                                     })}
@@ -569,11 +573,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                             </div>
 
                             {/* Double-Entry Guard Callout */}
-                            <div className="p-4 rounded-xl border-2 border-emerald-300 bg-emerald-50/60 space-y-2">
+                            <div className="p-4 rounded-xl border-2 border-emerald-300 dark:border-emerald-700/60 bg-emerald-50/60 dark:bg-emerald-950/30 space-y-2">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                                        <span className="text-xs font-bold text-emerald-900">
+                                        <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                                        <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
                                             Double-Entry Balance Guard (Контроль сходимости капитала)
                                         </span>
                                     </div>
@@ -584,7 +588,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                         className="h-4 w-4 rounded text-emerald-600"
                                     />
                                 </div>
-                                <p className="text-[11px] text-emerald-800">
+                                <p className="text-[11px] text-emerald-800 dark:text-emerald-300/90">
                                     При расчете обесценения (IAS 36) и резерва (IFRS 9) движок автоматически проводит парные записи
                                     в Нераспределенную прибыль (счет 84), гарантируя нулевое расхождение ($\Delta = 0.00$) между активами и пассивами.
                                 </p>
@@ -596,20 +600,20 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     {currentStep === 4 && (
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                    <Brain className="h-5 w-5 text-purple-600" /> Шаг 4: Директивы для нейросети RegAI
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" /> Шаг 4: Директивы для нейросети Axiaris
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Задайте специализированные инструкции и пороговые триггеры рисков для ИИ-аудита
                                 </p>
                             </div>
 
-                            <div className="p-3 bg-purple-50 rounded-xl border border-purple-200 flex items-center justify-between">
+                            <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-200 dark:border-purple-800/60 flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                    <Brain className="h-5 w-5 text-purple-600" />
+                                    <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                     <div>
-                                        <div className="text-xs font-semibold text-purple-900">Включить автоматический ИИ-аудит</div>
-                                        <div className="text-[11px] text-purple-700">Генерировать аудиторское заключение и выявлять риски</div>
+                                        <div className="text-xs font-semibold text-purple-900 dark:text-purple-200">Включить автоматический ИИ-аудит</div>
+                                        <div className="text-[11px] text-purple-700 dark:text-purple-300/80">Генерировать аудиторское заключение и выявлять риски</div>
                                     </div>
                                 </div>
                                 <input
@@ -624,11 +628,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 <div className="space-y-4 pt-1">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-gray-700">Роль ИИ-эксперта</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Роль ИИ-эксперта</label>
                                             <select
                                                 value={aiRole}
                                                 onChange={(e) => setAiRole(e.target.value)}
-                                                className="w-full h-9 rounded-lg border border-input px-3 text-xs bg-white font-medium"
+                                                className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-purple-500"
                                             >
                                                 <option value="Senior IFRS Big 4 Auditor">Старший аудитор Big 4 по МСФО</option>
                                                 <option value="Tax Compliance Advisor (UZ/CIS)">Налоговый консультант (Узбекистан / СНГ)</option>
@@ -638,11 +642,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-gray-700">Язык аудиторских замечаний</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Язык аудиторских замечаний</label>
                                             <select
                                                 value={outputLanguage}
                                                 onChange={(e) => setOutputLanguage(e.target.value)}
-                                                className="w-full h-9 rounded-lg border border-input px-3 text-xs bg-white font-medium"
+                                                className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-purple-500"
                                             >
                                                 <option value="ru">Русский язык (RU)</option>
                                                 <option value="uz">Узбекский язык (O'zbek tili)</option>
@@ -654,7 +658,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     {/* Presets */}
                                     <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-semibold text-gray-700">Промпт-инструкция для ИИ</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Промпт-инструкция для ИИ</label>
                                             <div className="flex gap-1">
                                                 {Object.entries({
                                                     'МСФО 16': 'ifrs_full',
@@ -665,7 +669,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                         key={key}
                                                         type="button"
                                                         onClick={() => setAiPrompt(PRESET_AI_PROMPTS[key])}
-                                                        className="px-2 py-0.5 text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded"
+                                                        className="px-2 py-0.5 text-[10px] bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700"
                                                     >
                                                         {label}
                                                     </button>
@@ -676,14 +680,14 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                             value={aiPrompt}
                                             onChange={(e) => setAiPrompt(e.target.value)}
                                             rows={3}
-                                            className="w-full text-xs rounded-lg border border-input p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono"
+                                            className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                             placeholder="Введите системную директиву для нейросети..."
                                         />
                                     </div>
 
                                     {/* Risk Triggers */}
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-gray-700">Триггеры автоматических предупреждений:</label>
+                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Триггеры автоматических предупреждений:</label>
                                         <div className="flex flex-wrap gap-1.5">
                                             {[
                                                 { id: 'unbalanced_equity', label: '🔴 Расхождение баланса > 0' },
@@ -700,8 +704,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                                         onClick={() => toggleRiskTrigger(t.id)}
                                                         className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
                                                             isSelected
-                                                                ? 'bg-purple-100 text-purple-900 border border-purple-300'
-                                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-transparent'
+                                                                ? 'bg-purple-100 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 border border-purple-300 dark:border-purple-700'
+                                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                                                         }`}
                                                     >
                                                         {t.label}
@@ -719,18 +723,18 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     {currentStep === 5 && (
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                                    <Workflow className="h-5 w-5 text-blue-600" /> Шаг 5: Маршрут согласования и финальная сводка
+                                <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 5: Маршрут согласования и финальная сводка
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                     Установите периодичность формирования и проверьте готовность шаблона
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 rounded-xl border bg-gray-50/50 space-y-3">
+                                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-gray-900">Регулярное авто-создание драфта</span>
+                                        <span className="text-xs font-semibold text-slate-900 dark:text-white">Регулярное авто-создание драфта</span>
                                         <input
                                             type="checkbox"
                                             checked={isRecurring}
@@ -740,11 +744,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     </div>
                                     {isRecurring && (
                                         <div className="space-y-1">
-                                            <label className="text-xs text-gray-600">Периодичность формирования:</label>
+                                            <label className="text-xs text-slate-600 dark:text-slate-400">Периодичность формирования:</label>
                                             <select
                                                 value={recurrencePattern}
                                                 onChange={(e) => setRecurrencePattern(e.target.value)}
-                                                className="w-full h-9 rounded-lg border border-input px-3 text-xs bg-white font-medium"
+                                                className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                                             >
                                                 <option value="monthly">Ежемесячно (к 5-му числу месяца)</option>
                                                 <option value="quarterly">Ежеквартально (по итогам квартала)</option>
@@ -754,19 +758,19 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     )}
                                 </div>
 
-                                <div className="p-4 rounded-xl border bg-gray-50/50 space-y-2">
-                                    <span className="text-xs font-semibold text-gray-900 block">Цепочка согласования (Workflow):</span>
-                                    <div className="space-y-1.5 text-xs text-gray-700">
+                                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2">
+                                    <span className="text-xs font-semibold text-slate-900 dark:text-white block">Цепочка согласования (Workflow):</span>
+                                    <div className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
-                                            <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-[10px]">1</span>
+                                            <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 flex items-center justify-center font-bold text-[10px]">1</span>
                                             <span><strong>Бухгалтер:</strong> Загрузка ОСВ / запуск трансформации</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-[10px]">2</span>
+                                            <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 flex items-center justify-center font-bold text-[10px]">2</span>
                                             <span><strong>Аудитор:</strong> Проверка сходимости и ИИ-заключения</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[10px]">3</span>
+                                            <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-[10px]">3</span>
                                             <span><strong>Директор:</strong> Финальное утверждение и экспорт</span>
                                         </div>
                                     </div>
@@ -774,11 +778,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                             </div>
 
                             {/* Live Blueprint Summary Card */}
-                            <div className="p-4 rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 space-y-3">
+                            <div className="p-4 rounded-2xl border-2 border-blue-200 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 dark:from-slate-800/80 dark:to-blue-950/40 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <Sparkles className="h-4 w-4 text-blue-600" />
-                                        <span className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                                        <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <span className="text-xs font-bold text-blue-950 dark:text-blue-200 uppercase tracking-wider">
                                             Итоговый паспорт шаблона (Smart Blueprint)
                                         </span>
                                     </div>
@@ -788,34 +792,34 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 </div>
 
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                    <div className="bg-white/80 p-2 rounded-lg border border-blue-100">
-                                        <span className="text-[10px] text-gray-500 block">Название:</span>
-                                        <span className="font-semibold text-gray-900 truncate block">{name || 'Не указано'}</span>
+                                    <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Название:</span>
+                                        <span className="font-semibold text-slate-900 dark:text-white truncate block">{name || 'Не указано'}</span>
                                     </div>
-                                    <div className="bg-white/80 p-2 rounded-lg border border-blue-100">
-                                        <span className="text-[10px] text-gray-500 block">Переход:</span>
-                                        <span className="font-semibold text-blue-700">{sourceStandard} ➔ {targetStandard}</span>
+                                    <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Переход:</span>
+                                        <span className="font-semibold text-blue-700 dark:text-blue-300">{sourceStandard} ➔ {targetStandard}</span>
                                     </div>
-                                    <div className="bg-white/80 p-2 rounded-lg border border-blue-100">
-                                        <span className="text-[10px] text-gray-500 block">Источник:</span>
-                                        <span className="font-semibold capitalize text-gray-900">{dataSourceType.replace('_', ' ')}</span>
+                                    <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Источник:</span>
+                                        <span className="font-semibold capitalize text-slate-900 dark:text-white">{dataSourceType.replace('_', ' ')}</span>
                                     </div>
-                                    <div className="bg-white/80 p-2 rounded-lg border border-blue-100">
-                                        <span className="text-[10px] text-gray-500 block">Стандарты:</span>
-                                        <span className="font-semibold text-indigo-700">{activeStandards.join(', ') || 'Базовый'}</span>
+                                    <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Стандарты:</span>
+                                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">{activeStandards.join(', ') || 'Базовый'}</span>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-wrap gap-1.5 pt-1">
-                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
                                         ✓ Double-Entry Guard: Zero Delta
                                     </span>
                                     {aiEnabled && (
-                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-purple-100 text-purple-800">
+                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50">
                                             ✓ ИИ-экспертиза: {aiRole}
                                         </span>
                                     )}
-                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-100 text-blue-800">
+                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
                                         ✓ Счетов в ОСВ: {requiredAccounts.length}
                                     </span>
                                 </div>
@@ -825,7 +829,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                 </div>
 
                 {/* Modal Footer Controls */}
-                <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/50">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                     <div>
                         {currentStep > 1 && (
                             <Button
@@ -833,6 +837,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setCurrentStep(prev => prev - 1)}
+                                className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                             >
                                 <ChevronLeft className="mr-1 h-4 w-4" /> Назад
                             </Button>
@@ -842,9 +847,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                     <div className="flex items-center gap-2">
                         <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             onClick={onClose}
+                            className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                         >
                             Отмена
                         </Button>
@@ -864,6 +870,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     }
                                     setCurrentStep(prev => prev + 1);
                                 }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
                             >
                                 Далее <ChevronRight className="ml-1 h-4 w-4" />
                             </Button>

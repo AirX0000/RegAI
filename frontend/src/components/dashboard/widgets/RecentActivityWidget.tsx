@@ -1,42 +1,131 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { WidgetProps } from '../types';
-import { Activity } from 'lucide-react';
+import { Activity, RefreshCw, ArrowRightLeft, ShieldCheck, Building2, CheckCircle2, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export const RecentActivityWidget: React.FC<WidgetProps> = ({ data }) => {
-    const activities = data?.recent_activity || [];
+    const { i18n } = useTranslation();
+    const navigate = useNavigate();
+    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
+
+    const activities = Array.isArray(data?.recent_activity) ? data.recent_activity : [];
+
+    const getActionBadge = (action: string) => {
+        switch (action.toLowerCase()) {
+            case 'sync':
+                return {
+                    label: isEn ? '1C Sync' : 'Синхронизация 1С',
+                    color: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+                    icon: <RefreshCw className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                };
+            case 'transform':
+                return {
+                    label: isEn ? 'IFRS Transform' : 'Трансформация МСФО',
+                    color: 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+                    icon: <ArrowRightLeft className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                };
+            case 'review':
+                return {
+                    label: isEn ? 'Audit Review' : 'Аудит и резерв',
+                    color: 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+                    icon: <CheckCircle2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                };
+            case 'consolidation':
+                return {
+                    label: isEn ? 'IFRS 10 Consolidation' : 'Консолидация IFRS 10',
+                    color: 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+                    icon: <Building2 className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                };
+            case 'compliance':
+                return {
+                    label: isEn ? 'Compliance' : 'Комплаенс',
+                    color: 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+                    icon: <ShieldCheck className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                };
+            default:
+                return {
+                    label: action,
+                    color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+                    icon: <FileText className="h-3 w-3 text-slate-500" />
+                };
+        }
+    };
+
+    const formatRelativeTime = (timestamp: string) => {
+        try {
+            const date = new Date(timestamp);
+            const diffMs = Date.now() - date.getTime();
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            if (diffMins < 1) return isEn ? 'just now' : 'только что';
+            if (diffMins < 60) return isEn ? `${diffMins} min ago` : `${diffMins} мин назад`;
+            const diffHours = Math.floor(diffMins / 60);
+            if (diffHours < 24) return isEn ? `${diffHours} hr ago` : `${diffHours} ч назад`;
+            return date.toLocaleDateString(isEn ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'short' });
+        } catch {
+            return timestamp;
+        }
+    };
 
     return (
-        <Card className="h-full col-span-2">
+        <Card className="h-full flex flex-col justify-between">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                    Recent Activity
-                </CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <div>
+                    <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-blue-500" />
+                        {isEn ? "Audit & Activity Feed" : "Лента аудита и операций"}
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                        {isEn ? "Live events stream across 1C, IFRS and holding entities" : "Поток операций 1С, МСФО-корректировок и холдинга"}
+                    </CardDescription>
+                </div>
+                <button
+                    onClick={() => navigate('/audit-log')}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                >
+                    {isEn ? "Full Log →" : "Весь журнал →"}
+                </button>
             </CardHeader>
-            <CardContent>
-                <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2">
+            <CardContent className="pt-2 flex-1">
+                <div className="space-y-3">
                     {activities.length === 0 ? (
-                        <div className="text-sm text-muted-foreground text-center py-4">No recent activity</div>
+                        <div className="text-sm text-muted-foreground text-center py-6">
+                            {isEn ? "No recent activity" : "Нет недавних действий"}
+                        </div>
                     ) : (
-                        activities.map((activity) => (
-                            <div key={activity.id} className="flex items-start pb-4 last:mb-0 last:pb-0 border-b last:border-0">
-                                <div className="ml-1 space-y-1">
-                                    <p className="text-sm font-medium leading-none">
-                                        {activity.action}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {activity.details}
-                                    </p>
-                                    <p className="text-[10px] text-muted-foreground pt-1">
-                                        {new Date(activity.timestamp).toLocaleString()}
-                                    </p>
+                        activities.slice(0, 5).map((activity) => {
+                            const badge = getActionBadge(activity.action);
+                            // Replace any legacy ruble symbol with UZS
+                            const cleanedDetails = activity.details.replace(/₽/g, 'UZS');
+
+                            return (
+                                <div 
+                                    key={activity.id} 
+                                    className="p-2.5 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 hover:bg-slate-100/60 dark:hover:bg-slate-800/50 transition-colors flex items-start justify-between gap-3"
+                                >
+                                    <div className="space-y-1 min-w-0 flex-1">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badge.color}`}>
+                                                {badge.icon}
+                                                <span>{badge.label}</span>
+                                            </span>
+                                            <span className="text-[11px] text-muted-foreground">
+                                                {formatRelativeTime(activity.timestamp)}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-800 dark:text-slate-200 leading-snug break-words">
+                                            {cleanedDetails}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </CardContent>
         </Card>
     );
 };
+
+export default RecentActivityWidget;

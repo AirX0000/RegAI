@@ -23,12 +23,15 @@ services:
       dockerfile: ops/docker/backend.Dockerfile
     restart: unless-stopped
     environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_strong_password}@postgres:5432/${POSTGRES_DB:-regai}
-      - SECRET_KEY=${SECRET_KEY:-change_this_to_a_secure_random_hex_key_32_bytes}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY environment variable is required and must be at least 32 characters}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - CHROMA_SERVER_HOST=chroma
+      - CHROMA_SERVER_PORT=8000
       - CHROMA_DIR=/app/chroma_db
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - CORS_ORIGINS=${CORS_ORIGINS:-["*"]}
+      - CORS_ORIGINS='${CORS_ORIGINS:-["*"]}'
       - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-120}
       - LOG_JSON=true
     volumes:
@@ -37,6 +40,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      chroma:
+        condition: service_started
     networks:
       - regai_internal
     healthcheck:
@@ -74,6 +79,8 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
+    expose:
+      - "8000"
     networks:
       - regai_internal
 

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { X } from 'lucide-react';
 import api from '../lib/api';
+import { useTranslation } from 'react-i18next';
 
 interface CompanyFormModalProps {
     company: any | null;
@@ -13,6 +14,9 @@ interface CompanyFormModalProps {
 
 export default function CompanyFormModal({ company, onClose, onSuccess }: CompanyFormModalProps) {
     const { toast } = useToast();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -22,6 +26,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
         employee_count: '',
         logo_url: '',
     });
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (company) {
@@ -39,6 +44,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitting(true);
 
         const payload = {
             ...formData,
@@ -55,131 +61,156 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 // Update
                 await api.put(`/companies/${company.id}`, payload);
                 toast({
-                    title: "Success",
-                    description: "Company updated successfully",
+                    title: isRu ? "Успешно" : "Success",
+                    description: isRu ? "Данные компании успешно обновлены" : "Company updated successfully",
                 });
             } else {
                 // Create
                 await api.post('/companies/', payload);
                 toast({
-                    title: "Success",
-                    description: "Company created successfully",
+                    title: isRu ? "Успешно" : "Success",
+                    description: isRu ? "Компания успешно создана" : "Company created successfully",
                 });
             }
             onSuccess();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || `Failed to ${company ? 'update' : 'create'} company`,
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? `Не удалось ${company ? 'обновить' : 'создать'} компанию` : `Failed to ${company ? 'update' : 'create'} company`),
             });
+        } finally {
+            setSubmitting(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">
-                        {company ? 'Edit Company' : 'Create Company'}
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto text-slate-900 dark:text-slate-100 animate-in zoom-in-95 duration-200">
+                <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                        {company 
+                            ? (isRu ? 'Редактировать компанию' : 'Edit Company') 
+                            : (isRu ? 'Создать новую компанию' : 'Create Company')}
                     </h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                        <X className="h-6 w-6" />
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md">
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium mb-1">
-                            Company Name <span className="text-red-500">*</span>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {isRu ? 'Наименование компании' : 'Company Name'} <span className="text-red-500">*</span>
                         </label>
                         <Input
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
-                            placeholder="Enter company name"
+                            placeholder={isRu ? "Введите название организации" : "Enter company name"}
+                            className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Domain</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {isRu ? 'Домен' : 'Domain'}
+                        </label>
                         <Input
                             type="text"
                             value={formData.domain}
                             onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
-                            placeholder="company.com"
+                            placeholder="company.uz"
+                            className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-1">Description</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {isRu ? 'Описание деятельности' : 'Description'}
+                        </label>
                         <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            className="w-full border rounded-md p-2 min-h-[100px]"
-                            placeholder="Brief description about the company..."
+                            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 min-h-[100px] text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder={isRu ? "Краткое описание профиля компании..." : "Brief description about the company..."}
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Website</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {isRu ? 'Веб-сайт' : 'Website'}
+                            </label>
                             <Input
                                 type="url"
                                 value={formData.website}
                                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                placeholder="https://company.com"
+                                placeholder="https://company.uz"
+                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Industry</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {isRu ? 'Отрасль' : 'Industry'}
+                            </label>
                             <select
-                                className="w-full rounded-md border p-2"
+                                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                 value={formData.industry}
                                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                             >
-                                <option value="">Select Industry</option>
-                                <option value="Banking">Banking</option>
-                                <option value="Technology">Technology</option>
-                                <option value="Retail">Retail</option>
-                                <option value="Manufacturing">Manufacturing</option>
-                                <option value="Healthcare">Healthcare</option>
-                                <option value="Other">Other</option>
+                                <option value="">{isRu ? 'Выберите отрасль' : 'Select Industry'}</option>
+                                <option value="Banking">{isRu ? 'Банки и финансы' : 'Banking'}</option>
+                                <option value="Technology">{isRu ? 'Информационные технологии' : 'Technology'}</option>
+                                <option value="Retail">{isRu ? 'Розничная торговля' : 'Retail'}</option>
+                                <option value="Manufacturing">{isRu ? 'Производство и промышленность' : 'Manufacturing'}</option>
+                                <option value="Healthcare">{isRu ? 'Здравоохранение и фарма' : 'Healthcare'}</option>
+                                <option value="Other">{isRu ? 'Другое' : 'Other'}</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Employee Count</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {isRu ? 'Количество сотрудников' : 'Employee Count'}
+                            </label>
                             <Input
                                 type="number"
                                 value={formData.employee_count}
                                 onChange={(e) => setFormData({ ...formData, employee_count: e.target.value })}
-                                placeholder="e.g., 100"
+                                placeholder={isRu ? "например, 150" : "e.g., 100"}
                                 min="1"
+                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Logo URL</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {isRu ? 'Ссылка на логотип (URL)' : 'Logo URL'}
+                            </label>
                             <Input
                                 type="url"
                                 value={formData.logo_url}
                                 onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
                                 placeholder="https://..."
+                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                             />
                         </div>
                     </div>
 
-                    <div className="flex gap-2 pt-4">
-                        <Button type="submit" className="flex-1">
-                            {company ? 'Update Company' : 'Create Company'}
+                    <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <Button type="button" onClick={onClose} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
+                            {isRu ? 'Отмена' : 'Cancel'}
                         </Button>
-                        <Button type="button" onClick={onClose} variant="outline" className="flex-1">
-                            Cancel
+                        <Button type="submit" disabled={submitting} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
+                            {submitting 
+                                ? (isRu ? 'Сохранение...' : 'Saving...') 
+                                : company 
+                                    ? (isRu ? 'Обновить данные' : 'Update Company') 
+                                    : (isRu ? 'Создать компанию' : 'Create Company')}
                         </Button>
                     </div>
                 </form>

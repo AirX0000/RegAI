@@ -1,11 +1,13 @@
 import csv
 import io
-from typing import Any, List
+import hashlib
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timedelta
+from pydantic import BaseModel, Field
 
 from app.core.deps import get_db, get_current_active_user
 from app.db.models.audit_log import AuditLog
@@ -227,8 +229,50 @@ def export_audit_logs(
             log.details or ""
         ])
     
+    content_bytes = output.getvalue().encode('utf-8-sig')
+    checksum_sha256 = hashlib.sha256(content_bytes).hexdigest()
+
     return StreamingResponse(
-        io.BytesIO(output.getvalue().encode('utf-8-sig')),
+        io.BytesIO(content_bytes),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=audit-logs-{datetime.utcnow().date()}.csv"}
+        headers={
+            "Content-Disposition": f"attachment; filename=audit-logs-{datetime.utcnow().date()}.csv",
+            "X-Audit-Checksum-SHA256": checksum_sha256,
+            "X-Audit-Record-Count": str(len(logs)),
+            "Access-Control-Expose-Headers": "Content-Disposition, X-Audit-Checksum-SHA256, X-Audit-Record-Count"
+        }
     )
+
+
+class AuditVerifyRequest(BaseModel):
+    content: str = Field(..., description="Raw text or CSV content of the exported file")
+    expected_sha256: str = Field(..., description="Expected SHA-256 hash to verify against")
+
+
+@router.post("/verify-export")
+def verify_audit_export(
+    request: AuditVerifyRequest,
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """
+    Cryptographic verification of audit export integrity (ISA 240 / SOC 2 tamper-evidence).
+    Checks whether content SHA-256 matches the expected checksum.
+    """
+    raw_utf8 = request.content.encode('utf-8')
+    raw_sig = request.content.encode('utf-8-sig')
+    hash_utf8 = hashlib.sha256(raw_utf8).hexdigest()
+    hash_sig = hashlib.sha256(raw_sig).hexdigest()
+    expected = request.expected_sha256.strip().lower()
+
+    valid = (hash_utf8.lower() == expected) or (hash_sig.lower() == expected)
+    chosen_hash = hash_sig if hash_sig.lower() == expected else hash_utf8
+
+    return {
+        "valid": valid,
+        "expected_sha256": expected,
+        "calculated_sha256": chosen_hash,
+        "verified_at": datetime.utcnow().isoformat(),
+        "verified_by": current_user.email,
+        "message": "Audit export integrity verified. Document has not been altered." if valid else "Integrity verification failed! Checksum mismatch."
+    }
+

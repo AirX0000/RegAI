@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Boolean, ForeignKey, DateTime, Text
 from sqlalchemy import Uuid as UUID
 from app.db.session import Base
@@ -19,4 +19,4 @@ class Notification(Base):
     type = Column(String(20), nullable=False, default="info")  # info | success | warning | error
     link = Column(String(512), nullable=True)
     read = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)

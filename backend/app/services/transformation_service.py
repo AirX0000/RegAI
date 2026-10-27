@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from typing import Dict, List
+from typing import Dict, List, Any, Optional
 from decimal import Decimal
 
 from app.db.models.balance_sheet import BalanceSheet, BalanceSheetItem, TransformedStatement, TransformationFormat, BalanceSheetStatus
@@ -64,10 +64,15 @@ class TransformationService:
         self.db.refresh(mcfo_statement)
         self.db.refresh(ifrs_statement)
         
+        def _validate_schema(obj):
+            if hasattr(TransformedStatementSchema, "model_validate"):
+                return TransformedStatementSchema.model_validate(obj)
+            return TransformedStatementSchema.from_orm(obj)
+
         return TransformationResponse(
             balance_sheet_id=balance_sheet.id,
-            mcfo_statement=TransformedStatementSchema.from_orm(mcfo_statement),
-            ifrs_statement=TransformedStatementSchema.from_orm(ifrs_statement),
+            mcfo_statement=_validate_schema(mcfo_statement),
+            ifrs_statement=_validate_schema(ifrs_statement),
             success=True,
             message="Balance sheet successfully transformed from NAS / НСБУ to IFRS format"
         )
@@ -76,7 +81,7 @@ class TransformationService:
         """Transform balance sheet to MCFO (Management Accounting) format"""
         
         # Group items by category and subcategory
-        mcfo_structure = {
+        mcfo_structure: Dict[str, Any] = {
             "period": balance_sheet.period.isoformat(),
             "assets": {
                 "current": [],
@@ -103,8 +108,8 @@ class TransformationService:
             
             is_non_current = (
                 "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
-                or code.startswith(("01", "02", "03", "04", "05", "07", "08", "58", "67", "77", "96", "1510", "1520", "2510"))
-                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн"])
+                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "96", "1510", "1520", "2510"))
+                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн", "инвестиц"])
             )
             
             mapped_item = {
@@ -148,7 +153,7 @@ class TransformationService:
         """Transform balance sheet to IFRS (International Financial Reporting Standards) format"""
         
         # IFRS structure with standard classifications
-        ifrs_structure = {
+        ifrs_structure: Dict[str, Any] = {
             "period": balance_sheet.period.isoformat(),
             "statement_of_financial_position": {
                 "assets": {
@@ -222,8 +227,8 @@ class TransformationService:
             
             is_non_current = (
                 "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
-                or code.startswith(("01", "02", "03", "04", "05", "07", "08", "58", "67", "77", "96", "1510", "1520", "2510"))
-                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн"])
+                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "96", "1510", "1520", "2510"))
+                or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн", "инвестиц"])
             )
             
             if item.category.value == "assets":
@@ -232,14 +237,14 @@ class TransformationService:
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["property_plant_equipment"].append(mapped_item)
                     elif code.startswith(("04", "05", "1520")) or any(k in name_lower for k in ["нематериальн", "нма", "intangible", "патенты", "лицензи"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["intangible_assets"].append(mapped_item)
-                    elif code.startswith(("58",)) or any(k in name_lower for k in ["финансов", "инвестиц", "financial"]):
+                    elif code.startswith(("58", "06")) or any(k in name_lower for k in ["финансов", "инвестиц", "financial"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["financial_assets"].append(mapped_item)
                     else:
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["other"].append(mapped_item)
                 else:
-                    if code.startswith(("10", "41", "43", "1040")) or any(k in name_lower for k in ["сырье", "материал", "товар", "склад", "запасы", "inventory", "inventories", "goods", "stock"]):
+                    if code.startswith(("10", "20", "28", "29", "41", "43", "1040")) or any(k in name_lower for k in ["сырье", "материал", "товар", "склад", "запасы", "inventory", "inventories", "goods", "stock", "продукц"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["inventories"].append(mapped_item)
-                    elif code.startswith(("62", "1030")) or any(k in name_lower for k in ["покупател", "заказчик", "клиент", "дебитор", "receivable"]):
+                    elif code.startswith(("40", "41", "42", "62", "1030")) or any(k in name_lower for k in ["покупател", "заказчик", "клиент", "дебитор", "receivable"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(mapped_item)
                     elif code.startswith(("50", "51", "52", "55", "1010", "1020")) or any(k in name_lower for k in ["расчетные счета", "касса", "валютн", "денежн", "банк", "cash", "bank"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["cash_and_equivalents"].append(mapped_item)
@@ -248,18 +253,18 @@ class TransformationService:
                         
             elif item.category.value == "liabilities":
                 if is_non_current:
-                    if code.startswith(("67", "2510")) or any(k in name_lower for k in ["долгосроч", "кредиты банк", "long-term", "long term"]):
+                    if code.startswith(("67", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "2510")) or any(k in name_lower for k in ["долгосроч", "кредиты банк", "long-term", "long term", "аренд"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["long_term_borrowings"].append(mapped_item)
                     elif code.startswith(("77",)) or any(k in name_lower for k in ["отложенн", "deferred"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["deferred_tax"].append(mapped_item)
-                    elif code.startswith(("96",)) or any(k in name_lower for k in ["оценочн", "provision"]):
+                    elif code.startswith(("96", "63")) or any(k in name_lower for k in ["оценочн", "provision", "резерв"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["provisions"].append(mapped_item)
                     else:
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["non_current_liabilities"]["other"].append(mapped_item)
                 else:
                     if code.startswith(("66", "2020")) or any(k in name_lower for k in ["краткосроч", "short-term", "short term", "займы", "заем"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["short_term_borrowings"].append(mapped_item)
-                    elif code.startswith(("60", "68", "69", "70", "76", "2010")) or any(k in name_lower for k in ["поставщик", "подрядчик", "оплата труда", "персонал", "зарплат", "налог", "сбор", "ндс", "страхов", "payable"]):
+                    elif code.startswith(("60", "63", "64", "65", "68", "69", "70", "76", "2010")) or any(k in name_lower for k in ["поставщик", "подрядчик", "оплата труда", "персонал", "зарплат", "налог", "сбор", "ндс", "страхов", "payable"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["trade_payables"].append(mapped_item)
                     elif any(k in name_lower for k in ["оценочн", "provision"]):
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["provisions"].append(mapped_item)
@@ -267,9 +272,9 @@ class TransformationService:
                         ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["current_liabilities"]["other"].append(mapped_item)
                         
             elif item.category.value == "equity":
-                if code.startswith(("80", "3010")) or any(k in name_lower for k in ["уставн", "акционерн", "складочн", "capital", "капитал"]):
+                if code.startswith(("80", "83", "85", "3010")) or any(k in name_lower for k in ["уставн", "акционерн", "складочн", "capital", "капитал"]):
                     ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["share_capital"].append(mapped_item)
-                elif code.startswith(("84", "3020")) or any(k in name_lower for k in ["нераспределен", "прибыль", "убыток", "retained", "earnings"]):
+                elif code.startswith(("84", "87", "3020")) or any(k in name_lower for k in ["нераспределен", "прибыль", "убыток", "retained", "earnings"]):
                     ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["retained_earnings"].append(mapped_item)
                 else:
                     ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["equity"]["other_reserves"].append(mapped_item)
@@ -361,7 +366,7 @@ class TransformationService:
         assets_tot = ifrs_structure["statement_of_financial_position"]["assets"]["total"]
         eq_liab_tot = ifrs_structure["statement_of_financial_position"]["equity_and_liabilities"]["total"]
         diff = assets_tot - eq_liab_tot
-        ifrs_structure["statement_of_financial_position"]["is_balanced"] = bool(abs(diff) < Decimal("0.01"))
+        ifrs_structure["statement_of_financial_position"]["is_balanced"] = abs(diff) < Decimal("0.01")
         ifrs_structure["statement_of_financial_position"]["discrepancy"] = float(diff)
 
 
@@ -378,7 +383,7 @@ class TransformationService:
         
         return convert_decimals(ifrs_structure)
 
-    def _map_account_with_ai(self, item_name: str, item_code: str, category: str, amount: float) -> Dict[str, str]:
+    def _map_account_with_ai(self, item_name: str, item_code: str, category: str, amount: float) -> Optional[Dict[str, Any]]:
         """
         Use AI to map an account to the correct IFRS category and subcategory.
         """
@@ -418,7 +423,8 @@ class TransformationService:
                 max_tokens=150
             )
             
-            content = response.choices[0].message.content.strip()
+            raw_content = response.choices[0].message.content
+            content = (raw_content or "").strip()
             if content.startswith("```json"):
                 content = content[7:-3].strip()
             elif content.startswith("```"):
@@ -430,12 +436,12 @@ class TransformationService:
             logger.error(f"AI Mapping failed for {item_name}: {e}")
             return None
 
-    def _get_ifrs_target_list(self, ifrs_structure: Dict, mapping: Dict) -> List:
+    def _get_ifrs_target_list(self, ifrs_structure: Dict[str, Any], mapping: Dict[str, Any]) -> Optional[List[Any]]:
         """Helper to navigate the IFRS structure based on AI mapping"""
         try:
-            cat = mapping.get("category")
-            sub1 = mapping.get("subcategory_1")
-            sub2 = mapping.get("subcategory_2")
+            cat = str(mapping.get("category") or "")
+            sub1 = str(mapping.get("subcategory_1") or "")
+            sub2 = str(mapping.get("subcategory_2") or "")
             
             # Normalize keys to snake_case matches in our structure
             # This is a simplified navigator. In a real app, we'd need robust key matching.

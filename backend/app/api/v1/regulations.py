@@ -287,6 +287,138 @@ def refresh_regulations(
         "total_regulations": seed_result.get("total_regulations", 0)
     }
 
+@router.get("/crawler/status")
+@router.get("/crawler/status/")
+def get_crawler_status(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Get current crawler engine status, monitored sources, and last crawl stats.
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    return crawler.get_crawler_status()
+
+@router.get("/crawler/sources")
+@router.get("/crawler/sources/")
+def get_crawler_sources(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Get list of all official regulatory web sources and portals monitored by the crawler.
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    return crawler.get_sources()
+
+@router.get("/crawler/sections")
+@router.get("/crawler/sections/")
+def get_crawler_sections(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Get all regulatory sections / sectors (standard predefined + custom user sections).
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    return crawler.get_sections()
+
+@router.post("/crawler/sections")
+@router.post("/crawler/sections/")
+def add_custom_crawler_section(
+    section_data: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Add a new user-defined custom section / legal domain for monitoring.
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    return crawler.add_custom_section(section_data)
+
+@router.delete("/crawler/sections/{section_id}")
+def delete_custom_crawler_section(
+    section_id: str,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Remove a custom regulatory section.
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    deleted = crawler.delete_custom_section(section_id)
+    return {"status": "success", "deleted": deleted}
+
+@router.get("/crawler/discovered")
+@router.get("/crawler/discovered/")
+def get_discovered_regulations(
+    jurisdiction: Optional[str] = None,
+    section_id: Optional[str] = None,
+    category: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Get list of newly discovered regulations from the web.
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    return crawler.get_discovered_regulations(
+        jurisdiction=jurisdiction, 
+        section_id=section_id, 
+        category=category
+    )
+
+@router.post("/crawler/start")
+@router.post("/crawler/start/")
+@router.post("/crawl")
+@router.post("/crawl/")
+def start_crawler_scan(
+    jurisdiction: Optional[str] = None,
+    section_id: Optional[str] = None,
+    category: Optional[str] = None,
+    source_id: Optional[str] = None,
+    custom_query: Optional[str] = None,
+    auto_import: bool = False,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Launch active crawler scan across the internet (official portals, gazettes, standard setters).
+    """
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    result = crawler.crawl_web(
+        jurisdiction=jurisdiction, 
+        section_id=section_id,
+        category=category,
+        source_id=source_id, 
+        custom_query=custom_query,
+        auto_import=auto_import
+    )
+    return result
+
+@router.post("/crawler/import")
+@router.post("/crawler/import/")
+def import_crawled_regulations(
+    data: dict,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_active_user),
+) -> Any:
+    """
+    Import selected discovered regulations into the database registry.
+    """
+    codes = data.get("codes", [])
+    from app.services.regulation_crawler import RegulationCrawlerService
+    crawler = RegulationCrawlerService(db)
+    result = crawler.import_regulations(codes)
+    return result
+
 @router.post("/{regulation_id}/analyze-impact")
 def analyze_regulation_impact(
     regulation_id: str,
@@ -467,6 +599,8 @@ def export_regulations_excel(
     # Create workbook
     wb = Workbook()
     ws = wb.active
+    if ws is None:
+        ws = wb.create_sheet()
     ws.title = "Regulations"
     
     # Header style
@@ -529,8 +663,47 @@ def export_regulations_pdf(
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
         from reportlab.lib.units import inch
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        import os
     except ImportError:
         raise HTTPException(status_code=500, detail="reportlab not installed")
+
+    # Register Unicode font for Cyrillic / Uzbek support
+    pdf_font = "Helvetica"
+    pdf_font_bold = "Helvetica-Bold"
+    candidate_fonts = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf"
+    ]
+    candidate_fonts_bold = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/Library/Fonts/Arial Bold.ttf"
+    ]
+    for font_path in candidate_fonts:
+        if os.path.exists(font_path):
+            try:
+                pdfmetrics.registerFont(TTFont("RegAIUnicodeFont", font_path))
+                pdf_font = "RegAIUnicodeFont"
+                break
+            except Exception:
+                pass
+
+    for font_path_b in candidate_fonts_bold:
+        if os.path.exists(font_path_b):
+            try:
+                pdfmetrics.registerFont(TTFont("RegAIUnicodeFontBold", font_path_b))
+                pdf_font_bold = "RegAIUnicodeFontBold"
+                break
+            except Exception:
+                pass
+
+    if pdf_font_bold == "Helvetica-Bold" and pdf_font != "Helvetica":
+        pdf_font_bold = pdf_font
     
     # Get regulations with filters
     query = db.query(Regulation)
@@ -566,40 +739,53 @@ def export_regulations_pdf(
     title_style = ParagraphStyle(
         'CustomTitle',
         parent=styles['Heading1'],
-        fontSize=24,
+        fontName=pdf_font_bold,
+        fontSize=20,
         textColor=colors.HexColor('#4472C4'),
-        spaceAfter=30,
+        spaceAfter=20,
+    )
+    meta_style = ParagraphStyle(
+        'MetaStyle',
+        parent=styles['Normal'],
+        fontName=pdf_font,
+        fontSize=10,
+        textColor=colors.HexColor('#666666')
     )
     
     # Title
-    elements.append(Paragraph("Regulations Export", title_style))
-    elements.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
+    elements.append(Paragraph("Regulations & Compliance Export (RegAI)", title_style))
+    elements.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}", meta_style))
     elements.append(Spacer(1, 0.3*inch))
     
     # Table data
     data = [["Code", "Title", "Jurisdiction", "Effective Date"]]
     for reg in regulations:
+        title_str = reg.title or ""
+        if pdf_font == "Helvetica":
+            # Fallback if no TTF installed: encode safely without crashing
+            title_str = title_str.encode("latin-1", "replace").decode("latin-1")
+        short_title = title_str[:70] + "..." if len(title_str) > 70 else title_str
         data.append([
-            reg.code,
-            reg.title[:50] + "..." if len(reg.title) > 50 else reg.title,
+            reg.code or "REG",
+            short_title,
             reg.jurisdiction or "",
             reg.effective_date.strftime("%Y-%m-%d") if reg.effective_date else ""
         ])
     
     # Create table
-    table = Table(data, colWidths=[1.5*inch, 3.5*inch, 1.5*inch, 1.2*inch])
+    table = Table(data, colWidths=[1.3*inch, 3.7*inch, 1.2*inch, 1.1*inch])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4472C4')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 9),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+        ('FONTNAME', (0, 0), (-1, 0), pdf_font_bold),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#F8FAFC')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 1), (-1, -1), pdf_font),
+        ('FONTSIZE', (0, 1), (-1, -1), 8.5),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F1F5F9')]),
     ]))
     
     elements.append(table)

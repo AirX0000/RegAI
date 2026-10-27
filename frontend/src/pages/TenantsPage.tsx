@@ -14,6 +14,7 @@ import {
     XCircle
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Tenant {
     id: string;
@@ -24,6 +25,9 @@ interface Tenant {
 }
 
 export default function TenantsPage() {
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -43,24 +47,27 @@ export default function TenantsPage() {
         try {
             setLoading(true);
             const res = await api.get('/tenants/');
-            setTenants(res.data);
+            const rawData = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            setTenants(rawData);
 
             // Calculate stats
-            const active = res.data.filter((t: Tenant) => t.is_active).length;
-            const premium = res.data.filter((t: Tenant) => t.plan === 'premium').length;
-            const enterprise = res.data.filter((t: Tenant) => t.plan === 'enterprise').length;
+            const active = rawData.filter((t: Tenant) => t.is_active).length;
+            const premium = rawData.filter((t: Tenant) => t.plan === 'premium').length;
+            const enterprise = rawData.filter((t: Tenant) => t.plan === 'enterprise').length;
 
             setStats({
-                total: res.data.length,
+                total: rawData.length,
                 active,
                 premium,
                 enterprise
             });
         } catch (error) {
             console.error('Failed to fetch tenants', error);
+            setTenants([]);
+            setStats({ total: 0, active: 0, premium: 0, enterprise: 0 });
             toast({
-                title: 'Error',
-                description: 'Failed to load tenants',
+                title: isRu ? 'Ошибка' : 'Error',
+                description: isRu ? 'Не удалось загрузить список тенантов' : 'Failed to load tenants',
                 variant: 'destructive'
             });
         } finally {
@@ -76,8 +83,8 @@ export default function TenantsPage() {
         setIsFormOpen(false);
         fetchTenants();
         toast({
-            title: 'Success',
-            description: 'Tenant created successfully'
+            title: isRu ? 'Успешно' : 'Success',
+            description: isRu ? 'Тенант успешно создан' : 'Tenant created successfully'
         });
     };
 
@@ -86,14 +93,14 @@ export default function TenantsPage() {
             await api.put(`/tenants/${tenantId}`, { plan: newPlan });
             fetchTenants();
             toast({
-                title: 'Success',
-                description: `Tenant upgraded to ${newPlan}`
+                title: isRu ? 'Успешно' : 'Success',
+                description: isRu ? `Тариф тенанта изменен на ${newPlan}` : `Tenant upgraded to ${newPlan}`
             });
         } catch (error) {
             console.error('Failed to upgrade tenant', error);
             toast({
-                title: 'Error',
-                description: 'Failed to upgrade tenant',
+                title: isRu ? 'Ошибка' : 'Error',
+                description: isRu ? 'Не удалось изменить тариф' : 'Failed to upgrade tenant',
                 variant: 'destructive'
             });
         }
@@ -104,21 +111,27 @@ export default function TenantsPage() {
             await api.put(`/tenants/${tenantId}`, { is_active: !currentStatus });
             fetchTenants();
             toast({
-                title: 'Success',
-                description: `Tenant ${!currentStatus ? 'activated' : 'deactivated'}`
+                title: isRu ? 'Успешно' : 'Success',
+                description: isRu 
+                    ? `Тенант ${!currentStatus ? 'активирован' : 'деактивирован'}` 
+                    : `Tenant ${!currentStatus ? 'activated' : 'deactivated'}`
             });
         } catch (error) {
             console.error('Failed to toggle tenant status', error);
             toast({
-                title: 'Error',
-                description: 'Failed to update tenant status',
+                title: isRu ? 'Ошибка' : 'Error',
+                description: isRu ? 'Не удалось обновить статус тенанта' : 'Failed to update tenant status',
                 variant: 'destructive'
             });
         }
     };
 
     const handleDelete = async (tenantId: string, tenantName: string) => {
-        const confirmed = window.confirm(`Are you sure you want to delete tenant "${tenantName}"? This action cannot be undone.`);
+        const confirmed = window.confirm(
+            isRu 
+                ? `Вы уверены, что хотите удалить тенанта "${tenantName}"? Это действие необратимо.` 
+                : `Are you sure you want to delete tenant "${tenantName}"? This action cannot be undone.`
+        );
         if (!confirmed) {
             return;
         }
@@ -127,14 +140,14 @@ export default function TenantsPage() {
             await api.delete(`/tenants/${tenantId}`);
             fetchTenants();
             toast({
-                title: 'Success',
-                description: 'Tenant deleted successfully'
+                title: isRu ? 'Успешно' : 'Success',
+                description: isRu ? 'Тенант успешно удален' : 'Tenant deleted successfully'
             });
         } catch (error) {
             console.error('Failed to delete tenant', error);
             toast({
-                title: 'Error',
-                description: 'Failed to delete tenant',
+                title: isRu ? 'Ошибка' : 'Error',
+                description: isRu ? 'Не удалось удалить тенанта' : 'Failed to delete tenant',
                 variant: 'destructive'
             });
         }
@@ -143,11 +156,24 @@ export default function TenantsPage() {
     const getPlanBadgeColor = (plan: string) => {
         switch (plan) {
             case 'enterprise':
-                return 'bg-purple-100 text-purple-800 border-purple-200';
+                return 'bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800';
             case 'premium':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
+                return 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800';
             default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+                return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700';
+        }
+    };
+
+    const getPlanLabel = (plan: string) => {
+        switch (plan) {
+            case 'enterprise':
+                return isRu ? 'Enterprise' : 'Enterprise';
+            case 'premium':
+                return isRu ? 'Premium' : 'Premium';
+            case 'free':
+                return isRu ? 'Базовый' : 'Free';
+            default:
+                return plan;
         }
     };
 
@@ -163,7 +189,7 @@ export default function TenantsPage() {
     };
 
     if (loading) {
-        return <div className="p-8 flex justify-center">Loading tenants...</div>;
+        return <div className="p-8 flex justify-center text-slate-500">{isRu ? 'Загрузка тенантов...' : 'Loading tenants...'}</div>;
     }
 
     return (
@@ -172,14 +198,16 @@ export default function TenantsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <Building2 className="h-8 w-8" />
-                        Tenants Management
+                        <Building2 className="h-8 w-8 text-blue-600" />
+                        {isRu ? 'Управление тенантами' : 'Tenants Management'}
                     </h1>
-                    <p className="text-gray-500 mt-1">Manage all tenants and their subscriptions</p>
+                    <p className="text-gray-500 mt-1">
+                        {isRu ? 'Централизованное управление организациями и их тарифными планами' : 'Manage all tenants and their subscriptions'}
+                    </p>
                 </div>
-                <Button onClick={handleCreate} size="lg">
+                <Button onClick={handleCreate} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                     <Building2 className="mr-2 h-4 w-4" />
-                    Create Tenant
+                    {isRu ? 'Создать тенанта' : 'Create Tenant'}
                 </Button>
             </div>
 
@@ -187,52 +215,52 @@ export default function TenantsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Tenants</CardTitle>
+                        <CardTitle className="text-sm font-medium">{isRu ? 'Всего тенантов' : 'Total Tenants'}</CardTitle>
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.total}</div>
                         <p className="text-xs text-muted-foreground">
-                            {stats.active} active
+                            {stats.active} {isRu ? 'активных' : 'active'}
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Tenants</CardTitle>
+                        <CardTitle className="text-sm font-medium">{isRu ? 'Активные тенанты' : 'Active Tenants'}</CardTitle>
                         <Users className="h-4 w-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-green-600">{stats.active}</div>
                         <p className="text-xs text-muted-foreground">
-                            {Math.round((stats.active / stats.total) * 100)}% of total
+                            {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}% {isRu ? 'от общего числа' : 'of total'}
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Premium Plans</CardTitle>
+                        <CardTitle className="text-sm font-medium">{isRu ? 'Тариф Premium' : 'Premium Plans'}</CardTitle>
                         <Shield className="h-4 w-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-blue-600">{stats.premium}</div>
                         <p className="text-xs text-muted-foreground">
-                            Premium subscriptions
+                            {isRu ? 'Премиум-подписки' : 'Premium subscriptions'}
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Enterprise Plans</CardTitle>
+                        <CardTitle className="text-sm font-medium">{isRu ? 'Тариф Enterprise' : 'Enterprise Plans'}</CardTitle>
                         <Crown className="h-4 w-4 text-purple-600" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-purple-600">{stats.enterprise}</div>
                         <p className="text-xs text-muted-foreground">
-                            Enterprise subscriptions
+                            {isRu ? 'Корпоративные подписки' : 'Enterprise subscriptions'}
                         </p>
                     </CardContent>
                 </Card>
@@ -241,44 +269,44 @@ export default function TenantsPage() {
             {/* Tenants Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>All Tenants</CardTitle>
-                    <CardDescription>Manage tenant subscriptions and access</CardDescription>
+                    <CardTitle>{isRu ? 'Все зарегистрированные тенанты' : 'All Tenants'}</CardTitle>
+                    <CardDescription>{isRu ? 'Управление подписками, правами и доступом организаций' : 'Manage tenant subscriptions and access'}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
+                            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Tenant
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {isRu ? 'Тенант / Организация' : 'Tenant'}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Plan
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {isRu ? 'Тариф' : 'Plan'}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Status
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {isRu ? 'Статус' : 'Status'}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Created
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {isRu ? 'Дата создания' : 'Created'}
                                     </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                         ID
                                     </th>
-                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        {isRu ? 'Действия' : 'Actions'}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {tenants.map((tenant) => (
-                                    <tr key={tenant.id} className="hover:bg-gray-50">
+                            <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+                                {Array.isArray(tenants) && tenants.map((tenant) => (
+                                    <tr key={tenant.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                                     <Building2 className="h-5 w-5 text-white" />
                                                 </div>
                                                 <div className="ml-4">
-                                                    <div className="text-sm font-medium text-gray-900">
+                                                    <div className="text-sm font-medium text-slate-900 dark:text-white">
                                                         {tenant.name}
                                                     </div>
                                                 </div>
@@ -287,34 +315,34 @@ export default function TenantsPage() {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${getPlanBadgeColor(tenant.plan)}`}>
                                                 {getPlanIcon(tenant.plan)}
-                                                {tenant.plan}
+                                                {getPlanLabel(tenant.plan)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             {tenant.is_active ? (
-                                                <span className="inline-flex items-center gap-1 text-green-700 text-sm">
+                                                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-sm">
                                                     <CheckCircle2 className="h-4 w-4" />
-                                                    Active
+                                                    {isRu ? 'Активен' : 'Active'}
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-gray-500 text-sm">
+                                                <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm">
                                                     <XCircle className="h-4 w-4" />
-                                                    Inactive
+                                                    {isRu ? 'Неактивен' : 'Inactive'}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(tenant.created_at).toLocaleDateString()}
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                            {new Date(tenant.created_at).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <code className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                            <code className="text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
                                                 {tenant.id.substring(0, 8)}...
                                             </code>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex items-center justify-end gap-2">
                                                 {/* Upgrade Options */}
-                                                {tenant.plan === 'basic' && (
+                                                {(tenant.plan === 'basic' || tenant.plan === 'free') && (
                                                     <>
                                                         <Button
                                                             variant="outline"
@@ -322,7 +350,7 @@ export default function TenantsPage() {
                                                             onClick={() => handleUpgrade(tenant.id, 'premium')}
                                                         >
                                                             <TrendingUp className="mr-1 h-3 w-3" />
-                                                            Premium
+                                                            {isRu ? 'Премиум' : 'Premium'}
                                                         </Button>
                                                         <Button
                                                             variant="outline"
@@ -351,7 +379,9 @@ export default function TenantsPage() {
                                                     size="sm"
                                                     onClick={() => handleToggleActive(tenant.id, tenant.is_active)}
                                                 >
-                                                    {tenant.is_active ? 'Deactivate' : 'Activate'}
+                                                    {tenant.is_active 
+                                                        ? (isRu ? 'Деактивировать' : 'Deactivate') 
+                                                        : (isRu ? 'Активировать' : 'Activate')}
                                                 </Button>
 
                                                 {/* Delete */}
@@ -359,7 +389,7 @@ export default function TenantsPage() {
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={() => handleDelete(tenant.id, tenant.name)}
-                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    className="text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-slate-200 dark:border-slate-800"
                                                 >
                                                     <Trash2 className="h-3 w-3" />
                                                 </Button>
@@ -371,17 +401,17 @@ export default function TenantsPage() {
                         </table>
                     </div>
 
-                    {tenants.length === 0 && (
+                    {(!Array.isArray(tenants) || tenants.length === 0) && (
                         <div className="text-center py-12">
-                            <Building2 className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">No tenants</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Get started by creating a new tenant.
+                            <Building2 className="mx-auto h-12 w-12 text-slate-400" />
+                            <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">{isRu ? 'Нет тенантов' : 'No tenants'}</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                                {isRu ? 'Начните с добавления первого тенанта в систему.' : 'Get started by creating a new tenant.'}
                             </p>
                             <div className="mt-6">
-                                <Button onClick={handleCreate}>
+                                <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Building2 className="mr-2 h-4 w-4" />
-                                    Create Tenant
+                                    {isRu ? 'Создать тенанта' : 'Create Tenant'}
                                 </Button>
                             </div>
                         </div>

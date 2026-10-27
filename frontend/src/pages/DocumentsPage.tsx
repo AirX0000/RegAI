@@ -4,8 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { Upload, FileText, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 
 export default function DocumentsPage() {
+    const { user } = useAuth();
+    const { i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+
     const [documents, setDocuments] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
@@ -19,9 +25,15 @@ export default function DocumentsPage() {
     const fetchDocuments = async () => {
         try {
             const res = await api.get('/documents');
-            setDocuments(res.data);
+            const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            const isSuperadmin = user?.role === 'superadmin' || user?.role === 'website_superadmin';
+            const filtered = isSuperadmin 
+                ? data 
+                : data.filter((d: any) => !user?.company_id || d.company_id === user?.company_id);
+            setDocuments(filtered);
         } catch (error) {
             console.error('Failed to fetch documents', error);
+            setDocuments([]);
         }
     };
 
@@ -40,16 +52,16 @@ export default function DocumentsPage() {
             });
 
             toast({
-                title: 'Success',
-                description: `${file.name} uploaded and processed successfully!`
+                title: isRu ? 'Успешно' : 'Success',
+                description: isRu ? `${file.name} успешно загружен и обработан!` : `${file.name} uploaded and processed successfully!`
             });
 
             fetchDocuments();
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: 'Upload Failed',
-                description: error.response?.data?.detail || 'Failed to upload document'
+                title: isRu ? 'Ошибка загрузки' : 'Upload Failed',
+                description: error.response?.data?.detail || (isRu ? 'Не удалось загрузить документ' : 'Failed to upload document')
             });
         } finally {
             setUploading(false);
@@ -64,8 +76,8 @@ export default function DocumentsPage() {
         } catch (error) {
             toast({
                 variant: 'destructive',
-                title: 'Error',
-                description: 'Failed to load document details'
+                title: isRu ? 'Ошибка' : 'Error',
+                description: isRu ? 'Не удалось загрузить данные документа' : 'Failed to load document details'
             });
         }
     };
@@ -79,20 +91,49 @@ export default function DocumentsPage() {
         }
     };
 
+    const getDocTypeLabel = (type: string) => {
+        if (!isRu) {
+            switch (type) {
+                case 'invoice': return 'Invoice (СФ)';
+                case 'contract': return 'Contract';
+                case 'bank_statement': return 'Bank Statement';
+                default: return type.replace('_', ' ');
+            }
+        }
+        switch (type) {
+            case 'invoice': return 'Счёт-фактура (ЭСФ)';
+            case 'contract': return 'Договор / Контракт';
+            case 'bank_statement': return 'Банковская выписка';
+            default: return type;
+        }
+    };
+
     return (
-        <div className="p-6 max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6">Smart Document Extraction</h1>
+        <div className="p-6 max-w-6xl mx-auto space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {isRu ? 'Интеллектуальное извлечение первичных документов' : 'Smart Document Extraction'}
+                </h1>
+                <p className="text-gray-500 mt-1">
+                    {isRu
+                        ? 'Автоматическое распознавание реквизитов, сумм и НДС из сканов и электронных документов'
+                        : 'Automated OCR extraction of invoice, contract, and banking details'}
+                </p>
+            </div>
 
             {/* Upload Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                {['invoice', 'contract', 'bank_statement'].map((type) => (
-                    <div key={type} className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition">
-                        <Upload className="mx-auto mb-3 text-gray-400" size={40} />
-                        <h3 className="font-semibold mb-2 capitalize">{type.replace('_', ' ')}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {(['invoice', 'contract', 'bank_statement'] as const).map((type) => (
+                    <div key={type} className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 hover:bg-blue-50/20 transition-all bg-white shadow-xs">
+                        <Upload className="mx-auto mb-3 text-blue-500" size={36} />
+                        <h3 className="font-semibold mb-1 text-gray-900">{getDocTypeLabel(type)}</h3>
+                        <p className="text-xs text-gray-500 mb-4">
+                            {isRu ? 'Поддерживаются PDF, JPG, PNG' : 'PDF, JPG, PNG supported'}
+                        </p>
                         <label className="cursor-pointer">
-                            <Button disabled={uploading} className="w-full">
+                            <Button disabled={uploading} className="w-full bg-blue-600 hover:bg-blue-700">
                                 {uploading ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                                Upload {type.split('_')[0]}
+                                {isRu ? `Загрузить ${getDocTypeLabel(type).split(' ')[0]}` : `Upload ${type.replace('_', ' ')}`}
                             </Button>
                             <input
                                 type="file"
@@ -107,25 +148,30 @@ export default function DocumentsPage() {
             </div>
 
             {/* Documents List */}
-            <div className="bg-white rounded-lg shadow">
-                <div className="p-4 border-b">
-                    <h2 className="text-xl font-semibold">Uploaded Documents</h2>
+            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        {isRu ? 'Загруженные первичные документы' : 'Uploaded Documents'}
+                    </h2>
+                    <span className="text-xs text-gray-500">
+                        {documents.length} {isRu ? 'документов' : 'documents'}
+                    </span>
                 </div>
                 <div className="divide-y">
-                    {documents.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500">
+                    {!Array.isArray(documents) || documents.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500">
                             <FileText className="mx-auto mb-3 text-gray-300" size={48} />
-                            <p>No documents uploaded yet</p>
+                            <p>{isRu ? 'Документы пока не загружены' : 'No documents uploaded yet'}</p>
                         </div>
                     ) : (
-                        documents.map((doc) => (
-                            <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                        Array.isArray(documents) && documents.map((doc) => (
+                            <div key={doc.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                 <div className="flex items-center space-x-4">
                                     {getStatusIcon(doc.status)}
                                     <div>
-                                        <p className="font-medium">{doc.filename}</p>
+                                        <p className="font-medium text-gray-900">{doc.filename}</p>
                                         <p className="text-sm text-gray-500">
-                                            {doc.document_type} • {new Date(doc.created_at).toLocaleDateString()}
+                                            {getDocTypeLabel(doc.document_type)} • {new Date(doc.created_at).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
                                         </p>
                                     </div>
                                 </div>
@@ -136,7 +182,7 @@ export default function DocumentsPage() {
                                     disabled={doc.status !== 'completed'}
                                 >
                                     <Eye size={16} className="mr-2" />
-                                    View Data
+                                    {isRu ? 'Просмотреть данные' : 'View Data'}
                                 </Button>
                             </div>
                         ))
@@ -152,14 +198,14 @@ export default function DocumentsPage() {
                     </DialogHeader>
                     {selectedDoc?.extracted_data && (
                         <div className="space-y-4">
-                            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm">
+                            <pre className="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm font-mono border">
                                 {JSON.stringify(selectedDoc.extracted_data, null, 2)}
                             </pre>
                         </div>
                     )}
                     {selectedDoc?.error_message && (
                         <div className="bg-red-50 border border-red-200 rounded p-4 text-red-700">
-                            <p className="font-semibold">Error:</p>
+                            <p className="font-semibold">{isRu ? 'Ошибка:' : 'Error:'}</p>
                             <p>{selectedDoc.error_message}</p>
                         </div>
                     )}

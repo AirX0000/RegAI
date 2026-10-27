@@ -5,27 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta -->
-    <title>RegAI — Smart Compliance Platform</title>
-    <meta name="description" content="Автоматизация МСФО (IFRS), НСБУ и финансового комплаенса. Трансформация отчётности IFRS 9, 16, 36. Синхронизация с 1С:Предприятие. Enterprise-уровень для банков и корпораций." />
-    <meta name="theme-color" content="#2563eb" />
-    <meta name="application-name" content="RegAI" />
-    <meta name="keywords" content="МСФО, IFRS, комплаенс, 1С, трансформация, аудит, финансовая отчётность, RegAI" />
+    <title>Axiaris — AI Compliance & Financial Intelligence Platform</title>
+    <meta name="description" content="Axiaris: Автоматизация МСФО (IFRS), НСБУ и финансового комплаенса. Трансформация отчётности IFRS 9, 16, 36. Синхронизация с 1С:Предприятие. Enterprise-уровень для банков и корпораций." />
+    <meta name="theme-color" content="#050814" />
+    <meta name="application-name" content="Axiaris" />
+    <meta name="keywords" content="Axiaris, МСФО, IFRS, комплаенс, 1С, трансформация, аудит, финансовая отчётность, банковское регулирование" />
 
     <!-- Open Graph (Social Sharing) -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="RegAI — Smart Compliance Platform" />
+    <meta property="og:title" content="Axiaris — AI Compliance & Financial Intelligence Platform" />
     <meta property="og:description" content="AI-powered финансовый комплаенс, трансформация МСФО и аудит в реальном времени." />
-    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image" content="/axiaris-logo.png" />
     <meta property="og:locale" content="ru_RU" />
 
     <!-- Twitter/X Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="RegAI — Smart Compliance" />
-    <meta name="twitter:description" content="Автоматизация МСФО, НСБУ и финансового комплаенса." />
+    <meta name="twitter:title" content="Axiaris — AI Compliance Platform" />
+    <meta name="twitter:description" content="Автоматизация МСФО, НСБУ и финансового комплаенса на базе Axiaris AI." />
+    <meta name="twitter:image" content="/axiaris-logo.png" />
 
-    <!-- Favicon: SVG inline (no external dependency) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui%2Csans-serif' font-weight='900' font-size='16' fill='white'%3ER%3C/text%3E%3C/svg%3E" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='system-ui%2Csans-serif' font-weight='900' font-size='16' fill='white'%3ER%3C/text%3E%3C/svg%3E" />
+    <!-- Favicon: Axiaris 3D Ribbon Logo -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="128x128" href="/favicon-128.png" />
+    <link rel="apple-touch-icon" href="/favicon-128.png" />
+
+    <!-- LCP & Critical Rendering Path Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="image" href="/axiaris-logo.png" fetchpriority="high" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+      />
+    </noscript>
+
+    <!-- Critical Above-the-Fold Styles (Zero Render-Blocking FOUC) -->
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+      html.dark body {
+        background-color: #050814;
+        color: #f8fafc;
+      }
+    </style>
+
+    <!-- Theme Initialization Script (Avoid FOUC) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('axiaris-theme') || localStorage.getItem('theme');
+          var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (saved === 'dark' || (!saved && systemDark)) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.style.colorScheme = 'dark';
+          } else {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.style.colorScheme = 'light';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

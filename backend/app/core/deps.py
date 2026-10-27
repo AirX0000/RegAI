@@ -55,7 +55,9 @@ def get_current_user(
     # Set tenant context for RLS (if using Postgres)
     # This is crucial for multi-tenancy
     try:
-        db.execute(f"SET app.tenant_id = '{token_data.tenant_id}'")
+        from sqlalchemy import text
+        sanitized_tid = str(uuid.UUID(str(token_data.tenant_id)))
+        db.execute(text(f"SET app.tenant_id = '{sanitized_tid}'"))
     except Exception:
         # Fallback for SQLite or if RLS not set up yet
         pass

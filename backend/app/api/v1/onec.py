@@ -29,13 +29,23 @@ def get_user_company_id(
     company_id: Optional[str] = None
 ) -> uuid.UUID:
     """
-    Get the company ID associated with the user, query param, or tenant fallback.
+    Get the company ID associated with the user, ensuring strict multi-tenant authorization.
     """
+    is_super = current_user.role in ["superadmin", "website_superadmin"] or getattr(current_user, "is_superuser", False)
+
     if company_id:
         try:
-            return uuid.UUID(company_id)
+            target_uuid = uuid.UUID(company_id)
+            if is_super:
+                return target_uuid
+            if current_user.company_id and current_user.company_id == target_uuid:
+                return target_uuid
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to access configuration for this company"
+            )
         except ValueError:
-            pass
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid company ID format")
 
     if current_user.company_id:
         return current_user.company_id
@@ -45,9 +55,10 @@ def get_user_company_id(
         if company:
             return company.id
             
-    first_company = db.query(Company).first()
-    if first_company:
-        return first_company.id
+    if is_super:
+        first_company = db.query(Company).first()
+        if first_company:
+            return first_company.id
         
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST,
@@ -99,6 +110,12 @@ def save_onec_config(
     """
     Create or update encrypted 1C OData connection parameters.
     """
+    if current_user.role not in ["admin", "company_admin", "company_owner", "company_superadmin", "superadmin", "website_superadmin", "accountant"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to modify 1C integration configuration."
+        )
+
     company_id = get_user_company_id(db, current_user)
     conn = OneCService.save_connection(
         db=db,
@@ -141,6 +158,12 @@ async def test_onec_connection(
     """
     Test ping and latency against 1C:Enterprise OData metadata service.
     """
+    if current_user.role not in ["admin", "company_admin", "company_owner", "company_superadmin", "superadmin", "website_superadmin", "accountant"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions to test 1C integration connection."
+        )
+
     company_id = get_user_company_id(db, current_user)
     conn = OneCService.get_connection(db, company_id)
     
@@ -151,6 +174,7 @@ async def test_onec_connection(
         )
 
     if not conn:
+        assert test_in is not None
         # Temporary in-memory connection
         conn = OneCConnection(
             company_id=company_id,
@@ -165,7 +189,7 @@ async def test_onec_connection(
         if test_in.api_token:
             conn.set_api_token(test_in.api_token)
 
-    test_override = test_in.dict() if test_in else None
+    test_override = (test_in.model_dump() if hasattr(test_in, "model_dump") else test_in.dict()) if test_in else None
     result = await OneCService.test_connection(db, conn, test_override)
     return result
 
@@ -182,7 +206,14 @@ async def sync_trial_balance(
     Fetches trial balance / GL turnovers and creates/updates RegAI balance sheet.
     """
     company_id = get_user_company_id(db, current_user)
-    req = request or TrialBalanceFilterRequest()
+    req = request if request is not None else TrialBalanceFilterRequest(
+        period_start=None,
+        period_end=None,
+        company_code=None,
+        account_filter=None,
+        auto_populate_balance_sheet=True,
+        notes=None
+    )
     
     try:
         response = await OneCService.sync_trial_balance(

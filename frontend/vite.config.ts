@@ -14,12 +14,28 @@ export default defineConfig({
         port: 5173,
         proxy: {
             '/api': {
-                target: 'http://localhost:8000',
+                target: 'http://127.0.0.1:8001',
                 changeOrigin: true,
             },
         },
     },
+    preview: {
+        host: true,
+        port: 5173,
+        proxy: {
+            '/api': {
+                target: 'http://127.0.0.1:8001',
+                changeOrigin: true,
+            },
+        },
+    },
+    esbuild: {
+        drop: ['console', 'debugger'],
+        legalComments: 'none',
+    },
     build: {
+        sourcemap: false,
+        minify: 'esbuild',
         chunkSizeWarningLimit: 600,
         rollupOptions: {
             output: {

@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from prometheus_client import make_asgi_app
 from alembic.config import Config
-from alembic import command
+import alembic.command as command
 
 from app.core.config import settings
 from app.core.logging import setup_logging
@@ -114,19 +114,15 @@ def ensure_db_schema():
         logger.warning(f"Universal schema self-healing warning: {e}")
 
 def ensure_demo_data():
-    """Ensure complete, rich demo environment exists and is fully populated on every startup:
-    - Tenants, Companies (FinBridge Capital, MediCorp International, LogiTrans Global)
-    - Demo users across all role levels with password FinBridge2026!
-    - Bilingual Regulations (Basel III, IFRS 9, ISA audit standards, Uzbekistan laws, GDPR, etc.)
-    - 1C:Enterprise Connections & Sync Logs
-    - Balanced Trial Balances (RSBU 01, 02, 10, 41, 51, 60, 62, 70, 80, 84)
-    - IFRS Transformations & Adjustments (IFRS 16 Lease, IAS 36 Impairment, IFRS 9 ECL)
-    - Compliance Alerts across all severity levels
-    - Compliance & Audit Reports
-    - OCR Financial Documents with JSON extracted metadata
-    - Tax Rates (Uzbekistan, Russia, Kazakhstan)
-    - Security & Operational Audit Logs
+    """Ensure complete, rich demo environment exists and is fully populated on startup:
+    Gatekeeper: In production, demo seeding is strictly prohibited unless DEMO_MODE is explicitly enabled.
     """
+    is_production = getattr(settings, "ENVIRONMENT", "").lower() == "production"
+    demo_mode_enabled = getattr(settings, "DEMO_MODE", False)
+    if is_production and not demo_mode_enabled:
+        logger.info("Demo data seeding skipped (production environment with DEMO_MODE disabled)")
+        return
+
     try:
         from app.db.session import SessionLocal
         from app.core.security import get_password_hash
@@ -298,12 +294,9 @@ def ensure_demo_data():
                     db.refresh(user)
                     logger.info(f"Initialized demo user: {acc['email']}")
                 else:
+                    # Do NOT overwrite existing user passwords or privileges on restart
                     user.email = acc["email"]
-                    user.hashed_password = hashed_pwd
                     user.is_active = True
-                    user.role = acc["role"]
-                    user.is_superuser = acc["is_superuser"]
-                    user.is_company_owner = acc["is_company_owner"]
                     user.hierarchy_level = acc["hierarchy_level"]
                     user.tenant_id = primary_company.tenant_id
                     user.company_id = primary_company.id
@@ -586,7 +579,7 @@ def ensure_demo_data():
                 try:
                     from app.services.transformation_service import TransformationService
                     ts_service = TransformationService(db)
-                    ts_service.transform_balance_sheet(bs_2024.id)
+                    ts_service.transform(bs_2024)
                     logger.info("Successfully synchronized bs_2024 with complete double-entry adjustments ($126.95M equilibrium)")
                 except Exception as t_err:
                     logger.warning(f"Notice auto-transforming bs_2024 on startup: {t_err}")
@@ -987,12 +980,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Configuration
-_cors_origins = [str(origin) for origin in settings.CORS_ORIGINS] if settings.CORS_ORIGINS else ["*"]
+# CORS Configuration: in production, default strictly to configured explicit origins
+_is_prod = (getattr(settings, "ENVIRONMENT", "") or "").lower() == "production"
+_cors_origins = list(settings.CORS_ORIGINS) if settings.CORS_ORIGINS else []
+_origin_regex = None if _is_prod else r"http://localhost:\d+|http://127\.0\.0\.1:\d+"
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_cors_origins,
-    allow_origin_regex=r"https://.*\.up\.railway\.app|https://.*\.vercel\.app|http://localhost:\d+|http://127\.0\.0\.1:\d+",
+    allow_origins=_cors_origins if _cors_origins else (["*"] if not _is_prod else []),
+    allow_origin_regex=_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1031,6 +1027,15 @@ async def security_and_size_middleware(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    if not path.startswith(("/docs", "/redoc")):
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' data: https://fonts.gstatic.com; "
+            "img-src 'self' data: blob: https:; frame-src 'self' blob:; "
+            "object-src 'self' blob:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; "
+            "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        )
     
     return response
 
@@ -1112,9 +1117,14 @@ if os.path.exists(dist_dir):
             logger.warning(f"Unmatched backend route: /{full_path}")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"API route /{full_path} not found")
         
-        file_path = os.path.join(dist_dir, full_path)
-        if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
-            return FileResponse(file_path)
+        # Security: Prevent path traversal attacks (CWE-22)
+        real_dist = os.path.realpath(dist_dir)
+        requested_file = os.path.realpath(os.path.join(dist_dir, full_path))
+        if not (requested_file == real_dist or requested_file.startswith(real_dist + os.sep)):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        
+        if full_path and os.path.exists(requested_file) and os.path.isfile(requested_file):
+            return FileResponse(requested_file)
         
         index_file = os.path.join(dist_dir, "index.html")
         if os.path.exists(index_file):

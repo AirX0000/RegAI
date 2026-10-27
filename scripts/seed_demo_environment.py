@@ -13,7 +13,7 @@ Seed complete realistic demo environment for RegAI:
 import sys
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Add backend and project root directories to sys.path
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
@@ -63,7 +63,7 @@ def seed_demo():
     # 2. Run migrations if applicable
     try:
         from alembic.config import Config
-        from alembic import command
+        import alembic.command as command
         alembic_ini_path = "alembic.ini"
         if not os.path.exists(alembic_ini_path):
             alembic_ini_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "backend", "alembic.ini")
@@ -272,7 +272,7 @@ def seed_demo():
                 user.company_id = udata["company_id"]
                 user.tenant_id = tenant.id
                 user.is_active = True
-                user.hashed_password = get_password_hash(udata["password"])
+                user.hashed_password = get_password_hash(str(udata["password"]))
                 db.commit()
                 print(f"   🔄 Updated credentials & permissions for: {user.email}")
             users[udata["email"]] = user
@@ -577,7 +577,7 @@ def seed_demo():
                 eff_date = None
                 if "effective_date" in bdata and bdata["effective_date"]:
                     try:
-                        eff_date = datetime.strptime(bdata["effective_date"], "%Y-%m-%d")
+                        eff_date = datetime.strptime(str(bdata["effective_date"]), "%Y-%m-%d")
                     except Exception:
                         pass
 
@@ -996,7 +996,7 @@ def seed_demo():
                 (admin_user.id, "update", "tax_rates", "Verified Uzbekistan and Kazakhstan VAT/Corporate tax rates", "192.168.1.10", 1),
             ]
             for u_id, act, res_type, det, ip, days_ago in audit_events:
-                ts = datetime.utcnow() - timedelta(days=days_ago)
+                ts = datetime.now(timezone.utc) - timedelta(days=days_ago)
                 alog = AuditLog(
                     id=uuid.uuid4(),
                     tenant_id=primary_company.tenant_id,

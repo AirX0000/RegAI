@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
+import { read, utils } from 'xlsx';
+import InteractiveColumnMapper, { BalanceSheetImportItem } from '../components/upload/InteractiveColumnMapper';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileSpreadsheet, Plus, TrendingUp, Calendar, CheckCircle, Trash2, Upload, Download, FileUp, Server } from 'lucide-react';
+import { FileSpreadsheet, Plus, TrendingUp, Calendar, CheckCircle, Trash2, Upload, Download, FileUp, Server, Building2, Edit3, SlidersHorizontal, Settings2 } from 'lucide-react';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '../context/AuthContext';
@@ -23,12 +26,16 @@ interface BalanceSheet {
     period: string;
     status: string;
     created_at: string;
-    items: any[];
+    items?: any[];
+    notes?: string;
+    company_id?: string;
+    company_name?: string;
 }
 
 export default function TransformationDashboard() {
     const { user } = useAuth();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
     const [balanceSheets, setBalanceSheets] = useState<BalanceSheet[]>([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -42,11 +49,16 @@ export default function TransformationDashboard() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [balanceSheetToDelete, setBalanceSheetToDelete] = useState<{ id: string; period: string } | null>(null);
 
+    // Quick Edit modal state
+    const [editSheetOpen, setEditSheetOpen] = useState(false);
+    const [editingSheet, setEditingSheet] = useState<{ id: string; period: string; status: string; notes?: string } | null>(null);
+    const [editSaving, setEditSaving] = useState(false);
+
     // File upload states
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [uploadPreview, setUploadPreview] = useState<any>(null);
+    const [rawRows, setRawRows] = useState<any[][]>([]);
     const [dragActive, setDragActive] = useState(false);
     const [oneCSyncOpen, setOneCSyncOpen] = useState(false);
 
@@ -58,21 +70,34 @@ export default function TransformationDashboard() {
         try {
             setLoading(true);
             const res = await api.get('/balance-sheets/');
-            setBalanceSheets(res.data);
+            const rawData = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            const isSuperadmin = user?.role === 'superadmin' || user?.role === 'website_superadmin';
+            const data = isSuperadmin 
+                ? rawData 
+                : rawData.filter((bs: any) => !user?.company_id || bs.company_id === user?.company_id);
+            
+            // Normalize status to lowercase
+            const normalizedData: BalanceSheet[] = data.map((bs: any) => ({
+                ...bs,
+                status: (bs.status || 'draft').toLowerCase()
+            }));
+            setBalanceSheets(normalizedData);
 
-            // Calculate stats
-            const draft = res.data.filter((bs: BalanceSheet) => bs.status === 'draft').length;
-            const transformed = res.data.filter((bs: BalanceSheet) => bs.status === 'transformed').length;
-            const submitted = res.data.filter((bs: BalanceSheet) => bs.status === 'submitted').length;
+            // Calculate stats with lowercase comparison
+            const draft = normalizedData.filter((bs: BalanceSheet) => bs.status === 'draft').length;
+            const transformed = normalizedData.filter((bs: BalanceSheet) => bs.status === 'transformed').length;
+            const submitted = normalizedData.filter((bs: BalanceSheet) => bs.status === 'submitted').length;
 
             setStats({
-                total: res.data.length,
+                total: normalizedData.length,
                 draft,
                 transformed,
                 submitted
             });
         } catch (error) {
             console.error('Failed to fetch balance sheets', error);
+            setBalanceSheets([]);
+            setStats({ total: 0, draft: 0, transformed: 0, submitted: 0 });
             toast({
                 title: t('error'),
                 description: t('error_loading_sheets'),
@@ -80,6 +105,38 @@ export default function TransformationDashboard() {
             });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSaveQuickEdit = async () => {
+        if (!editingSheet) return;
+        try {
+            setEditSaving(true);
+            const periodIso = editingSheet.period.includes('T')
+                ? editingSheet.period
+                : new Date(editingSheet.period + '-01').toISOString();
+            const payload = {
+                period: periodIso,
+                status: (editingSheet.status || 'draft').toLowerCase(),
+                notes: editingSheet.notes || ''
+            };
+            await api.put(`/balance-sheets/${editingSheet.id}`, payload);
+            toast({
+                title: isRu ? 'Сохранено' : 'Saved',
+                description: isRu ? 'Параметры отчета успешно обновлены' : 'Balance sheet updated successfully',
+            });
+            setEditSheetOpen(false);
+            setEditingSheet(null);
+            fetchBalanceSheets();
+        } catch (err: any) {
+            console.error('Failed to update balance sheet', err);
+            toast({
+                title: isRu ? 'Ошибка' : 'Error',
+                description: err?.response?.data?.detail || (isRu ? 'Не удалось обновить отчет' : 'Failed to update balance sheet'),
+                variant: 'destructive',
+            });
+        } finally {
+            setEditSaving(false);
         }
     };
 
@@ -146,78 +203,85 @@ export default function TransformationDashboard() {
         if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
             toast({
                 title: t('error'),
-                description: 'Invalid file type. Please upload .xlsx, .xls, or .csv file',
+                description: isRu ? 'Недопустимый формат. Загрузите .xlsx, .xls или .csv' : 'Invalid file type. Please upload .xlsx, .xls, or .csv file',
                 variant: 'destructive'
             });
             return;
         }
 
+        setSelectedFile(file);
         setUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
 
-        try {
-            const response = await api.post('/balance-sheets/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const bstr = e.target?.result;
+                const wb = read(bstr, { type: 'binary' });
+                const wsname = wb.SheetNames[0];
+                const ws = wb.Sheets[wsname];
+                const jsonData = utils.sheet_to_json(ws, { header: 1 }) as any[][];
 
-            setUploadPreview(response.data);
-
-            if (!response.data.success) {
+                if (jsonData && jsonData.length > 0) {
+                    setRawRows(jsonData);
+                    toast({
+                        title: isRu ? "Файл прочитан" : t('success'),
+                        description: isRu ? `Загружено ${jsonData.length} строк. Выберите разметку колонок.` : `Read ${jsonData.length} rows. Please verify column mapping.`,
+                    });
+                } else {
+                    toast({
+                        variant: "destructive",
+                        title: isRu ? "Файл пуст" : "Empty file",
+                        description: isRu ? "Не удалось обнаружить данные в таблице" : "No rows found in sheet",
+                    });
+                }
+            } catch (error) {
+                console.error('Error parsing file locally:', error);
                 toast({
-                    title: t('error'),
-                    description: response.data.error || 'Failed to parse file',
-                    variant: 'destructive'
+                    variant: "destructive",
+                    title: isRu ? "Ошибка чтения файла" : "File read error",
+                    description: isRu ? "Не удалось распарсить Excel документ" : "Failed to parse Excel document",
                 });
-            } else {
-                toast({
-                    title: t('success'),
-                    description: `File parsed successfully. ${response.data.valid_rows} rows found.`,
-                });
+            } finally {
+                setUploading(false);
             }
-        } catch (error: any) {
-            console.error('Upload failed', error);
-            toast({
-                title: t('error'),
-                description: error.response?.data?.detail || 'Failed to upload file',
-                variant: 'destructive'
-            });
-        } finally {
-            setUploading(false);
-        }
+        };
+        reader.readAsBinaryString(file);
     };
 
-    const handleConfirmUpload = async () => {
-        if (!uploadPreview || !uploadPreview.items) return;
-
+    const handleConfirmImportFromMapper = async (items: BalanceSheetImportItem[], period: string, notes: string) => {
         try {
             setUploading(true);
-            await api.post('/balance-sheets/upload/confirm', {
-                items: uploadPreview.items,
-                period: new Date().toISOString(),
-                notes: `Uploaded from ${selectedFile?.name || 'file'}`
+            const res = await api.post('/balance-sheets/', {
+                period: period || new Date().toISOString(),
+                items: items,
+                notes: notes || `Uploaded from ${selectedFile?.name || 'file'}`
             });
 
             toast({
-                title: t('success'),
-                description: `Balance sheet created with ${uploadPreview.items.length} items`,
+                title: isRu ? "Баланс успешно создан" : t('success'),
+                description: isRu ? `Загружено ${items.length} статей. Переход к корректировкам...` : `Balance sheet created with ${items.length} items`,
             });
 
             setUploadDialogOpen(false);
             setSelectedFile(null);
-            setUploadPreview(null);
-            fetchBalanceSheets(); // Refresh list
+            setRawRows([]);
+            fetchBalanceSheets();
+            if (res.data?.id) {
+                navigate(`/transformation/adjustments/${res.data.id}`);
+            }
         } catch (error: any) {
             console.error('Confirm upload failed', error);
             toast({
                 title: t('error'),
-                description: error.response?.data?.detail || 'Failed to create balance sheet',
+                description: error.response?.data?.detail || (isRu ? 'Не удалось сохранить баланс' : 'Failed to create balance sheet'),
                 variant: 'destructive'
             });
+            throw error;
         } finally {
             setUploading(false);
         }
     };
+
 
     const handleDownloadTemplate = async () => {
         try {
@@ -248,11 +312,12 @@ export default function TransformationDashboard() {
     };
 
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (statusStr: string) => {
+        const status = (statusStr || 'draft').toLowerCase();
         const statusConfig = {
-            draft: { color: 'bg-gray-100 text-gray-800', label: t('draft') },
-            submitted: { color: 'bg-blue-100 text-blue-800', label: t('submitted') },
-            transformed: { color: 'bg-green-100 text-green-800', label: t('transformed') }
+            draft: { color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700', label: t('draft') || 'Черновик' },
+            submitted: { color: 'bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800', label: t('submitted') || 'Ожидает трансформации' },
+            transformed: { color: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800', label: t('transformed') || 'Трансформировано' }
         };
         const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
         return (
@@ -269,30 +334,45 @@ export default function TransformationDashboard() {
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-                        <FileSpreadsheet className="h-8 w-8" />
-                        {t('transformation_department')}
-                    </h1>
-                    <p className="text-gray-500 mt-1">{t('transform_balance_sheets')}</p>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
+                            <FileSpreadsheet className="h-8 w-8" />
+                            {t('transformation_department')}
+                        </h1>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
+                            <Building2 className="h-3.5 w-3.5 text-cyan-500" />
+                            {user?.role === 'superadmin' ? (isRu ? 'Все организации' : 'All Organizations') : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
+                        </span>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">{t('transform_balance_sheets')}</p>
                 </div>
                 {PERMISSIONS.canEditTransformation(user?.role) && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                         <Button 
                             onClick={() => setOneCSyncOpen(true)} 
                             variant="outline" 
                             size="lg"
-                            className="border-amber-400 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold"
+                            className="border-amber-400 text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-semibold"
                         >
-                            <Server className="mr-2 h-4 w-4 text-amber-600" />
+                            <Server className="mr-2 h-4 w-4 text-amber-600 dark:text-amber-400" />
                             1C:Enterprise Sync
                         </Button>
-                        <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg">
-                            <Upload className="mr-2 h-4 w-4" />
-                            Import from File
+                        <Button 
+                            onClick={() => navigate('/upload')} 
+                            variant="outline" 
+                            size="lg" 
+                            className="border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-semibold"
+                        >
+                            <FileSpreadsheet className="mr-2 h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                            {isRu ? 'Умный импорт 1С' : 'Smart 1C Mapper'}
                         </Button>
-                        <Button onClick={() => navigate('/transformation/new')} size="lg">
+                        <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
+                            <Upload className="mr-2 h-4 w-4" />
+                            {isRu ? 'Загрузить файл' : 'Import File'}
+                        </Button>
+                        <Button onClick={() => navigate('/transformation/new')} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
                             <Plus className="mr-2 h-4 w-4" />
                             {t('create_balance_sheet')}
                         </Button>
@@ -316,10 +396,10 @@ export default function TransformationDashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{t('drafts')}</CardTitle>
-                        <Calendar className="h-4 w-4 text-gray-600" />
+                        <Calendar className="h-4 w-4 text-slate-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-gray-600">{stats.draft}</div>
+                        <div className="text-2xl font-bold text-slate-600 dark:text-slate-300">{stats.draft}</div>
                         <p className="text-xs text-muted-foreground">{t('in_progress')}</p>
                     </CardContent>
                 </Card>
@@ -327,10 +407,10 @@ export default function TransformationDashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{t('submitted')}</CardTitle>
-                        <TrendingUp className="h-4 w-4 text-blue-600" />
+                        <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-blue-600">{stats.submitted}</div>
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.submitted}</div>
                         <p className="text-xs text-muted-foreground">{t('pending_transformation')}</p>
                     </CardContent>
                 </Card>
@@ -338,10 +418,10 @@ export default function TransformationDashboard() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">{t('transformed')}</CardTitle>
-                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{stats.transformed}</div>
+                        <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.transformed}</div>
                         <p className="text-xs text-muted-foreground">{t('mcfo_ifrs_ready')}</p>
                     </CardContent>
                 </Card>
@@ -353,11 +433,11 @@ export default function TransformationDashboard() {
                     <CardTitle>{t('balance_sheets')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    {balanceSheets.length === 0 ? (
+                    {!Array.isArray(balanceSheets) || balanceSheets.length === 0 ? (
                         <div className="text-center py-12">
-                            <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">{t('no_balance_sheets')}</h3>
-                            <p className="mt-1 text-sm text-gray-500">
+                            <FileSpreadsheet className="mx-auto h-12 w-12 text-slate-400" />
+                            <h3 className="mt-2 text-sm font-medium text-slate-900 dark:text-white">{t('no_balance_sheets')}</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                                 {t('get_started_creating_sheet')}
                             </p>
                             {PERMISSIONS.canEditTransformation(user?.role) && (
@@ -372,131 +452,152 @@ export default function TransformationDashboard() {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full">
-                                <thead className="bg-gray-50 border-b">
+                                <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {t('period')}
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {t('status')}
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {t('items')}
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {t('created')}
                                         </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                             {t('actions')}
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {balanceSheets.map((bs) => (
-                                        <tr key={bs.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {new Date(bs.period).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getStatusBadge(bs.status)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {bs.items?.length || 0} {t('items_count')}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {new Date(bs.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    {bs.status === 'draft' && (
-                                                        <>
-                                                            {PERMISSIONS.canEditTransformation(user?.role) ? (
-                                                                <>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => navigate(`/transformation/edit/${bs.id}`)}
-                                                                    >
-                                                                        {t('edit')}
-                                                                    </Button>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                                    >
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-gray-400 text-xs italic">Draft</span>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {bs.status === 'transformed' && (
-                                                        <>
+                                <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
+                                    {Array.isArray(balanceSheets) && balanceSheets.map((bs) => {
+                                        const normStatus = (bs.status || 'draft').toLowerCase();
+                                        return (
+                                            <tr 
+                                                key={bs.id} 
+                                                onClick={() => navigate(`/transformation/edit/${bs.id}`)}
+                                                className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
+                                                title={isRu ? 'Нажмите для перехода к редактированию статей баланса' : 'Click to edit balance sheet'}
+                                            >
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors">
+                                                    <div className="flex items-center gap-2">
+                                                        <span>{new Date(bs.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { month: 'long', year: 'numeric' })}</span>
+                                                        <Edit3 className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    {getStatusBadge(normStatus)}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
+                                                    {bs.items?.length || 0} {t('items_count')}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                                                    {new Date(bs.created_at).toLocaleDateString()}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                                                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                                                        {/* 1. Full Edit Button */}
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/transformation/edit/${bs.id}`);
+                                                            }}
+                                                            className="border-slate-300 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-medium flex items-center gap-1.5 shadow-2xs"
+                                                            title={isRu ? 'Редактировать статьи баланса (Активы, Обязательства, Капитал)' : 'Edit balance sheet items'}
+                                                        >
+                                                            <Edit3 className="h-3.5 w-3.5" />
+                                                            {t('edit') || (isRu ? 'Редактировать' : 'Edit')}
+                                                        </Button>
+
+                                                        {/* 2. Quick Properties Edit Button */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const dateStr = bs.period ? new Date(bs.period).toISOString().slice(0, 7) : new Date().toISOString().slice(0, 7);
+                                                                setEditingSheet({
+                                                                    id: bs.id,
+                                                                    period: dateStr,
+                                                                    status: normStatus,
+                                                                    notes: (bs as any).notes || ''
+                                                                });
+                                                                setEditSheetOpen(true);
+                                                            }}
+                                                            className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 text-xs px-2"
+                                                            title={isRu ? 'Быстро изменить период, статус и заметки' : 'Quick edit properties'}
+                                                        >
+                                                            <Settings2 className="h-3.5 w-3.5 text-slate-500" />
+                                                            <span className="hidden sm:inline ml-1">{isRu ? 'Свойства' : 'Props'}</span>
+                                                        </Button>
+
+                                                        {/* 3. Adjustments Button */}
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 font-medium flex items-center gap-1"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/transformation/adjustments/${bs.id}`);
+                                                            }}
+                                                            title={isRu ? 'Корректировки трансформации НСБУ ➔ МСФО' : 'Adjustments'}
+                                                        >
+                                                            <SlidersHorizontal className="h-3.5 w-3.5" />
+                                                            <span className="hidden lg:inline">{t('adjustments') || (isRu ? 'Корректировки' : 'Adjustments')}</span>
+                                                        </Button>
+
+                                                        {/* 4. Results or Transform Button */}
+                                                        {normStatus === 'transformed' ? (
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
-                                                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                                                                onClick={() => navigate(`/transformation/adjustments/${bs.id}`)}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/transformation/results/${bs.id}`);
+                                                                }}
+                                                                className="border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-medium flex items-center gap-1"
+                                                                title={isRu ? 'Просмотр результатов трансформации в МСФО' : 'View Results'}
                                                             >
-                                                                {t('adjustments') || 'Корректировки'}
+                                                                <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                                                <span>{t('view_results') || (isRu ? 'Результаты' : 'Results')}</span>
                                                             </Button>
+                                                        ) : (
                                                             <Button
-                                                                variant="outline"
                                                                 size="sm"
-                                                                onClick={() => navigate(`/transformation/results/${bs.id}`)}
+                                                                className="bg-blue-600 hover:bg-blue-700 text-white font-medium flex items-center gap-1 shadow-xs"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate(`/transformation/results/${bs.id}`);
+                                                                }}
+                                                                title={isRu ? 'Выполнить трансформацию в МСФО' : 'Transform'}
                                                             >
-                                                                {t('view_results')}
+                                                                <TrendingUp className="h-3.5 w-3.5" />
+                                                                <span>{t('transform') || (isRu ? 'Трансформировать' : 'Transform')}</span>
                                                             </Button>
-                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    {bs.status === 'submitted' && (
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                                                                onClick={() => navigate(`/transformation/adjustments/${bs.id}`)}
-                                                            >
-                                                                {t('adjustments') || 'Корректировки'}
-                                                            </Button>
-                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
-                                                                <Button
-                                                                    size="sm"
-                                                                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                                                                    onClick={() => navigate(`/transformation/results/${bs.id}`)}
-                                                                >
-                                                                    {t('transform')}
-                                                                </Button>
-                                                            )}
-                                                            {PERMISSIONS.canEditTransformation(user?.role) && (
-                                                                <Button
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                    onClick={() => handleDelete(bs.id, new Date(bs.period).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' }))}
-                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                                >
-                                                                    <Trash2 className="h-4 w-4" />
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                        )}
+
+                                                        {/* 5. Delete Button */}
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDelete(bs.id, new Date(bs.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { month: 'long', year: 'numeric' }));
+                                                            }}
+                                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 border-slate-200 dark:border-slate-700 px-2"
+                                                            title={isRu ? 'Удалить отчет' : 'Delete'}
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -532,48 +633,160 @@ export default function TransformationDashboard() {
                 </DialogContent>
             </Dialog>
 
-            {/* Upload Dialog */}
-            <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            {/* Quick Edit Dialog */}
+            <Dialog open={editSheetOpen} onOpenChange={setEditSheetOpen}>
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <FileUp className="h-5 w-5" />
-                            Import Balance Sheet from File
+                        <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+                            <Edit3 className="h-5 w-5 text-blue-600 dark:text-cyan-400" />
+                            {isRu ? 'Быстрое редактирование отчета' : 'Edit Balance Sheet'}
                         </DialogTitle>
                         <DialogDescription>
-                            Upload an Excel (.xlsx, .xls) or CSV file with your balance sheet data
+                            {isRu ? 'Измените отчетный период, статус или примечания к балансу.' : 'Update the reporting period, status, or notes.'}
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-4">
-                        {/* Download Template Button */}
-                        <div className="flex justify-end">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleDownloadTemplate}
-                            >
-                                <Download className="mr-2 h-4 w-4" />
-                                Download Template
-                            </Button>
-                        </div>
+                    {editingSheet && (
+                        <div className="space-y-4 py-2">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Отчетный период (Месяц / Год)' : 'Reporting Period (Month / Year)'}
+                                </label>
+                                <Input
+                                    type="month"
+                                    value={editingSheet.period}
+                                    onChange={(e) => setEditingSheet({ ...editingSheet, period: e.target.value })}
+                                />
+                            </div>
 
-                        {/* Upload Zone */}
-                        {!uploadPreview && (
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Статус отчета' : 'Report Status'}
+                                </label>
+                                <select
+                                    value={editingSheet.status}
+                                    onChange={(e) => setEditingSheet({ ...editingSheet, status: e.target.value })}
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <option value="draft">{isRu ? 'Черновик (Draft)' : 'Draft'}</option>
+                                    <option value="submitted">{isRu ? 'Ожидает трансформации (Submitted)' : 'Submitted'}</option>
+                                    <option value="transformed">{isRu ? 'Трансформировано (Transformed)' : 'Transformed'}</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Заметки / Описание' : 'Notes / Description'}
+                                </label>
+                                <textarea
+                                    value={editingSheet.notes || ''}
+                                    onChange={(e) => setEditingSheet({ ...editingSheet, notes: e.target.value })}
+                                    rows={3}
+                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    placeholder={isRu ? 'Дополнительные примечания к балансу...' : 'Additional notes...'}
+                                />
+                            </div>
+
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setEditSheetOpen(false);
+                                        navigate(`/transformation/edit/${editingSheet.id}`);
+                                    }}
+                                    className="text-xs text-blue-600 dark:text-cyan-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                                >
+                                    <Edit3 className="mr-1.5 h-3.5 w-3.5" />
+                                    {isRu ? 'Открыть полный редактор статей' : 'Open Full Item Editor'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setEditSheetOpen(false)}
+                            disabled={editSaving}
+                        >
+                            {isRu ? 'Отмена' : 'Cancel'}
+                        </Button>
+                        <Button
+                            onClick={handleSaveQuickEdit}
+                            disabled={editSaving}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                        >
+                            {editSaving ? (isRu ? 'Сохранение...' : 'Saving...') : (isRu ? 'Сохранить изменения' : 'Save Changes')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Upload Dialog with Smart Column Mapper */}
+            <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
+                setUploadDialogOpen(open);
+                if (!open) {
+                    setSelectedFile(null);
+                    setRawRows([]);
+                }
+            }}>
+                <DialogContent className={rawRows.length > 0 ? "max-w-6xl max-h-[92vh] overflow-y-auto" : "max-w-4xl max-h-[90vh] overflow-y-auto"}>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <FileUp className="h-5 w-5 text-blue-600" />
+                            {rawRows.length > 0 
+                                ? (isRu ? 'Интерактивная разметка колонок ОСВ / 1C' : 'Interactive Column Mapper (1C / Excel)')
+                                : (isRu ? 'Импорт баланса из файла' : 'Import Balance Sheet from File')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {rawRows.length > 0
+                                ? (isRu ? 'Выберите строку заголовка и сопоставьте колонки счетов, дебета и кредита перед импортом.' : 'Select header row and verify account codes, debit and credit columns before import.')
+                                : (isRu ? 'Загрузите ОСВ или бухгалтерский баланс в формате Excel (.xlsx, .xls) или CSV.' : 'Upload an Excel (.xlsx, .xls) or CSV file with your balance sheet data')}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {rawRows.length > 0 ? (
+                        <InteractiveColumnMapper
+                            rawData={rawRows}
+                            fileName={selectedFile?.name || 'Uploaded File'}
+                            onConfirm={handleConfirmImportFromMapper}
+                            onCancel={() => {
+                                setRawRows([]);
+                                setSelectedFile(null);
+                            }}
+                        />
+                    ) : (
+                        <div className="space-y-4">
+                            {/* Download Template Button */}
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDownloadTemplate}
+                                    className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
+                                >
+                                    <Download className="mr-2 h-4 w-4" />
+                                    {isRu ? 'Скачать шаблон Excel' : 'Download Template'}
+                                </Button>
+                            </div>
+
+                            {/* Upload Zone */}
                             <div
-                                className={`border-2 border-dashed rounded-lg p-8 text-center ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
                                     }`}
                                 onDragEnter={handleDrag}
                                 onDragLeave={handleDrag}
                                 onDragOver={handleDrag}
                                 onDrop={handleDrop}
                             >
-                                <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                                <p className="text-lg font-medium mb-2">
-                                    Drag and drop your file here
+                                <FileSpreadsheet className="mx-auto h-12 w-12 text-slate-400 mb-4" />
+                                <p className="text-lg font-medium mb-2 text-slate-900 dark:text-white">
+                                    {isRu ? 'Перетащите файл ОСВ сюда' : 'Drag and drop your file here'}
                                 </p>
-                                <p className="text-sm text-gray-500 mb-4">
-                                    or click to browse
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                                    {isRu ? 'или нажмите кнопку для выбора' : 'or click to browse'}
                                 </p>
                                 <input
                                     type="file"
@@ -583,161 +796,37 @@ export default function TransformationDashboard() {
                                     id="file-upload"
                                 />
                                 <label htmlFor="file-upload">
-                                    <Button variant="outline" asChild>
+                                    <Button variant="outline" asChild className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
                                         <span>
                                             <Upload className="mr-2 h-4 w-4" />
-                                            Choose File
+                                            {isRu ? 'Выбрать файл (.xlsx, .csv)' : 'Choose File'}
                                         </span>
                                     </Button>
                                 </label>
                                 {uploading && (
-                                    <p className="mt-4 text-sm text-blue-600">
-                                        Uploading and parsing file...
+                                    <p className="mt-4 text-sm text-blue-600 dark:text-blue-400 animate-pulse">
+                                        {isRu ? 'Чтение и анализ структуры таблицы...' : 'Uploading and parsing file...'}
                                     </p>
                                 )}
                             </div>
-                        )}
+                        </div>
+                    )}
 
-                        {/* Preview */}
-                        {uploadPreview && uploadPreview.success && (
-                            <div className="space-y-4">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <h3 className="font-medium text-green-900 mb-2">
-                                        ✅ File Parsed Successfully
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span className="text-gray-600">File:</span>{' '}
-                                            <span className="font-medium">{selectedFile?.name}</span>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-600">Valid Rows:</span>{' '}
-                                            <span className="font-medium">{uploadPreview.valid_rows}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Balance Validation */}
-                                {uploadPreview.balance_check && (
-                                    <div className={`border rounded-lg p-4 ${uploadPreview.balance_check.is_balanced
-                                            ? 'bg-green-50 border-green-200'
-                                            : 'bg-yellow-50 border-yellow-200'
-                                        }`}>
-                                        <h3 className="font-medium mb-2">
-                                            {uploadPreview.balance_check.is_balanced ? '✅' : '⚠️'} Balance Check
-                                        </h3>
-                                        <div className="grid grid-cols-3 gap-4 text-sm">
-                                            <div>
-                                                <div className="text-gray-600">Assets</div>
-                                                <div className="font-medium">
-                                                    ${uploadPreview.balance_check.total_assets?.toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div className="text-gray-600">Liabilities</div>
-                                                <div className="font-medium">
-                                                    ${uploadPreview.balance_check.total_liabilities?.toLocaleString()}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <div className="text-gray-600">Equity</div>
-                                                <div className="font-medium">
-                                                    ${uploadPreview.balance_check.total_equity?.toLocaleString()}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        {!uploadPreview.balance_check.is_balanced && (
-                                            <p className="text-sm text-yellow-700 mt-2">
-                                                ⚠️ Warning: Assets ≠ Liabilities + Equity (Difference: $
-                                                {uploadPreview.balance_check.difference?.toFixed(2)})
-                                            </p>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Errors */}
-                                {uploadPreview.errors && uploadPreview.errors.length > 0 && (
-                                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                                        <h3 className="font-medium text-red-900 mb-2">
-                                            ⚠️ Parsing Errors ({uploadPreview.errors.length})
-                                        </h3>
-                                        <ul className="text-sm text-red-700 space-y-1 max-h-32 overflow-y-auto">
-                                            {uploadPreview.errors.slice(0, 10).map((error: string, idx: number) => (
-                                                <li key={idx}>• {error}</li>
-                                            ))}
-                                            {uploadPreview.errors.length > 10 && (
-                                                <li className="font-medium">
-                                                    ... and {uploadPreview.errors.length - 10} more errors
-                                                </li>
-                                            )}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {/* Data Preview */}
-                                <div>
-                                    <h3 className="font-medium mb-2">Data Preview (first 10 rows)</h3>
-                                    <div className="border rounded-lg overflow-x-auto max-h-64 overflow-y-auto">
-                                        <table className="w-full text-sm">
-                                            <thead className="bg-gray-50 sticky top-0">
-                                                <tr>
-                                                    <th className="px-4 py-2 text-left">Code</th>
-                                                    <th className="px-4 py-2 text-left">Account Name</th>
-                                                    <th className="px-4 py-2 text-right">Amount</th>
-                                                    <th className="px-4 py-2 text-left">Category</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y">
-                                                {uploadPreview.items?.slice(0, 10).map((item: any, idx: number) => (
-                                                    <tr key={idx} className="hover:bg-gray-50">
-                                                        <td className="px-4 py-2">{item.account_code}</td>
-                                                        <td className="px-4 py-2">{item.account_name}</td>
-                                                        <td className="px-4 py-2 text-right">
-                                                            ${item.amount.toLocaleString()}
-                                                        </td>
-                                                        <td className="px-4 py-2">
-                                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${item.category === 'assets' ? 'bg-blue-100 text-blue-800' :
-                                                                    item.category === 'liabilities' ? 'bg-red-100 text-red-800' :
-                                                                        'bg-green-100 text-green-800'
-                                                                }`}>
-                                                                {item.category}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    {uploadPreview.items?.length > 10 && (
-                                        <p className="text-sm text-gray-500 mt-2">
-                                            ... and {uploadPreview.items.length - 10} more rows
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setUploadDialogOpen(false);
-                                setSelectedFile(null);
-                                setUploadPreview(null);
-                            }}
-                        >
-                            Cancel
-                        </Button>
-                        {uploadPreview && uploadPreview.success && (
+                    {rawRows.length === 0 && (
+                        <DialogFooter>
                             <Button
-                                onClick={handleConfirmUpload}
-                                disabled={uploading}
+                                variant="outline"
+                                onClick={() => {
+                                    setUploadDialogOpen(false);
+                                    setSelectedFile(null);
+                                    setRawRows([]);
+                                }}
+                                className="border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                {uploading ? 'Creating...' : 'Confirm & Create Balance Sheet'}
+                                {isRu ? 'Отмена' : 'Cancel'}
                             </Button>
-                        )}
-                    </DialogFooter>
+                        </DialogFooter>
+                    )}
                 </DialogContent>
             </Dialog>
 
