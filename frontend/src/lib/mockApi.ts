@@ -3,12 +3,13 @@ import { createMockToken, safeBase64Decode } from './authUtils';
 import * as XLSX from 'xlsx';
 
 // ── Persistence Helpers ──────────────────────────────────────────────────────
-const CURRENT_MOCK_STORAGE_VERSION = 'v5_isolation_strict_2026';
+const CURRENT_MOCK_STORAGE_VERSION = 'v6_october_2026_reports';
 function ensureStorageIsolation() {
     try {
         if (localStorage.getItem('regai_storage_version') !== CURRENT_MOCK_STORAGE_VERSION) {
             localStorage.removeItem('regai_mock_audit_logs');
             localStorage.removeItem('regai_mock_reports');
+            localStorage.removeItem('regai_mock_balance_sheets');
             localStorage.removeItem('regai_mock_documents');
             localStorage.removeItem('regai_mock_alerts');
             localStorage.setItem('regai_storage_version', CURRENT_MOCK_STORAGE_VERSION);
@@ -1144,6 +1145,60 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             access_token: token,
             token_type: 'bearer',
             user: enrichedUser,
+        };
+    }
+
+    if (cleanPath === '/auth/forgot-password' && method === 'post') {
+        const email = String(body?.email || '').trim().toLowerCase();
+        const resetCode = String(Math.floor(100000 + Math.random() * 900000));
+        const codes = getStored<Record<string, { code: string; expiresAt: number }>>('regai_mock_reset_codes', {});
+        codes[email] = {
+            code: resetCode,
+            expiresAt: Date.now() + 15 * 60 * 1000,
+        };
+        setStored('regai_mock_reset_codes', codes);
+        logAuditAction('password_reset_requested', `Запрошено восстановление пароля для ${email}`, email);
+        return {
+            status: 'success',
+            message: 'Код восстановления пароля сформирован (действителен 15 минут).',
+            expires_in_minutes: 15,
+            demo_reset_code: resetCode,
+        };
+    }
+
+    if (cleanPath === '/auth/reset-password' && method === 'post') {
+        const email = String(body?.email || '').trim().toLowerCase();
+        const resetCode = String(body?.reset_code || '').trim();
+        const newPassword = String(body?.new_password || '');
+        if (newPassword.length < 8) {
+            throw {
+                response: {
+                    status: 400,
+                    data: { detail: 'Новый пароль должен содержать минимум 8 символов' },
+                },
+            };
+        }
+        const codes = getStored<Record<string, { code: string; expiresAt: number }>>('regai_mock_reset_codes', {});
+        const record = codes[email];
+        if (!record || record.expiresAt < Date.now() || record.code !== resetCode) {
+            throw {
+                response: {
+                    status: 400,
+                    data: { detail: 'Неверный или просроченный код восстановления' },
+                },
+            };
+        }
+        delete codes[email];
+        setStored('regai_mock_reset_codes', codes);
+
+        const customPasswords = getStored<Record<string, string>>('regai_mock_user_passwords', {});
+        customPasswords[email] = newPassword;
+        setStored('regai_mock_user_passwords', customPasswords);
+
+        logAuditAction('password_reset_completed', `Пароль успешно изменен через восстановление для ${email}`, email);
+        return {
+            status: 'success',
+            message: 'Пароль успешно обновлен. Теперь вы можете войти с новым паролем.',
         };
     }
 
@@ -3423,6 +3478,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             file_path: body?.file_path || '/uploads/reports/analysis-report.pdf',
             financial_data: body?.financial_data || null,
             company_id: targetCompId,
+            submitted_at: new Date().toISOString(),
             created_at: new Date().toISOString(),
         };
         const currentReports = getReportsStore();

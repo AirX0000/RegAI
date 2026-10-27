@@ -552,7 +552,14 @@ export default function ReportsPage() {
                                 </td>
                                 <td className="p-4">{getStatusBadge(report.status)}</td>
                                 <td className="p-4 text-slate-600 dark:text-slate-400">
-                                    {report.submitted_at ? new Date(report.submitted_at).toLocaleDateString() : '-'}
+                                    {(report.submitted_at || report.created_at) ? (
+                                        <time dateTime={new Date(report.submitted_at || report.created_at).toISOString()}>
+                                            {new Date(report.submitted_at || report.created_at).toLocaleDateString(
+                                                isRu ? 'ru-RU' : 'en-US',
+                                                { day: '2-digit', month: 'short', year: 'numeric' }
+                                            )}
+                                        </time>
+                                    ) : '-'}
                                 </td>
                                 <td className="p-4">
                                     <div className="flex items-center gap-1.5">
