@@ -2250,6 +2250,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const rawQ = (config?.params?.query || '').trim();
         const q = rawQ.toLowerCase();
         const terms: string[] = q.split(/\s+/).filter(Boolean);
+        const isIfrsSearch = terms.some(t => t === 'ifrs' || t === 'мсфо' || t === 'ias' || t === 'mhxs' || t === 'iasb');
 
         let scoredList: any[] = [];
 
@@ -2266,12 +2267,22 @@ export async function handleMockApiRequest(config: any): Promise<any> {
 
                 let score = 0;
                 const matchedFields: string[] = [];
+                const isIfrsItem = code.startsWith('ifrs') || code.startsWith('ias') || cat === 'ifrs' || title.includes('ifrs') || title.includes('мсфо') || title.includes('ias');
 
                 // Exact phrase bonuses
                 if (q && code.includes(q)) score += 40;
                 if (q && title.includes(q)) score += 30;
 
                 let termsMatched = 0;
+
+                // Full IFRS / IAS / МСФО framework coverage
+                if (isIfrsSearch && isIfrsItem) {
+                    score += 35;
+                    termsMatched++;
+                    if (!matchedFields.includes('category')) matchedFields.push('category');
+                    if (!matchedFields.includes('code')) matchedFields.push('code');
+                }
+
                 terms.forEach((t: string) => {
                     let termHit = false;
                     if (code.includes(t)) {

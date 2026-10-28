@@ -86,6 +86,31 @@ def test_detailed_regulations_multi_word_search_and_snippet(client: TestClient, 
     assert "matched_fields" in top or "matched_fields" in meta
 
 
+def test_search_all_ifrs_standards(client: TestClient, db: Session, normal_user_token_headers: dict):
+    """
+    Verify searching 'IFRS' or 'МСФО' returns complete suite of both IFRS and IAS standards (including IAS 16, IAS 38, IFRS 16, etc.)
+    """
+    RegulationAutoSeeder(db).seed_if_missing()
+
+    # Search for IFRS
+    res_ifrs = client.get("/api/v1/regulations/search?query=IFRS", headers=normal_user_token_headers)
+    assert res_ifrs.status_code == 200
+    items_ifrs = res_ifrs.json()
+    codes = [r.get("metadata", {}).get("code") or r.get("code") for r in items_ifrs]
+
+    # Must find both IFRS and IAS standards
+    assert any("IFRS-16" in c for c in codes)
+    assert any("IFRS-9" in c for c in codes)
+    assert any("IAS-1" in c or "IAS-16" in c or "IAS-38" in c for c in codes)
+    assert len(items_ifrs) >= 20
+
+    # Search for МСФО
+    res_msfo = client.get("/api/v1/regulations/search?query=МСФО", headers=normal_user_token_headers)
+    assert res_msfo.status_code == 200
+    items_msfo = res_msfo.json()
+    assert len(items_msfo) >= 20
+
+
 def test_export_regulations_pdf_with_cyrillic(client: TestClient, db: Session, normal_user_token_headers: dict):
     """
     Verify PDF export does not crash on Cyrillic / Uzbek characters and returns valid PDF bytes.

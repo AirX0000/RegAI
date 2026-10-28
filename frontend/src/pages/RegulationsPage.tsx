@@ -293,6 +293,37 @@ export default function RegulationsPage() {
                     title.includes("платеж")
                 );
             }
+
+            if (tab === "IFRS") {
+                return (
+                    category === "ifrs" ||
+                    category.includes("ifrs") ||
+                    category.includes("мсфо") ||
+                    code.startsWith("ifrs") ||
+                    code.startsWith("ias") ||
+                    code.includes("ifrs") ||
+                    code.includes("ias") ||
+                    title.includes("ifrs") ||
+                    title.includes("мсфо") ||
+                    title.includes("ias") ||
+                    title.includes("mhxs")
+                );
+            }
+
+            if (tab === "НСБУ") {
+                return (
+                    category.includes("нсбу") ||
+                    category.includes("nsbu") ||
+                    category.includes("bhms") ||
+                    code.includes("nsbu") ||
+                    code.includes("нсбу") ||
+                    code.includes("bhms") ||
+                    title.includes("нсбу") ||
+                    title.includes("nsbu") ||
+                    title.includes("бхмс") ||
+                    title.includes("bhms")
+                );
+            }
             return (
                 category === tabLower ||
                 category.includes(tabLower) ||
@@ -338,6 +369,35 @@ export default function RegulationsPage() {
                         title.includes("рвпз") ||
                         title.includes("lcr") ||
                         title.includes("платеж");
+                }
+
+                if (activeTab === "IFRS") {
+                    matchesTab = matchesTab ||
+                        category === "ifrs" ||
+                        category.includes("ifrs") ||
+                        category.includes("мсфо") ||
+                        code.startsWith("ifrs") ||
+                        code.startsWith("ias") ||
+                        code.includes("ifrs") ||
+                        code.includes("ias") ||
+                        title.includes("ifrs") ||
+                        title.includes("мсфо") ||
+                        title.includes("ias") ||
+                        title.includes("mhxs");
+                }
+
+                if (activeTab === "НСБУ") {
+                    matchesTab = matchesTab ||
+                        category.includes("нсбу") ||
+                        category.includes("nsbu") ||
+                        category.includes("bhms") ||
+                        code.includes("nsbu") ||
+                        code.includes("нсбу") ||
+                        code.includes("bhms") ||
+                        title.includes("нсбу") ||
+                        title.includes("nsbu") ||
+                        title.includes("бхмс") ||
+                        title.includes("bhms");
                 }
                 if (!matchesTab) return false;
             }

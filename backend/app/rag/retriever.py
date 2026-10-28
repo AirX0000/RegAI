@@ -50,6 +50,12 @@ def search_regulations(tenant_id: str, query: str, limit: int = 5) -> List[Dict]
         if q_clean and q_clean in title_lower:
             score += 25
 
+        # Full IFRS & IAS framework coverage
+        is_ifrs_query = any(k in q_clean for k in ["ifrs", "ias", "мсфо", "mhxs"])
+        is_ifrs_doc = code_lower.startswith("ifrs") or code_lower.startswith("ias") or "ifrs" in cat_lower or "мсфо" in title_lower or "ias" in title_lower
+        if is_ifrs_query and is_ifrs_doc:
+            score += 35
+
         matched_terms = 0
         for term in query_terms:
             term_matched = False

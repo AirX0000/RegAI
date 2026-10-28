@@ -102,10 +102,24 @@ def search_regulations(
 
             query_clean = query.strip() if query else ""
             words = [w for w in query_clean.split() if len(w) >= 2]
+            q_lower = query_clean.lower()
+            is_ifrs_query = any(k in q_lower for k in ["ifrs", "ias", "мсфо", "mhxs"])
 
             if not is_empty_query:
-                # 1. Try multi-word AND match first if multiple terms are present
-                if len(words) > 1:
+                # 1. If searching generically for IFRS / IAS / МСФО, match all IFRS and IAS standards
+                if is_ifrs_query and len(words) <= 1:
+                    regs = sql_query.filter(
+                        or_(
+                            Regulation.code.ilike("%IFRS%"),
+                            Regulation.code.ilike("%IAS%"),
+                            Regulation.category.ilike("%IFRS%"),
+                            Regulation.title.ilike("%МСФО%"),
+                            Regulation.title.ilike("%IFRS%"),
+                            Regulation.title.ilike("%IAS%")
+                        )
+                    ).all()
+                # 2. Try multi-word AND match first if multiple terms are present
+                elif len(words) > 1:
                     term_filters = []
                     for w in words:
                         w_like = f"%{w}%"
@@ -150,6 +164,12 @@ def search_regulations(
                 score = 0
                 matched_fields = []
                 check_terms = words if words else ([query_clean.lower()] if query_clean else [])
+
+                # Boost exact IFRS/IAS standard match
+                if is_ifrs_query and (code_lower.startswith("ifrs") or code_lower.startswith("ias") or "ifrs" in cat_lower or "мсфо" in title_lower or "ias" in title_lower):
+                    score += 40
+                    if "category" not in matched_fields:
+                        matched_fields.append("category")
 
                 if query_clean.lower() in code_lower:
                     score += 35
