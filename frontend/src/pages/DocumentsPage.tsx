@@ -5,6 +5,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Upload, FileText, CheckCircle, XCircle, Loader2, Eye } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useTranslation } from 'react-i18next';
+import { tr } from '../lib/i18n';
 import { useAuth } from '../context/AuthContext';
 
 export default function DocumentsPage() {
@@ -52,16 +53,16 @@ export default function DocumentsPage() {
             });
 
             toast({
-                title: isRu ? 'Успешно' : 'Success',
-                description: isRu ? `${file.name} успешно загружен и обработан!` : `${file.name} uploaded and processed successfully!`
+                title: tr('Успешно', 'Success'),
+                description: tr(`${file.name} успешно загружен и обработан!`, `${file.name} uploaded and processed successfully!`)
             });
 
             fetchDocuments();
         } catch (error: any) {
             toast({
                 variant: 'destructive',
-                title: isRu ? 'Ошибка загрузки' : 'Upload Failed',
-                description: error.response?.data?.detail || (isRu ? 'Не удалось загрузить документ' : 'Failed to upload document')
+                title: tr('Ошибка загрузки', 'Upload Failed'),
+                description: error.response?.data?.detail || (tr('Не удалось загрузить документ', 'Failed to upload document'))
             });
         } finally {
             setUploading(false);
@@ -76,8 +77,8 @@ export default function DocumentsPage() {
         } catch (error) {
             toast({
                 variant: 'destructive',
-                title: isRu ? 'Ошибка' : 'Error',
-                description: isRu ? 'Не удалось загрузить данные документа' : 'Failed to load document details'
+                title: tr('Ошибка', 'Error'),
+                description: tr('Не удалось загрузить данные документа', 'Failed to load document details')
             });
         }
     };
@@ -92,19 +93,11 @@ export default function DocumentsPage() {
     };
 
     const getDocTypeLabel = (type: string) => {
-        if (!isRu) {
-            switch (type) {
-                case 'invoice': return 'Invoice (СФ)';
-                case 'contract': return 'Contract';
-                case 'bank_statement': return 'Bank Statement';
-                default: return type.replace('_', ' ');
-            }
-        }
         switch (type) {
-            case 'invoice': return 'Счёт-фактура (ЭСФ)';
-            case 'contract': return 'Договор / Контракт';
-            case 'bank_statement': return 'Банковская выписка';
-            default: return type;
+            case 'invoice': return tr('Счёт-фактура (ЭСФ)', 'Invoice (СФ)', 'Hisobvaraq-faktura (EHF)');
+            case 'contract': return tr('Договор / Контракт', 'Contract', 'Shartnoma / Kontrakt');
+            case 'bank_statement': return tr('Банковская выписка', 'Bank Statement', 'Bank ko\'chirmasi');
+            default: return type.replace('_', ' ');
         }
     };
 
@@ -112,12 +105,10 @@ export default function DocumentsPage() {
         <div className="p-6 max-w-6xl mx-auto space-y-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                    {isRu ? 'Интеллектуальное извлечение первичных документов' : 'Smart Document Extraction'}
+                    {tr('Интеллектуальное извлечение первичных документов', 'Smart Document Extraction')}
                 </h1>
                 <p className="text-gray-500 mt-1">
-                    {isRu
-                        ? 'Автоматическое распознавание реквизитов, сумм и НДС из сканов и электронных документов'
-                        : 'Automated OCR extraction of invoice, contract, and banking details'}
+                    {tr('Автоматическое распознавание реквизитов, сумм и НДС из сканов и электронных документов', 'Automated OCR extraction of invoice, contract, and banking details')}
                 </p>
             </div>
 
@@ -128,12 +119,12 @@ export default function DocumentsPage() {
                         <Upload className="mx-auto mb-3 text-blue-500" size={36} />
                         <h3 className="font-semibold mb-1 text-gray-900">{getDocTypeLabel(type)}</h3>
                         <p className="text-xs text-gray-500 mb-4">
-                            {isRu ? 'Поддерживаются PDF, JPG, PNG' : 'PDF, JPG, PNG supported'}
+                            {tr('Поддерживаются PDF, JPG, PNG', 'PDF, JPG, PNG supported')}
                         </p>
                         <label className="cursor-pointer">
                             <Button disabled={uploading} className="w-full bg-blue-600 hover:bg-blue-700">
                                 {uploading ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                                {isRu ? `Загрузить ${getDocTypeLabel(type).split(' ')[0]}` : `Upload ${type.replace('_', ' ')}`}
+                                {tr(`Загрузить ${getDocTypeLabel(type).split(' ')[0]}`, `Upload ${type.replace('_', ' ')}`)}
                             </Button>
                             <input
                                 type="file"
@@ -151,17 +142,17 @@ export default function DocumentsPage() {
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900">
-                        {isRu ? 'Загруженные первичные документы' : 'Uploaded Documents'}
+                        {tr('Загруженные первичные документы', 'Uploaded Documents')}
                     </h2>
                     <span className="text-xs text-gray-500">
-                        {documents.length} {isRu ? 'документов' : 'documents'}
+                        {documents.length} {tr('документов', 'documents')}
                     </span>
                 </div>
                 <div className="divide-y">
                     {!Array.isArray(documents) || documents.length === 0 ? (
                         <div className="p-12 text-center text-gray-500">
                             <FileText className="mx-auto mb-3 text-gray-300" size={48} />
-                            <p>{isRu ? 'Документы пока не загружены' : 'No documents uploaded yet'}</p>
+                            <p>{tr('Документы пока не загружены', 'No documents uploaded yet')}</p>
                         </div>
                     ) : (
                         Array.isArray(documents) && documents.map((doc) => (
@@ -182,7 +173,7 @@ export default function DocumentsPage() {
                                     disabled={doc.status !== 'completed'}
                                 >
                                     <Eye size={16} className="mr-2" />
-                                    {isRu ? 'Просмотреть данные' : 'View Data'}
+                                    {tr('Просмотреть данные', 'View Data')}
                                 </Button>
                             </div>
                         ))
@@ -205,7 +196,7 @@ export default function DocumentsPage() {
                     )}
                     {selectedDoc?.error_message && (
                         <div className="bg-red-50 border border-red-200 rounded p-4 text-red-700">
-                            <p className="font-semibold">{isRu ? 'Ошибка:' : 'Error:'}</p>
+                            <p className="font-semibold">{tr('Ошибка:', 'Error:')}</p>
                             <p>{selectedDoc.error_message}</p>
                         </div>
                     )}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -15,8 +16,7 @@ interface CompanyFormModalProps {
 export default function CompanyFormModal({ company, onClose, onSuccess }: CompanyFormModalProps) {
     const { toast } = useToast();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const [formData, setFormData] = useState({
         name: '',
         domain: '',
@@ -61,23 +61,23 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 // Update
                 await api.put(`/companies/${company.id}`, payload);
                 toast({
-                    title: isRu ? "Успешно" : "Success",
-                    description: isRu ? "Данные компании успешно обновлены" : "Company updated successfully",
+                    title: tr("Успешно", "Success"),
+                    description: tr("Данные компании успешно обновлены", "Company updated successfully"),
                 });
             } else {
                 // Create
                 await api.post('/companies/', payload);
                 toast({
-                    title: isRu ? "Успешно" : "Success",
-                    description: isRu ? "Компания успешно создана" : "Company created successfully",
+                    title: tr("Успешно", "Success"),
+                    description: tr("Компания успешно создана", "Company created successfully"),
                 });
             }
             onSuccess();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? `Не удалось ${company ? 'обновить' : 'создать'} компанию` : `Failed to ${company ? 'update' : 'create'} company`),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr(`Не удалось ${company ? 'обновить' : 'создать'} компанию`, `Failed to ${company ? 'update' : 'create'} company`)),
             });
         } finally {
             setSubmitting(false);
@@ -90,8 +90,8 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                         {company 
-                            ? (isRu ? 'Редактировать компанию' : 'Edit Company') 
-                            : (isRu ? 'Создать новую компанию' : 'Create Company')}
+                            ? (tr('Редактировать компанию', 'Edit Company')) 
+                            : (tr('Создать новую компанию', 'Create Company'))}
                     </h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md">
                         <X className="h-5 w-5" />
@@ -101,21 +101,21 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            {isRu ? 'Наименование компании' : 'Company Name'} <span className="text-red-500">*</span>
+                            {tr('Наименование компании', 'Company Name')} <span className="text-red-500">*</span>
                         </label>
                         <Input
                             type="text"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
-                            placeholder={isRu ? "Введите название организации" : "Enter company name"}
+                            placeholder={tr("Введите название организации", "Enter company name")}
                             className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                         />
                     </div>
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            {isRu ? 'Домен' : 'Domain'}
+                            {tr('Домен', 'Domain')}
                         </label>
                         <Input
                             type="text"
@@ -128,20 +128,20 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
 
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            {isRu ? 'Описание деятельности' : 'Description'}
+                            {tr('Описание деятельности', 'Description')}
                         </label>
                         <textarea
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 min-h-[100px] text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder={isRu ? "Краткое описание профиля компании..." : "Brief description about the company..."}
+                            placeholder={tr("Краткое описание профиля компании...", "Brief description about the company...")}
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {isRu ? 'Веб-сайт' : 'Website'}
+                                {tr('Веб-сайт', 'Website')}
                             </label>
                             <Input
                                 type="url"
@@ -154,20 +154,20 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {isRu ? 'Отрасль' : 'Industry'}
+                                {tr('Отрасль', 'Industry')}
                             </label>
                             <select
                                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                 value={formData.industry}
                                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                             >
-                                <option value="">{isRu ? 'Выберите отрасль' : 'Select Industry'}</option>
-                                <option value="Banking">{isRu ? 'Банки и финансы' : 'Banking'}</option>
-                                <option value="Technology">{isRu ? 'Информационные технологии' : 'Technology'}</option>
-                                <option value="Retail">{isRu ? 'Розничная торговля' : 'Retail'}</option>
-                                <option value="Manufacturing">{isRu ? 'Производство и промышленность' : 'Manufacturing'}</option>
-                                <option value="Healthcare">{isRu ? 'Здравоохранение и фарма' : 'Healthcare'}</option>
-                                <option value="Other">{isRu ? 'Другое' : 'Other'}</option>
+                                <option value="">{tr('Выберите отрасль', 'Select Industry')}</option>
+                                <option value="Banking">{tr('Банки и финансы', 'Banking')}</option>
+                                <option value="Technology">{tr('Информационные технологии', 'Technology')}</option>
+                                <option value="Retail">{tr('Розничная торговля', 'Retail')}</option>
+                                <option value="Manufacturing">{tr('Производство и промышленность', 'Manufacturing')}</option>
+                                <option value="Healthcare">{tr('Здравоохранение и фарма', 'Healthcare')}</option>
+                                <option value="Other">{tr('Другое', 'Other')}</option>
                             </select>
                         </div>
                     </div>
@@ -175,13 +175,13 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {isRu ? 'Количество сотрудников' : 'Employee Count'}
+                                {tr('Количество сотрудников', 'Employee Count')}
                             </label>
                             <Input
                                 type="number"
                                 value={formData.employee_count}
                                 onChange={(e) => setFormData({ ...formData, employee_count: e.target.value })}
-                                placeholder={isRu ? "например, 150" : "e.g., 100"}
+                                placeholder={tr("например, 150", "e.g., 100")}
                                 min="1"
                                 className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                             />
@@ -189,7 +189,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {isRu ? 'Ссылка на логотип (URL)' : 'Logo URL'}
+                                {tr('Ссылка на логотип (URL)', 'Logo URL')}
                             </label>
                             <Input
                                 type="url"
@@ -203,14 +203,14 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
 
                     <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <Button type="button" onClick={onClose} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button type="submit" disabled={submitting} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold">
                             {submitting 
-                                ? (isRu ? 'Сохранение...' : 'Saving...') 
+                                ? (tr('Сохранение...', 'Saving...')) 
                                 : company 
-                                    ? (isRu ? 'Обновить данные' : 'Update Company') 
-                                    : (isRu ? 'Создать компанию' : 'Create Company')}
+                                    ? (tr('Обновить данные', 'Update Company')) 
+                                    : (tr('Создать компанию', 'Create Company'))}
                         </Button>
                     </div>
                 </form>

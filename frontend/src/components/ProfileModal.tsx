@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import type { FormEvent } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -28,8 +29,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     const { user, refreshUser } = useAuth();
     const { toast } = useToast();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const [activeTab, setActiveTab] = useState<'info' | 'security'>('info');
 
     // Profile info state
@@ -70,14 +70,14 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             });
             await refreshUser();
             toast({
-                title: isRu ? "Профиль обновлен" : "Profile Updated",
-                description: isRu ? "Ваши личные данные успешно сохранены." : "Your profile details have been saved.",
+                title: tr("Профиль обновлен", "Profile Updated"),
+                description: tr("Ваши личные данные успешно сохранены.", "Your profile details have been saved."),
             });
         } catch (err: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка обновления" : "Update Error",
-                description: err.response?.data?.detail || (isRu ? "Не удалось сохранить профиль." : "Failed to save profile."),
+                title: tr("Ошибка обновления", "Update Error"),
+                description: err.response?.data?.detail || (tr("Не удалось сохранить профиль.", "Failed to save profile.")),
             });
         } finally {
             setIsSavingProfile(false);
@@ -90,17 +90,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         setPasswordSuccess(false);
 
         if (!currentPassword) {
-            setPasswordError(isRu ? "Введите текущий пароль" : "Please enter your current password");
+            setPasswordError(tr("Введите текущий пароль", "Please enter your current password"));
             return;
         }
 
         if (newPassword.length < 8) {
-            setPasswordError(isRu ? "Новый пароль должен содержать не менее 8 символов" : "New password must be at least 8 characters long");
+            setPasswordError(tr("Новый пароль должен содержать не менее 8 символов", "New password must be at least 8 characters long"));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setPasswordError(isRu ? "Новый пароль и подтверждение не совпадают" : "New password and confirmation do not match");
+            setPasswordError(tr("Новый пароль и подтверждение не совпадают", "New password and confirmation do not match"));
             return;
         }
 
@@ -121,15 +121,15 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             setConfirmPassword('');
 
             toast({
-                title: isRu ? "Пароль изменён" : "Password Changed",
-                description: isRu ? "Ваш пароль успешно обновлен. Активная сессия продлена." : "Your password was successfully updated.",
+                title: tr("Пароль изменён", "Password Changed"),
+                description: tr("Ваш пароль успешно обновлен. Активная сессия продлена.", "Your password was successfully updated."),
             });
         } catch (err: any) {
-            const msg = err.response?.data?.detail || (isRu ? "Не удалось изменить пароль. Проверьте правильность текущего пароля." : "Failed to change password. Please check your current password.");
+            const msg = err.response?.data?.detail || (tr("Не удалось изменить пароль. Проверьте правильность текущего пароля.", "Failed to change password. Please check your current password."));
             setPasswordError(msg);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка смены пароля" : "Password Change Error",
+                title: tr("Ошибка смены пароля", "Password Change Error"),
                 description: msg,
             });
         } finally {
@@ -175,7 +175,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         }`}
                     >
                         <UserIcon className="w-4 h-4" />
-                        {isRu ? 'Данные аккаунта' : 'Account Details'}
+                        {tr('Данные аккаунта', 'Account Details')}
                     </button>
                     <button
                         onClick={() => setActiveTab('security')}
@@ -186,7 +186,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         }`}
                     >
                         <Lock className="w-4 h-4" />
-                        {isRu ? 'Безопасность и пароль' : 'Security & Password'}
+                        {tr('Безопасность и пароль', 'Security & Password')}
                     </button>
                 </div>
 
@@ -196,7 +196,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <form onSubmit={handleSaveProfile} className="space-y-4">
                             <div className="space-y-1.5">
                                 <Label htmlFor="email" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                    {isRu ? 'Email адрес (логин)' : 'Email Address (Login)'}
+                                    {tr('Email адрес (логин)', 'Email Address (Login)')}
                                 </Label>
                                 <Input
                                     id="email"
@@ -206,20 +206,20 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed"
                                 />
                                 <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                                    {isRu ? 'Email используется для входа и не подлежит изменению.' : 'Email is used for sign-in and cannot be changed.'}
+                                    {tr('Email используется для входа и не подлежит изменению.', 'Email is used for sign-in and cannot be changed.')}
                                 </span>
                             </div>
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="fullName" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                    {isRu ? 'Полное имя / Отображаемое имя' : 'Full Name / Display Name'}
+                                    {tr('Полное имя / Отображаемое имя', 'Full Name / Display Name')}
                                 </Label>
                                 <Input
                                     id="fullName"
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    placeholder={isRu ? "Иван Иванов" : "John Doe"}
+                                    placeholder={tr("Иван Иванов", "John Doe")}
                                     className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-900 dark:text-slate-100 focus-visible:ring-blue-500"
                                 />
                             </div>
@@ -229,7 +229,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
                                     <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                                     <div className="overflow-hidden">
-                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{isRu ? 'Роль в системе' : 'System Role'}</div>
+                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{tr('Роль в системе', 'System Role')}</div>
                                         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 capitalize truncate">
                                             {user.role}
                                         </div>
@@ -238,7 +238,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
                                     <Building className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
                                     <div className="overflow-hidden">
-                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{isRu ? 'Организация / Тенант' : 'Organization / Tenant'}</div>
+                                        <div className="text-[11px] text-slate-400 dark:text-slate-500">{tr('Организация / Тенант', 'Organization / Tenant')}</div>
                                         <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 font-mono truncate">
                                             {user.tenant_id ? user.tenant_id.slice(0, 12) + '...' : 'Default'}
                                         </div>
@@ -253,7 +253,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     onClick={onClose}
                                     className="text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    {isRu ? 'Закрыть' : 'Close'}
+                                    {tr('Закрыть', 'Close')}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -261,8 +261,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                 >
                                     {isSavingProfile 
-                                        ? (isRu ? "Сохранение..." : "Saving...") 
-                                        : (isRu ? "Сохранить изменения" : "Save Changes")}
+                                        ? (tr("Сохранение...", "Saving...")) 
+                                        : (tr("Сохранить изменения", "Save Changes"))}
                                 </Button>
                             </div>
                         </form>
@@ -274,7 +274,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                 <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700 text-xs font-medium animate-in fade-in">
                                     <CheckCircle2 className="w-4 h-4 shrink-0 text-green-600" />
                                     <span>
-                                        {isRu ? 'Пароль успешно обновлен! Новая сессия активирована.' : 'Password updated successfully! Active session refreshed.'}
+                                        {tr('Пароль успешно обновлен! Новая сессия активирована.', 'Password updated successfully! Active session refreshed.')}
                                     </span>
                                 </div>
                             )}
@@ -288,7 +288,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="currentPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                     {isRu ? 'Текущий пароль' : 'Current Password'}
+                                     {tr('Текущий пароль', 'Current Password')}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -311,7 +311,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="newPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                     {isRu ? 'Новый пароль (минимум 8 символов)' : 'New Password (at least 8 characters)'}
+                                     {tr('Новый пароль (минимум 8 символов)', 'New Password (at least 8 characters)')}
                                 </Label>
                                 <div className="relative">
                                     <Input
@@ -334,7 +334,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                             <div className="space-y-1.5">
                                 <Label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                     {isRu ? 'Подтвердите новый пароль' : 'Confirm New Password'}
+                                     {tr('Подтвердите новый пароль', 'Confirm New Password')}
                                 </Label>
                                 <Input
                                     id="confirmPassword"
@@ -353,7 +353,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     onClick={onClose}
                                     className="text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    {isRu ? 'Отмена' : 'Cancel'}
+                                    {tr('Отмена', 'Cancel')}
                                 </Button>
                                 <Button
                                     type="submit"
@@ -361,8 +361,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                                     className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                                 >
                                     {isChangingPassword 
-                                        ? (isRu ? "Обновление..." : "Updating...") 
-                                        : (isRu ? "Сменить пароль" : "Change Password")}
+                                        ? (tr("Обновление...", "Updating...")) 
+                                        : (tr("Сменить пароль", "Change Password"))}
                                 </Button>
                             </div>
                         </form>

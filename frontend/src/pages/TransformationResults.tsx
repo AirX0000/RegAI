@@ -35,6 +35,7 @@ import {
     DialogContent,
 } from "@/components/ui/dialog";
 import { useTranslation } from 'react-i18next';
+import { tr } from '../lib/i18n';
 import ReactMarkdown from 'react-markdown';
 import { downloadReportAsPdf, downloadFullDisclosurePackage, ReportPdfData } from '../lib/pdfReportGenerator';
 
@@ -96,7 +97,7 @@ export default function TransformationResults() {
 
         if (isUzs) {
             if (currency === 'UZS') {
-                return `${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${isRu ? 'сум' : 'UZS'}`;
+                return `${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${tr('сум', 'UZS')}`;
             }
             if (currency === 'EUR') {
                 const eur = (val / 12850) * 0.92;
@@ -106,7 +107,7 @@ export default function TransformationResults() {
             return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         } else {
             if (currency === 'UZS') {
-                return `${(val * 12850).toLocaleString(undefined, { maximumFractionDigits: 0 })} ${isRu ? 'сум' : 'UZS'}`;
+                return `${(val * 12850).toLocaleString(undefined, { maximumFractionDigits: 0 })} ${tr('сум', 'UZS')}`;
             }
             if (currency === 'EUR') {
                 return `€${(val * 0.92).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -135,8 +136,8 @@ export default function TransformationResults() {
         } catch (error) {
             console.error('Failed to fetch balance sheet', error);
             toast({
-                title: isRu ? 'Ошибка' : 'Error',
-                description: isRu ? 'Не удалось загрузить данные бухгалтерского баланса' : 'Failed to load balance sheet',
+                title: tr('Ошибка', 'Error'),
+                description: tr('Не удалось загрузить данные бухгалтерского баланса', 'Failed to load balance sheet'),
                 variant: 'destructive'
             });
         } finally {
@@ -154,15 +155,15 @@ export default function TransformationResults() {
             setMcfoData(res.data.mcfo_statement.transformed_data);
             setIfrsData(res.data.ifrs_statement.transformed_data);
             toast({
-                title: isRu ? 'Успешно' : 'Success',
-                description: isRu ? 'Баланс успешно преобразован в формат МСФО' : 'Balance sheet transformed successfully'
+                title: tr('Успешно', 'Success'),
+                description: tr('Баланс успешно преобразован в формат МСФО', 'Balance sheet transformed successfully')
             });
             fetchBalanceSheet();
         } catch (error: any) {
             console.error('Failed to transform', error);
             toast({
-                title: isRu ? 'Ошибка' : 'Error',
-                description: error.response?.data?.detail || (isRu ? 'Не удалось выполнить трансформацию' : 'Failed to transform balance sheet'),
+                title: tr('Ошибка', 'Error'),
+                description: error.response?.data?.detail || (tr('Не удалось выполнить трансформацию', 'Failed to transform balance sheet')),
                 variant: 'destructive'
             });
         } finally {
@@ -198,14 +199,14 @@ export default function TransformationResults() {
             link.remove();
             window.URL.revokeObjectURL(url);
             toast({
-                title: isRu ? "Экспорт в Excel завершен" : "Excel Export Complete",
-                description: isRu ? "Таблица сверки НСБУ-МСФО успешно скачана." : "3-Sheet statutory-to-IFRS reconciliation workbook downloaded successfully.",
+                title: tr("Экспорт в Excel завершен", "Excel Export Complete"),
+                description: tr("Таблица сверки НСБУ-МСФО успешно скачана.", "3-Sheet statutory-to-IFRS reconciliation workbook downloaded successfully."),
             });
         } catch (error) {
             console.error("Failed to export Excel", error);
             toast({
-                title: isRu ? "Ошибка экспорта" : "Export Failed",
-                description: isRu ? "Не удалось сгенерировать книгу Excel. Попробуйте снова." : "Could not generate Excel workbook. Please try again.",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось сгенерировать книгу Excel. Попробуйте снова.", "Could not generate Excel workbook. Please try again."),
                 variant: "destructive"
             });
         } finally {
@@ -305,12 +306,8 @@ export default function TransformationResults() {
         try {
             const reportData: ReportPdfData = {
                 id: id || 'reconciliation-report',
-                title: isRu 
-                    ? `Отчет о конвергенции НСБУ в МСФО — ${balanceSheet?.company_name || 'ООО «ТехноПром Инвест»'}`
-                    : `Statutory to IFRS Convergence Report — ${balanceSheet?.company_name || 'TechnoProm Invest LLC'}`,
-                description: isRu
-                    ? `Официальная аудиторская сверка финансовой отчетности за период ${balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString('ru-RU') : '2026'}. Математическое равновесие статей баланса проверено по стандартам МСФО (IFRS 16, IAS 36, IFRS 9). Расхождение составляет 0.00 UZS.`
-                    : `Statutory to IFRS reconciliation statement for period ${balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString('en-US') : '2026'}. Mathematical equilibrium verified across statutory and IFRS ledgers (IFRS 16, IAS 36, IFRS 9). Discrepancy: 0.00.`,
+                title: tr(`Отчет о конвергенции НСБУ в МСФО — ${balanceSheet?.company_name || 'ООО «ТехноПром Инвест»'}`, `Statutory to IFRS Convergence Report — ${balanceSheet?.company_name || 'TechnoProm Invest LLC'}`),
+                description: tr(`Официальная аудиторская сверка финансовой отчетности за период ${balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString('ru-RU') : '2026'}. Математическое равновесие статей баланса проверено по стандартам МСФО (IFRS 16, IAS 36, IFRS 9). Расхождение составляет 0.00 UZS.`, `Statutory to IFRS reconciliation statement for period ${balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString('en-US') : '2026'}. Mathematical equilibrium verified across statutory and IFRS ledgers (IFRS 16, IAS 36, IFRS 9). Discrepancy: 0.00.`),
                 report_type: 'reconciliation',
                 status: 'approved',
                 created_at: balanceSheet?.period || new Date().toISOString(),
@@ -329,14 +326,14 @@ export default function TransformationResults() {
             };
             await downloadReportAsPdf(reportData, balanceSheet?.company_name);
             toast({
-                title: isRu ? "PDF успешно сохранен" : "PDF Saved",
-                description: isRu ? "Официальный аудиторский отчет скачан" : "Official audit report downloaded"
+                title: tr("PDF успешно сохранен", "PDF Saved"),
+                description: tr("Официальный аудиторский отчет скачан", "Official audit report downloaded")
             });
         } catch (e) {
             console.error("Failed to download reconciliation pdf", e);
             toast({
-                title: isRu ? "Ошибка экспорта" : "Export Failed",
-                description: isRu ? "Не удалось сгенерировать PDF" : "Failed to generate PDF",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось сгенерировать PDF", "Failed to generate PDF"),
                 variant: "destructive"
             });
         }
@@ -356,16 +353,14 @@ export default function TransformationResults() {
                 aiAuditResult?.findings || []
             );
             toast({
-                title: isRu ? "Пакет МСФО сохранен" : "IFRS Package Saved",
-                description: isRu 
-                    ? "Полный 4-страничный комплект финансовой отчетности и аудита успешно скачан" 
-                    : "Complete 4-page financial statements & audit package downloaded"
+                title: tr("Пакет МСФО сохранен", "IFRS Package Saved"),
+                description: tr("Полный 4-страничный комплект финансовой отчетности и аудита успешно скачан", "Complete 4-page financial statements & audit package downloaded")
             });
         } catch (e) {
             console.error("Failed to download full disclosure package", e);
             toast({
-                title: isRu ? "Ошибка экспорта" : "Export Failed",
-                description: isRu ? "Не удалось сгенерировать комплект МСФО" : "Failed to generate IFRS package",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось сгенерировать комплект МСФО", "Failed to generate IFRS package"),
                 variant: "destructive"
             });
         } finally {
@@ -383,7 +378,7 @@ export default function TransformationResults() {
         const adjs = balanceSheet?.adjustments || balanceSheet?.transformations || [];
         if (!adjs || adjs.length === 0) {
             return [
-                { label: 'IFRS 1 / IAS 1', text: isRu ? 'Базовый план счетов МСФО' : 'Baseline Chart of Accounts Mapping' }
+                { label: 'IFRS 1 / IAS 1', text: tr('Базовый план счетов МСФО', 'Baseline Chart of Accounts Mapping') }
             ];
         }
 
@@ -442,51 +437,51 @@ export default function TransformationResults() {
 
     const getLocalizedAccountName = (rawName?: string, code?: string) => {
         const name = (rawName || '').trim();
-        if (!isRu || !name) return name;
+        if (!name) return name;
         const map: Record<string, string> = {
-            'Cash on Hand': 'Наличные денежные средства в кассе',
-            'Cash in Hand': 'Наличные денежные средства в кассе',
-            'Cash and Cash Equivalents': 'Денежные средства и эквиваленты',
-            'Bank Account': 'Расчетные счета в банке',
-            'Accounts Receivable': 'Торговая дебиторская задолженность',
-            'Trade Receivables': 'Торговая дебиторская задолженность',
-            'Prepaid Expenses': 'Авансы выданные и расходы будущих периодов',
-            'Inventory': 'Товарно-материальные запасы (ТМЗ)',
-            'Property and Equipment': 'Основные средства и оборудование',
-            'Property, Plant and Equipment': 'Основные средства (Здания и оборудование)',
-            'Intangible Assets': 'Нематериальные активы (НМА)',
-            'Intangible Assets – Software': 'Нематериальные активы (Программное обеспечение)',
-            'Intellectual Property Rights': 'Исключительные права на интеллектуальную собственность',
-            'Accounts Payable': 'Кредиторская задолженность поставщикам',
-            'Trade Payables': 'Торговая кредиторская задолженность',
-            'Obligations to Suppliers': 'Задолженность перед поставщиками и подрядчиками',
-            'Accrued Expenses': 'Начисленные обязательства и резервы',
-            'Short-term Borrowings': 'Краткосрочные кредиты и займы',
-            'Current Portion of Bank Loan': 'Текущая часть долгосрочных банковских кредитов',
-            'Long-term Loan': 'Долгосрочные банковские кредиты',
-            'Bank Loan – Non-current Portion': 'Долгосрочные банковские займы',
-            'Share Capital': 'Уставный капитал',
-            "Owner's Initial Investment": 'Первоначальный капитал собственников',
-            'Equity': 'Собственный капитал',
-            'Retained Earnings': 'Нераспределенная прибыль',
-            'Right-of-Use Asset (ROU) - IFRS 16': 'Актив в форме права пользования (ROU) — МСФО (IFRS) 16',
-            'Lease Liability - IFRS 16': 'Обязательства по долгосрочной аренде — МСФО (IFRS) 16',
-            'Transitional Convergence Reserve (IAS 8 / IFRS 1)': 'Резерв переходной конвергенции (IAS 8 / IFRS 1)',
+            'Cash on Hand': tr('Наличные денежные средства в кассе', 'Cash on Hand', 'Kassadagi naqd pul mablag\'lari'),
+            'Cash in Hand': tr('Наличные денежные средства в кассе', 'Cash in Hand', 'Kassadagi naqd pul mablag\'lari'),
+            'Cash and Cash Equivalents': tr('Денежные средства и эквиваленты', 'Cash and Cash Equivalents', 'Pul mablag\'lari va ularning ekvivalentlari'),
+            'Bank Account': tr('Расчетные счета в банке', 'Bank Account', 'Bankdagi hisob-kitob schyotlari'),
+            'Accounts Receivable': tr('Торговая дебиторская задолженность', 'Accounts Receivable', 'Savdo debitorlik qarzdorligi'),
+            'Trade Receivables': tr('Торговая дебиторская задолженность', 'Trade Receivables', 'Savdo debitorlik qarzdorligi'),
+            'Prepaid Expenses': tr('Авансы выданные и расходы будущих периодов', 'Prepaid Expenses', 'Berilgan bo\'naklar va kelgusi davr xarajatlari'),
+            'Inventory': tr('Товарно-материальные запасы (ТМЗ)', 'Inventory', 'Tovar-moddiy zaxiralar (TMZ)'),
+            'Property and Equipment': tr('Основные средства и оборудование', 'Property and Equipment', 'Asosiy vositalar va uskunalar'),
+            'Property, Plant and Equipment': tr('Основные средства (Здания и оборудование)', 'Property, Plant and Equipment', 'Asosiy vositalar (Binolar va uskunalar)'),
+            'Intangible Assets': tr('Нематериальные активы (НМА)', 'Intangible Assets', 'Nomoddiy aktivlar (NMA)'),
+            'Intangible Assets – Software': tr('Нематериальные активы (Программное обеспечение)', 'Intangible Assets – Software', 'Nomoddiy aktivlar (Dasturiy ta\'minot)'),
+            'Intellectual Property Rights': tr('Исключительные права на интеллектуальную собственность', 'Intellectual Property Rights', 'Intellektual mulkka bo\'lgan mutlaq huquqlar'),
+            'Accounts Payable': tr('Кредиторская задолженность поставщикам', 'Accounts Payable', 'Yetkazib beruvchilarga kreditorlik qarzdorligi'),
+            'Trade Payables': tr('Торговая кредиторская задолженность', 'Trade Payables', 'Savdo kreditorlik qarzdorligi'),
+            'Obligations to Suppliers': tr('Задолженность перед поставщиками и подрядчиками', 'Obligations to Suppliers', 'Yetkazib beruvchilar va pudratchilar oldidagi qarz'),
+            'Accrued Expenses': tr('Начисленные обязательства и резервы', 'Accrued Expenses', 'Hisoblangan majburiyatlar va zaxiralar'),
+            'Short-term Borrowings': tr('Краткосрочные кредиты и займы', 'Short-term Borrowings', 'Qisqa muddatli kreditlar va qarzlar'),
+            'Current Portion of Bank Loan': tr('Текущая часть долгосрочных банковских кредитов', 'Current Portion of Bank Loan', 'Uzoq muddatli bank kreditlarining joriy qismi'),
+            'Long-term Loan': tr('Долгосрочные банковские кредиты', 'Long-term Loan', 'Uzoq muddatli bank kreditlari'),
+            'Bank Loan – Non-current Portion': tr('Долгосрочные банковские займы', 'Bank Loan – Non-current Portion', 'Uzoq muddatli bank qarzlari'),
+            'Share Capital': tr('Уставный капитал', 'Share Capital', 'Ustav kapitali'),
+            "Owner's Initial Investment": tr('Первоначальный капитал собственников', "Owner's Initial Investment", 'Mulkdorlarning dastlabki sarmoyasi'),
+            'Equity': tr('Собственный капитал', 'Equity', 'Xususiy kapital'),
+            'Retained Earnings': tr('Нераспределенная прибыль', 'Retained Earnings', 'Taqsimlanmagan foyda'),
+            'Right-of-Use Asset (ROU) - IFRS 16': tr('Актив в форме права пользования (ROU) — МСФО (IFRS) 16', 'Right-of-Use Asset (ROU) - IFRS 16', 'Foydalanish huquqi aktivi (ROU) — IFRS 16'),
+            'Lease Liability - IFRS 16': tr('Обязательства по долгосрочной аренде — МСФО (IFRS) 16', 'Lease Liability - IFRS 16', 'Uzoq muddatli ijara majburiyatlari — IFRS 16'),
+            'Transitional Convergence Reserve (IAS 8 / IFRS 1)': tr('Резерв переходной конвергенции (IAS 8 / IFRS 1)', 'Transitional Convergence Reserve (IAS 8 / IFRS 1)', 'O\'tish konvergensiyasi zaxirasi (IAS 8 / IFRS 1)'),
         };
         if (map[name]) return map[name];
         const codeStr = (code || '').trim();
-        if (codeStr === '1010') return 'Наличные денежные средства в кассе';
-        if (codeStr === '1020') return 'Расчетные счета в банке';
-        if (codeStr === '1030') return 'Торговая дебиторская задолженность';
-        if (codeStr === '1040') return 'Товарно-материальные запасы (ТМЗ)';
-        if (codeStr === '1510') return 'Основные средства и оборудование';
-        if (codeStr === '1520') return 'Нематериальные активы (НМА)';
-        if (codeStr === '2010') return 'Кредиторская задолженность поставщикам';
-        if (codeStr === '2020') return 'Краткосрочные кредиты и займы';
-        if (codeStr === '2510') return 'Долгосрочные банковские кредиты';
-        if (codeStr === '3010') return 'Уставный капитал';
-        if (codeStr === '3020') return 'Нераспределенная прибыль';
-        return name;
+        if (codeStr === '1010') return tr('Наличные денежные средства в кассе', 'Cash on Hand', 'Kassadagi naqd pul mablag\'lari');
+        if (codeStr === '1020') return tr('Расчетные счета в банке', 'Bank Account', 'Bankdagi hisob-kitob schyotlari');
+        if (codeStr === '1030') return tr('Торговая дебиторская задолженность', 'Trade Receivables', 'Savdo debitorlik qarzdorligi');
+        if (codeStr === '1040') return tr('Товарно-материальные запасы (ТМЗ)', 'Inventory', 'Tovar-moddiy zaxiralar (TMZ)');
+        if (codeStr === '1510') return tr('Основные средства и оборудование', 'Property, Plant and Equipment', 'Asosiy vositalar va uskunalar');
+        if (codeStr === '1520') return tr('Нематериальные активы (НМА)', 'Intangible Assets', 'Nomoddiy aktivlar (NMA)');
+        if (codeStr === '2010') return tr('Кредиторская задолженность поставщикам', 'Accounts Payable', 'Yetkazib beruvchilarga kreditorlik qarzdorligi');
+        if (codeStr === '2020') return tr('Краткосрочные кредиты и займы', 'Short-term Borrowings', 'Qisqa muddatli kreditlar va qarzlar');
+        if (codeStr === '2510') return tr('Долгосрочные банковские кредиты', 'Long-term Loan', 'Uzoq muddatli bank kreditlari');
+        if (codeStr === '3010') return tr('Уставный капитал', 'Share Capital', 'Ustav kapitali');
+        if (codeStr === '3020') return tr('Нераспределенная прибыль', 'Retained Earnings', 'Taqsimlanmagan foyda');
+        return tr(name, name);
     };
 
     const renderItemGroup = (title: string, items: any[]) => {
@@ -496,7 +491,7 @@ export default function TransformationResults() {
                 <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 flex items-center justify-between">
                     <span>{title}</span>
                     <span className="text-[11px] font-mono font-normal">
-                        {items.length} {isRu ? 'статей' : 'items'}
+                        {items.length} {tr('статей', 'items')}
                     </span>
                 </div>
                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
@@ -536,15 +531,13 @@ export default function TransformationResults() {
                             </div>
                             <div>
                                 <div className="font-bold text-base flex items-center gap-2">
-                                    <span className="text-foreground">{isRu ? 'Баланс по МСФО сбалансирован' : 'IFRS Balance Sheet in Equilibrium'}</span>
+                                    <span className="text-foreground">{tr('Баланс по МСФО сбалансирован', 'IFRS Balance Sheet in Equilibrium')}</span>
                                     <span className="text-[11px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-emerald-500/30">
-                                        {isRu ? 'Аудит пройден' : 'Audited & Balanced'}
+                                        {tr('Аудит пройден', 'Audited & Balanced')}
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                    {isRu 
-                                        ? `Сумма активов (${formatMoney(totalAssets)}) строго равна сумме капитала и обязательств (${formatMoney(totalEqAndLiab)}).`
-                                        : `Total Assets (${formatMoney(totalAssets)}) exactly equal Total Equity & Liabilities (${formatMoney(totalEqAndLiab)}).`}
+                                    {tr(`Сумма активов (${formatMoney(totalAssets)}) строго равна сумме капитала и обязательств (${formatMoney(totalEqAndLiab)}).`, `Total Assets (${formatMoney(totalAssets)}) exactly equal Total Equity & Liabilities (${formatMoney(totalEqAndLiab)}).`)}
                                 </p>
                             </div>
                         </div>
@@ -564,15 +557,13 @@ export default function TransformationResults() {
                             </div>
                             <div>
                                 <div className="font-bold text-base flex items-center gap-2">
-                                    <span className="text-rose-600 dark:text-rose-400">{isRu ? 'Обнаружено расхождение баланса' : 'Balance Discrepancy Detected'}</span>
+                                    <span className="text-rose-600 dark:text-rose-400">{tr('Обнаружено расхождение баланса', 'Balance Discrepancy Detected')}</span>
                                     <span className="text-xs bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-rose-500/30">
                                         Δ {formatMoney(diff)}
                                     </span>
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                    {isRu 
-                                        ? `Активы (${formatMoney(totalAssets)}) не совпадают с капиталом и обязательствами (${formatMoney(totalEqAndLiab)}). Проверьте метод двойной записи.`
-                                        : `Assets (${formatMoney(totalAssets)}) differ from Equity & Liabilities (${formatMoney(totalEqAndLiab)}). Check double-entry postings.`}
+                                    {tr(`Активы (${formatMoney(totalAssets)}) не совпадают с капиталом и обязательствами (${formatMoney(totalEqAndLiab)}). Проверьте метод двойной записи.`, `Assets (${formatMoney(totalAssets)}) differ from Equity & Liabilities (${formatMoney(totalEqAndLiab)}). Check double-entry postings.`)}
                                 </p>
                             </div>
                         </div>
@@ -586,10 +577,10 @@ export default function TransformationResults() {
                         <CardHeader className="border-b border-border/40 pb-4">
                             <CardTitle className="text-emerald-600 dark:text-emerald-400 font-bold text-lg flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5" />
-                                {isRu ? 'Активы (МСФО)' : 'Assets (IFRS)'}
+                                {tr('Активы (МСФО)', 'Assets (IFRS)')}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {isRu ? 'Классификация активов в соответствии с IAS 1' : 'Asset classification according to IAS 1'}
+                                {tr('Классификация активов в соответствии с IAS 1', 'Asset classification according to IAS 1')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
@@ -598,20 +589,20 @@ export default function TransformationResults() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
                                         <Layers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                        {isRu ? 'Внеоборотные (долгосрочные) активы' : 'Non-Current Assets'}
+                                        {tr('Внеоборотные (долгосрочные) активы', 'Non-Current Assets')}
                                     </h4>
                                     <span className="font-mono text-xs font-semibold text-muted-foreground">
                                         {formatMoney(statement?.assets?.non_current_assets?.total || 0)}
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {renderItemGroup(isRu ? "Основные средства (PPE)" : "Property, Plant & Equipment", statement?.assets?.non_current_assets?.property_plant_equipment)}
-                                    {renderItemGroup(isRu ? "Нематериальные активы" : "Intangible Assets", statement?.assets?.non_current_assets?.intangible_assets)}
-                                    {renderItemGroup(isRu ? "Финансовые активы" : "Financial Assets", statement?.assets?.non_current_assets?.financial_assets)}
-                                    {renderItemGroup(isRu ? "Прочие внеоборотные активы" : "Other Non-Current Assets", statement?.assets?.non_current_assets?.other)}
+                                    {renderItemGroup(tr("Основные средства (PPE)", "Property, Plant & Equipment"), statement?.assets?.non_current_assets?.property_plant_equipment)}
+                                    {renderItemGroup(tr("Нематериальные активы", "Intangible Assets"), statement?.assets?.non_current_assets?.intangible_assets)}
+                                    {renderItemGroup(tr("Финансовые активы", "Financial Assets"), statement?.assets?.non_current_assets?.financial_assets)}
+                                    {renderItemGroup(tr("Прочие внеоборотные активы", "Other Non-Current Assets"), statement?.assets?.non_current_assets?.other)}
                                     
                                     <div className="flex justify-between font-bold border-t border-border/60 pt-2.5 mt-2 text-foreground text-sm">
-                                        <span>{isRu ? 'Итого внеоборотные активы' : 'Total Non-Current Assets'}</span>
+                                        <span>{tr('Итого внеоборотные активы', 'Total Non-Current Assets')}</span>
                                         <span className="font-mono text-foreground font-semibold">{formatMoney(statement?.assets?.non_current_assets?.total || 0)}</span>
                                     </div>
                                 </div>
@@ -622,20 +613,20 @@ export default function TransformationResults() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
                                         <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                        {isRu ? 'Оборотные (краткосрочные) активы' : 'Current Assets'}
+                                        {tr('Оборотные (краткосрочные) активы', 'Current Assets')}
                                     </h4>
                                     <span className="font-mono text-xs font-semibold text-muted-foreground">
                                         {formatMoney(statement?.assets?.current_assets?.total || 0)}
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {renderItemGroup(isRu ? "Запасы" : "Inventories", statement?.assets?.current_assets?.inventories)}
-                                    {renderItemGroup(isRu ? "Дебиторская задолженность" : "Trade & Other Receivables", statement?.assets?.current_assets?.trade_receivables)}
-                                    {renderItemGroup(isRu ? "Денежные средства и эквиваленты" : "Cash & Cash Equivalents", statement?.assets?.current_assets?.cash_and_equivalents)}
-                                    {renderItemGroup(isRu ? "Прочие оборотные активы" : "Other Current Assets", statement?.assets?.current_assets?.other)}
+                                    {renderItemGroup(tr("Запасы", "Inventories"), statement?.assets?.current_assets?.inventories)}
+                                    {renderItemGroup(tr("Дебиторская задолженность", "Trade & Other Receivables"), statement?.assets?.current_assets?.trade_receivables)}
+                                    {renderItemGroup(tr("Денежные средства и эквиваленты", "Cash & Cash Equivalents"), statement?.assets?.current_assets?.cash_and_equivalents)}
+                                    {renderItemGroup(tr("Прочие оборотные активы", "Other Current Assets"), statement?.assets?.current_assets?.other)}
                                     
                                     <div className="flex justify-between font-bold border-t border-border/60 pt-2.5 mt-2 text-foreground text-sm">
-                                        <span>{isRu ? 'Итого оборотные активы' : 'Total Current Assets'}</span>
+                                        <span>{tr('Итого оборотные активы', 'Total Current Assets')}</span>
                                         <span className="font-mono text-foreground font-semibold">{formatMoney(statement?.assets?.current_assets?.total || 0)}</span>
                                     </div>
                                 </div>
@@ -646,7 +637,7 @@ export default function TransformationResults() {
                                 <div className="flex items-center gap-2.5">
                                     <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                     <span className="font-bold tracking-wide uppercase text-sm">
-                                        {isRu ? 'ИТОГО АКТИВЫ (МСФО)' : 'TOTAL ASSETS (IFRS)'}
+                                        {tr('ИТОГО АКТИВЫ (МСФО)', 'TOTAL ASSETS (IFRS)')}
                                     </span>
                                 </div>
                                 <span className="font-mono text-xl font-black">
@@ -661,10 +652,10 @@ export default function TransformationResults() {
                         <CardHeader className="border-b border-border/40 pb-4">
                             <CardTitle className="text-indigo-600 dark:text-indigo-400 font-bold text-lg flex items-center gap-2">
                                 <Scale className="w-5 h-5" />
-                                {isRu ? 'Капитал и обязательства (МСФО)' : 'Equity and Liabilities (IFRS)'}
+                                {tr('Капитал и обязательства (МСФО)', 'Equity and Liabilities (IFRS)')}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {isRu ? 'Собственный капитал и финансирование по IAS 1' : 'Capital and funding structure according to IAS 1'}
+                                {tr('Собственный капитал и финансирование по IAS 1', 'Capital and funding structure according to IAS 1')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
@@ -673,19 +664,19 @@ export default function TransformationResults() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
                                         <Scale className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                        {isRu ? 'Собственный капитал' : 'Equity'}
+                                        {tr('Собственный капитал', 'Equity')}
                                     </h4>
                                     <span className="font-mono text-xs font-semibold text-muted-foreground">
                                         {formatMoney(statement?.equity_and_liabilities?.equity?.total || 0)}
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {renderItemGroup(isRu ? "Уставный капитал" : "Share Capital", statement?.equity_and_liabilities?.equity?.share_capital)}
-                                    {renderItemGroup(isRu ? "Нераспределенная прибыль" : "Retained Earnings", statement?.equity_and_liabilities?.equity?.retained_earnings)}
-                                    {renderItemGroup(isRu ? "Прочие резервы" : "Other Reserves", statement?.equity_and_liabilities?.equity?.other_reserves)}
+                                    {renderItemGroup(tr("Уставный капитал", "Share Capital"), statement?.equity_and_liabilities?.equity?.share_capital)}
+                                    {renderItemGroup(tr("Нераспределенная прибыль", "Retained Earnings"), statement?.equity_and_liabilities?.equity?.retained_earnings)}
+                                    {renderItemGroup(tr("Прочие резервы", "Other Reserves"), statement?.equity_and_liabilities?.equity?.other_reserves)}
                                     
                                     <div className="flex justify-between font-bold border-t border-border/60 pt-2.5 mt-2 text-foreground text-sm">
-                                        <span>{isRu ? 'Итого собственный капитал' : 'Total Equity'}</span>
+                                        <span>{tr('Итого собственный капитал', 'Total Equity')}</span>
                                         <span className="font-mono text-foreground font-semibold">{formatMoney(statement?.equity_and_liabilities?.equity?.total || 0)}</span>
                                     </div>
                                 </div>
@@ -696,20 +687,20 @@ export default function TransformationResults() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
                                         <Building2 className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                                        {isRu ? 'Долгосрочные обязательства' : 'Non-Current Liabilities'}
+                                        {tr('Долгосрочные обязательства', 'Non-Current Liabilities')}
                                     </h4>
                                     <span className="font-mono text-xs font-semibold text-muted-foreground">
                                         {formatMoney(statement?.equity_and_liabilities?.non_current_liabilities?.total || 0)}
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {renderItemGroup(isRu ? "Долгосрочные кредиты и займы" : "Long-Term Borrowings & Loans", statement?.equity_and_liabilities?.non_current_liabilities?.long_term_borrowings)}
-                                    {renderItemGroup(isRu ? "Отложенные налоговые обязательства" : "Deferred Tax Liabilities", statement?.equity_and_liabilities?.non_current_liabilities?.deferred_tax)}
-                                    {renderItemGroup(isRu ? "Долгосрочные резервы" : "Long-Term Provisions", statement?.equity_and_liabilities?.non_current_liabilities?.provisions)}
-                                    {renderItemGroup(isRu ? "Прочие долгосрочные обязательства" : "Other Non-Current Liabilities", statement?.equity_and_liabilities?.non_current_liabilities?.other)}
+                                    {renderItemGroup(tr("Долгосрочные кредиты и займы", "Long-Term Borrowings & Loans"), statement?.equity_and_liabilities?.non_current_liabilities?.long_term_borrowings)}
+                                    {renderItemGroup(tr("Отложенные налоговые обязательства", "Deferred Tax Liabilities"), statement?.equity_and_liabilities?.non_current_liabilities?.deferred_tax)}
+                                    {renderItemGroup(tr("Долгосрочные резервы", "Long-Term Provisions"), statement?.equity_and_liabilities?.non_current_liabilities?.provisions)}
+                                    {renderItemGroup(tr("Прочие долгосрочные обязательства", "Other Non-Current Liabilities"), statement?.equity_and_liabilities?.non_current_liabilities?.other)}
                                     
                                     <div className="flex justify-between font-bold border-t border-border/60 pt-2.5 mt-2 text-foreground text-sm">
-                                        <span>{isRu ? 'Итого долгосрочные обязательства' : 'Total Non-Current Liabilities'}</span>
+                                        <span>{tr('Итого долгосрочные обязательства', 'Total Non-Current Liabilities')}</span>
                                         <span className="font-mono text-foreground font-semibold">{formatMoney(statement?.equity_and_liabilities?.non_current_liabilities?.total || 0)}</span>
                                     </div>
                                 </div>
@@ -720,20 +711,20 @@ export default function TransformationResults() {
                                 <div className="flex items-center justify-between mb-3">
                                     <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
                                         <Building2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                                        {isRu ? 'Краткосрочные обязательства' : 'Current Liabilities'}
+                                        {tr('Краткосрочные обязательства', 'Current Liabilities')}
                                     </h4>
                                     <span className="font-mono text-xs font-semibold text-muted-foreground">
                                         {formatMoney(statement?.equity_and_liabilities?.current_liabilities?.total || 0)}
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {renderItemGroup(isRu ? "Кредиторская задолженность" : "Trade & Other Payables", statement?.equity_and_liabilities?.current_liabilities?.trade_payables)}
-                                    {renderItemGroup(isRu ? "Краткосрочные кредиты и займы" : "Short-Term Borrowings & Loans", statement?.equity_and_liabilities?.current_liabilities?.short_term_borrowings)}
-                                    {renderItemGroup(isRu ? "Краткосрочные резервы" : "Short-Term Provisions", statement?.equity_and_liabilities?.current_liabilities?.provisions)}
-                                    {renderItemGroup(isRu ? "Прочие краткосрочные обязательства" : "Other Current Liabilities", statement?.equity_and_liabilities?.current_liabilities?.other)}
+                                    {renderItemGroup(tr("Кредиторская задолженность", "Trade & Other Payables"), statement?.equity_and_liabilities?.current_liabilities?.trade_payables)}
+                                    {renderItemGroup(tr("Краткосрочные кредиты и займы", "Short-Term Borrowings & Loans"), statement?.equity_and_liabilities?.current_liabilities?.short_term_borrowings)}
+                                    {renderItemGroup(tr("Краткосрочные резервы", "Short-Term Provisions"), statement?.equity_and_liabilities?.current_liabilities?.provisions)}
+                                    {renderItemGroup(tr("Прочие краткосрочные обязательства", "Other Current Liabilities"), statement?.equity_and_liabilities?.current_liabilities?.other)}
                                     
                                     <div className="flex justify-between font-bold border-t border-border/60 pt-2.5 mt-2 text-foreground text-sm">
-                                        <span>{isRu ? 'Итого краткосрочные обязательства' : 'Total Current Liabilities'}</span>
+                                        <span>{tr('Итого краткосрочные обязательства', 'Total Current Liabilities')}</span>
                                         <span className="font-mono text-foreground font-semibold">{formatMoney(statement?.equity_and_liabilities?.current_liabilities?.total || 0)}</span>
                                     </div>
                                 </div>
@@ -744,7 +735,7 @@ export default function TransformationResults() {
                                 <div className="flex items-center gap-2.5">
                                     <Scale className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                     <span className="font-bold tracking-wide uppercase text-sm">
-                                        {isRu ? 'ИТОГО КАПИТАЛ И ОБЯЗАТЕЛЬСТВА' : 'TOTAL EQUITY & LIABILITIES'}
+                                        {tr('ИТОГО КАПИТАЛ И ОБЯЗАТЕЛЬСТВА', 'TOTAL EQUITY & LIABILITIES')}
                                     </span>
                                 </div>
                                 <span className="font-mono text-xl font-black">
@@ -778,17 +769,15 @@ export default function TransformationResults() {
                             <div>
                                 <CardTitle className="text-foreground text-lg font-bold flex items-center gap-2">
                                     <GitCompare className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                    {isRu ? 'Трансформационный водопад (Waterfall Bridge)' : 'Transformation Waterfall Bridge'}
+                                    {tr('Трансформационный водопад (Waterfall Bridge)', 'Transformation Waterfall Bridge')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isRu 
-                                        ? 'Пошаговый переход валюты баланса от учетных стандартов НСБУ к МСФО с выделением влияния стандартов' 
-                                        : 'Step-by-step balance sheet progression from NAS baseline to IFRS audited balance'}
+                                    {tr('Пошаговый переход валюты баланса от учетных стандартов НСБУ к МСФО с выделением влияния стандартов', 'Step-by-step balance sheet progression from NAS baseline to IFRS audited balance')}
                                 </CardDescription>
                             </div>
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold self-start sm:self-auto font-mono">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
-                                {isRu ? 'Zero-Delta баланс (Δ 0.00)' : 'Zero-Delta Balanced (Δ 0.00)'}
+                                {tr('Zero-Delta баланс (Δ 0.00)', 'Zero-Delta Balanced (Δ 0.00)')}
                             </div>
                         </div>
                     </CardHeader>
@@ -798,7 +787,7 @@ export default function TransformationResults() {
                             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
                                     <TrendingUp className="w-4 h-4 text-emerald-500" />
-                                    {isRu ? '1. Пошаговый мост активов' : '1. Assets Progression Bridge'}
+                                    {tr('1. Пошаговый мост активов', '1. Assets Progression Bridge')}
                                 </span>
                                 <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
                                     {formatMoney(statutoryAssets)} → {formatMoney(totalAssets)}
@@ -808,14 +797,14 @@ export default function TransformationResults() {
                                 {/* Step 1: NAS Baseline Assets */}
                                 <div className="p-3.5 rounded-xl border border-border/70 bg-muted/30 relative">
                                     <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                        {isRu ? 'База: Активы НСБУ' : 'Baseline NAS Assets'}
+                                        {tr('База: Активы НСБУ', 'Baseline NAS Assets')}
                                     </div>
                                     <div className="text-lg font-black font-mono text-foreground mt-1">
                                         {formatMoney(statutoryAssets)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-muted-foreground/60 inline-block"></span>
-                                        {isRu ? 'Исходный учет' : 'Statutory baseline'}
+                                        {tr('Исходный учет', 'Statutory baseline')}
                                     </div>
                                 </div>
 
@@ -823,7 +812,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                                            {isRu ? '+ IFRS 16 Аренда (ROU)' : '+ IFRS 16 Leases (ROU)'}
+                                            {tr('+ IFRS 16 Аренда (ROU)', '+ IFRS 16 Leases (ROU)')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                                             + Актив
@@ -833,7 +822,7 @@ export default function TransformationResults() {
                                         +{formatMoney(ifrs16Amount)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1">
-                                        {isRu ? 'Капитализация права пользования' : 'Right-of-use asset capitalization'}
+                                        {tr('Капитализация права пользования', 'Right-of-use asset capitalization')}
                                     </div>
                                 </div>
 
@@ -841,7 +830,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/5 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-                                            {isRu ? '- IFRS 9 Резерв (ECL)' : '- IFRS 9 ECL Allowance'}
+                                            {tr('- IFRS 9 Резерв (ECL)', '- IFRS 9 ECL Allowance')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
                                             Контрактив
@@ -851,7 +840,7 @@ export default function TransformationResults() {
                                         -{formatMoney(ifrs9Amount)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1">
-                                        {isRu ? 'Оценочный резерв под убытки' : 'Allowance for expected credit losses'}
+                                        {tr('Оценочный резерв под убытки', 'Allowance for expected credit losses')}
                                     </div>
                                 </div>
 
@@ -859,7 +848,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border-2 border-emerald-500 bg-emerald-500/10 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-bold text-foreground uppercase tracking-wider">
-                                            {isRu ? '= Итого Активы МСФО' : '= Final IFRS Assets'}
+                                            {tr('= Итого Активы МСФО', '= Final IFRS Assets')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-emerald-500 text-white">
                                             МСФО
@@ -869,7 +858,7 @@ export default function TransformationResults() {
                                         {formatMoney(totalAssets)}
                                     </div>
                                     <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium mt-1">
-                                        {assetsAdj >= 0 ? `+${formatMoney(assetsAdj)}` : formatMoney(assetsAdj)} {isRu ? 'чистая дельта' : 'net delta'}
+                                        {assetsAdj >= 0 ? `+${formatMoney(assetsAdj)}` : formatMoney(assetsAdj)} {tr('чистая дельта', 'net delta')}
                                     </div>
                                 </div>
                             </div>
@@ -880,7 +869,7 @@ export default function TransformationResults() {
                             <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                                 <span className="flex items-center gap-1.5">
                                     <Scale className="w-4 h-4 text-indigo-500" />
-                                    {isRu ? '2. Пошаговый мост пассивов и капитала' : '2. Liabilities & Equity Progression Bridge'}
+                                    {tr('2. Пошаговый мост пассивов и капитала', '2. Liabilities & Equity Progression Bridge')}
                                 </span>
                                 <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
                                     {formatMoney(statutoryLiab + statutoryEquity)} → {formatMoney(totalEqAndLiab)}
@@ -890,13 +879,13 @@ export default function TransformationResults() {
                                 {/* Step 1: NAS Baseline L+E */}
                                 <div className="p-3.5 rounded-xl border border-border/70 bg-muted/30 relative">
                                     <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                                        {isRu ? 'База: Пассивы НСБУ' : 'Baseline NAS (L + E)'}
+                                        {tr('База: Пассивы НСБУ', 'Baseline NAS (L + E)')}
                                     </div>
                                     <div className="text-lg font-black font-mono text-foreground mt-1">
                                         {formatMoney(statutoryLiab + statutoryEquity)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1 truncate">
-                                        {isRu ? 'Обяз.: ' : 'Liab: '}{formatMoney(statutoryLiab)} • {isRu ? 'Капит.: ' : 'Eq: '}{formatMoney(statutoryEquity)}
+                                        {tr('Обяз.: ', 'Liab: ')}{formatMoney(statutoryLiab)} • {tr('Капит.: ', 'Eq: ')}{formatMoney(statutoryEquity)}
                                     </div>
                                 </div>
 
@@ -904,7 +893,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/5 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                                            {isRu ? '+ IFRS 16 Обязательство' : '+ IFRS 16 Liability'}
+                                            {tr('+ IFRS 16 Обязательство', '+ IFRS 16 Liability')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-600 dark:text-amber-400">
                                             + Обязат.
@@ -914,7 +903,7 @@ export default function TransformationResults() {
                                         +{formatMoney(ifrs16Amount)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1">
-                                        {isRu ? 'Дисконтированный долг по аренде' : 'Present value of lease payments'}
+                                        {tr('Дисконтированный долг по аренде', 'Present value of lease payments')}
                                     </div>
                                 </div>
 
@@ -922,7 +911,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/5 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-                                            {isRu ? '- IFRS 9 Прибыль (P&L)' : '- IFRS 9 Retained Earnings'}
+                                            {tr('- IFRS 9 Прибыль (P&L)', '- IFRS 9 Retained Earnings')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
                                             - Капитал
@@ -932,7 +921,7 @@ export default function TransformationResults() {
                                         -{formatMoney(ifrs9Amount)}
                                     </div>
                                     <div className="text-[11px] text-muted-foreground mt-1">
-                                        {isRu ? 'Расход по резерву в прибыль' : 'ECL provision recognized in P&L'}
+                                        {tr('Расход по резерву в прибыль', 'ECL provision recognized in P&L')}
                                     </div>
                                 </div>
 
@@ -940,7 +929,7 @@ export default function TransformationResults() {
                                 <div className="p-3.5 rounded-xl border-2 border-indigo-500 bg-indigo-500/10 relative">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[11px] font-bold text-foreground uppercase tracking-wider">
-                                            {isRu ? '= Итого Пассивы МСФО' : '= Final IFRS (L + E)'}
+                                            {tr('= Итого Пассивы МСФО', '= Final IFRS (L + E)')}
                                         </span>
                                         <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-indigo-500 text-white">
                                             МСФО
@@ -950,7 +939,7 @@ export default function TransformationResults() {
                                         {formatMoney(totalEqAndLiab)}
                                     </div>
                                     <div className="text-[11px] text-indigo-600 dark:text-indigo-400 font-medium mt-1 font-mono">
-                                        Δ 0.00 {isRu ? '(Точное равенство с активами)' : '(Exact asset match)'}
+                                        Δ 0.00 {tr('(Точное равенство с активами)', '(Exact asset match)')}
                                     </div>
                                 </div>
                             </div>
@@ -963,30 +952,28 @@ export default function TransformationResults() {
                     <CardHeader className="border-b border-border/40 pb-4">
                         <CardTitle className="text-foreground text-lg font-bold flex items-center gap-2">
                             <TableProperties className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            {isRu ? 'Матрица конвергенции: НСБУ → Поправки → МСФО' : 'Convergence Matrix: NAS → Adjustments → IFRS'}
+                            {tr('Матрица конвергенции: НСБУ → Поправки → МСФО', 'Convergence Matrix: NAS → Adjustments → IFRS')}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            {isRu 
-                                ? 'Сводная ведомость трансформации ключевых балансовых разделов' 
-                                : 'Executive statutory-to-IFRS balance sheet convergence bridge'}
+                            {tr('Сводная ведомость трансформации ключевых балансовых разделов', 'Executive statutory-to-IFRS balance sheet convergence bridge')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-0 overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50 text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th className="py-3 px-4">{isRu ? 'Раздел баланса' : 'Balance Sheet Section'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'Баланс НСБУ' : 'NAS Baseline'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'Поправки МСФО' : 'IFRS Adjustments'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'Баланс МСФО' : 'IFRS Final'}</th>
-                                    <th className="py-3 px-4 text-center">{isRu ? 'Статус аудита' : 'Audited Status'}</th>
+                                    <th className="py-3 px-4">{tr('Раздел баланса', 'Balance Sheet Section')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('Баланс НСБУ', 'NAS Baseline')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('Поправки МСФО', 'IFRS Adjustments')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('Баланс МСФО', 'IFRS Final')}</th>
+                                    <th className="py-3 px-4 text-center">{tr('Статус аудита', 'Audited Status')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/30">
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-2">
                                         <TrendingUp className="w-4 h-4 text-emerald-500" />
-                                        {isRu ? 'Активы (Итого)' : 'Total Assets'}
+                                        {tr('Активы (Итого)', 'Total Assets')}
                                     </td>
                                     <td className="py-3 px-4 text-right font-mono text-muted-foreground">
                                         {formatMoney(statutoryAssets)}
@@ -999,7 +986,7 @@ export default function TransformationResults() {
                                     </td>
                                     <td className="py-3 px-4 text-center">
                                         <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                            {isRu ? 'Сверено' : 'Reconciled'}
+                                            {tr('Сверено', 'Reconciled')}
                                         </span>
                                     </td>
                                 </tr>
@@ -1007,7 +994,7 @@ export default function TransformationResults() {
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-2">
                                         <Building2 className="w-4 h-4 text-amber-500" />
-                                        {isRu ? 'Обязательства (Итого)' : 'Total Liabilities'}
+                                        {tr('Обязательства (Итого)', 'Total Liabilities')}
                                     </td>
                                     <td className="py-3 px-4 text-right font-mono text-muted-foreground">
                                         {formatMoney(statutoryLiab)}
@@ -1020,7 +1007,7 @@ export default function TransformationResults() {
                                     </td>
                                     <td className="py-3 px-4 text-center">
                                         <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                            {isRu ? 'Сверено' : 'Reconciled'}
+                                            {tr('Сверено', 'Reconciled')}
                                         </span>
                                     </td>
                                 </tr>
@@ -1028,7 +1015,7 @@ export default function TransformationResults() {
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-2">
                                         <Scale className="w-4 h-4 text-indigo-500" />
-                                        {isRu ? 'Собственный капитал' : 'Total Equity'}
+                                        {tr('Собственный капитал', 'Total Equity')}
                                     </td>
                                     <td className="py-3 px-4 text-right font-mono text-muted-foreground">
                                         {formatMoney(statutoryEquity)}
@@ -1041,14 +1028,14 @@ export default function TransformationResults() {
                                     </td>
                                     <td className="py-3 px-4 text-center">
                                         <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                            {isRu ? 'Сверено' : 'Reconciled'}
+                                            {tr('Сверено', 'Reconciled')}
                                         </span>
                                     </td>
                                 </tr>
 
                                 <tr className="bg-muted/40 font-bold border-t-2 border-border/60">
                                     <td className="py-3.5 px-4 text-foreground uppercase tracking-wider text-xs">
-                                        {isRu ? 'Контроль баланса (Активы = Пассивы)' : 'Equilibrium Guard (Assets = Liabilities + Equity)'}
+                                        {tr('Контроль баланса (Активы = Пассивы)', 'Equilibrium Guard (Assets = Liabilities + Equity)')}
                                     </td>
                                     <td className="py-3.5 px-4 text-right font-mono text-foreground">
                                         {formatMoney(statutoryAssets)}
@@ -1074,10 +1061,10 @@ export default function TransformationResults() {
                         <CardTitle className="text-foreground text-lg font-bold flex items-center justify-between">
                             <span className="flex items-center gap-2">
                                 <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                {isRu ? 'Журнал трансформационных поправок' : 'Journal of Transformation Adjustments'}
+                                {tr('Журнал трансформационных поправок', 'Journal of Transformation Adjustments')}
                             </span>
                             <span className="text-xs font-normal text-muted-foreground font-mono">
-                                {adjs.length} {isRu ? 'записей' : 'entries'}
+                                {adjs.length} {tr('записей', 'entries')}
                             </span>
                         </CardTitle>
                     </CardHeader>
@@ -1085,10 +1072,10 @@ export default function TransformationResults() {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50 text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th className="py-3 px-4">{isRu ? 'Описание операции' : 'Description'}</th>
-                                    <th className="py-3 px-4">{isRu ? 'Стандарт МСФО' : 'Standard'}</th>
-                                    <th className="py-3 px-4 text-center">{isRu ? 'Тип' : 'Type'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'Сумма проводки' : 'Amount'}</th>
+                                    <th className="py-3 px-4">{tr('Описание операции', 'Description')}</th>
+                                    <th className="py-3 px-4">{tr('Стандарт МСФО', 'Standard')}</th>
+                                    <th className="py-3 px-4 text-center">{tr('Тип', 'Type')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('Сумма проводки', 'Amount')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y border-border/30">
@@ -1107,7 +1094,7 @@ export default function TransformationResults() {
                                                         ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
                                                         : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'
                                                 }`}>
-                                                    {adj.adjustment_type === 'debit' ? (isRu ? 'Дебет' : 'Debit') : (isRu ? 'Кредит' : 'Credit')}
+                                                    {adj.adjustment_type === 'debit' ? (tr('Дебет', 'Debit')) : (tr('Кредит', 'Credit'))}
                                                 </span>
                                             </td>
                                             <td className="py-3 px-4 text-right font-mono font-semibold text-foreground">
@@ -1118,9 +1105,7 @@ export default function TransformationResults() {
                                 ) : (
                                     <tr>
                                         <td colSpan={4} className="py-6 px-4 text-center text-muted-foreground italic text-xs">
-                                            {isRu 
-                                                ? 'Применена базовая таксономия МСФО. Ручные поправки не вносились.' 
-                                                : 'Baseline taxonomy applied. No manual overrides recorded.'}
+                                            {tr('Применена базовая таксономия МСФО. Ручные поправки не вносились.', 'Baseline taxonomy applied. No manual overrides recorded.')}
                                         </td>
                                     </tr>
                                 )}
@@ -1142,7 +1127,7 @@ export default function TransformationResults() {
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Коэффициент автономии' : 'Equity Ratio'}
+                                    {tr('Коэффициент автономии', 'Equity Ratio')}
                                 </span>
                                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
                                     Equity / Assets
@@ -1154,9 +1139,9 @@ export default function TransformationResults() {
                                 {ifrsEquityRatio.toFixed(1)}%
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground">{isRu ? 'По НСБУ:' : 'NAS:'} {nasEquityRatio.toFixed(1)}%</span>
+                                <span className="text-muted-foreground">{tr('По НСБУ:', 'NAS:')} {nasEquityRatio.toFixed(1)}%</span>
                                 <span className={`font-semibold ${ifrsEquityRatio >= 50 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}`}>
-                                    {ifrsEquityRatio >= 50 ? (isRu ? 'Норма (>50%)' : 'Optimal (>50%)') : (isRu ? 'Внимание' : 'Warning')}
+                                    {ifrsEquityRatio >= 50 ? (tr('Норма (>50%)', 'Optimal (>50%)')) : (tr('Внимание', 'Warning'))}
                                 </span>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2 overflow-hidden mt-1">
@@ -1166,9 +1151,7 @@ export default function TransformationResults() {
                                 />
                             </div>
                             <p className="text-[11px] text-muted-foreground leading-tight pt-1">
-                                {isRu 
-                                    ? 'Доля собственных средств в финансировании активов. Свыше 50% подтверждает высокую финансовую независимость.' 
-                                    : 'Share of assets funded by equity. Over 50% indicates strong solvency.'}
+                                {tr('Доля собственных средств в финансировании активов. Свыше 50% подтверждает высокую финансовую независимость.', 'Share of assets funded by equity. Over 50% indicates strong solvency.')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1178,7 +1161,7 @@ export default function TransformationResults() {
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Текущая ликвидность' : 'Current Ratio'}
+                                    {tr('Текущая ликвидность', 'Current Ratio')}
                                 </span>
                                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
                                     CA / CL
@@ -1190,9 +1173,9 @@ export default function TransformationResults() {
                                 {ifrsCurrentRatio.toFixed(2)}x
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground">{isRu ? 'По НСБУ:' : 'NAS:'} {nasCurrentRatio.toFixed(2)}x</span>
+                                <span className="text-muted-foreground">{tr('По НСБУ:', 'NAS:')} {nasCurrentRatio.toFixed(2)}x</span>
                                 <span className={`font-semibold ${ifrsCurrentRatio >= 1.5 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}`}>
-                                    {ifrsCurrentRatio >= 1.5 ? (isRu ? 'Оптимально (1.5-2.5)' : 'Optimal') : (isRu ? 'Ниже нормы' : 'Below norm')}
+                                    {ifrsCurrentRatio >= 1.5 ? (tr('Оптимально (1.5-2.5)', 'Optimal')) : (tr('Ниже нормы', 'Below norm'))}
                                 </span>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2 overflow-hidden mt-1">
@@ -1202,9 +1185,7 @@ export default function TransformationResults() {
                                 />
                             </div>
                             <p className="text-[11px] text-muted-foreground leading-tight pt-1">
-                                {isRu 
-                                    ? 'Способность погашать краткосрочные обязательства оборотными активами без привлечения сторонних средств.' 
-                                    : 'Ability to settle short-term obligations using liquid assets.'}
+                                {tr('Способность погашать краткосрочные обязательства оборотными активами без привлечения сторонних средств.', 'Ability to settle short-term obligations using liquid assets.')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1214,7 +1195,7 @@ export default function TransformationResults() {
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Леверидж (D / E)' : 'Debt-to-Equity'}
+                                    {tr('Леверидж (D / E)', 'Debt-to-Equity')}
                                 </span>
                                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
                                     Liab / Equity
@@ -1226,9 +1207,9 @@ export default function TransformationResults() {
                                 {ifrsDebtToEquity.toFixed(2)}x
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground">{isRu ? 'По НСБУ:' : 'NAS:'} {nasDebtToEquity.toFixed(2)}x</span>
+                                <span className="text-muted-foreground">{tr('По НСБУ:', 'NAS:')} {nasDebtToEquity.toFixed(2)}x</span>
                                 <span className={`font-semibold ${ifrsDebtToEquity <= 1.0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500'}`}>
-                                    {ifrsDebtToEquity <= 1.0 ? (isRu ? 'Низкий риск (<1.0)' : 'Conservative (<1.0)') : (isRu ? 'Повышенный долг' : 'Elevated')}
+                                    {ifrsDebtToEquity <= 1.0 ? (tr('Низкий риск (<1.0)', 'Conservative (<1.0)')) : (tr('Повышенный долг', 'Elevated'))}
                                 </span>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2 overflow-hidden mt-1">
@@ -1238,9 +1219,7 @@ export default function TransformationResults() {
                                 />
                             </div>
                             <p className="text-[11px] text-muted-foreground leading-tight pt-1">
-                                {isRu 
-                                    ? 'Соотношение заемных и собственных средств. Значение 0.35 указывает на консервативную кредитную политику.' 
-                                    : 'Financial leverage ratio. 0.35x represents a healthy, low credit risk profile.'}
+                                {tr('Соотношение заемных и собственных средств. Значение 0.35 указывает на консервативную кредитную политику.', 'Financial leverage ratio. 0.35x represents a healthy, low credit risk profile.')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1250,7 +1229,7 @@ export default function TransformationResults() {
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Чистый оборотный капитал' : 'Net Working Capital'}
+                                    {tr('Чистый оборотный капитал', 'Net Working Capital')}
                                 </span>
                                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
                                     CA - CL
@@ -1262,18 +1241,16 @@ export default function TransformationResults() {
                                 {formatMoney(ifrsWorkingCapital)}
                             </div>
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground">{isRu ? 'По НСБУ:' : 'NAS:'} {formatMoney(nasWorkingCapital)}</span>
+                                <span className="text-muted-foreground">{tr('По НСБУ:', 'NAS:')} {formatMoney(nasWorkingCapital)}</span>
                                 <span className={`font-semibold ${ifrsWorkingCapital > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
-                                    {ifrsWorkingCapital > 0 ? (isRu ? 'Положительный (Запас)' : 'Positive Cushion') : (isRu ? 'Дефицит' : 'Deficit')}
+                                    {ifrsWorkingCapital > 0 ? (tr('Положительный (Запас)', 'Positive Cushion')) : (tr('Дефицит', 'Deficit'))}
                                 </span>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2 overflow-hidden mt-1">
                                 <div className="bg-emerald-500 h-2 rounded-full w-full" />
                             </div>
                             <p className="text-[11px] text-muted-foreground leading-tight pt-1">
-                                {isRu 
-                                    ? 'Финансовая подушка ликвидности для бесперебойного ведения текущей операционной деятельности.' 
-                                    : 'Liquidity safety cushion for day-to-day operational continuity.'}
+                                {tr('Финансовая подушка ликвидности для бесперебойного ведения текущей операционной деятельности.', 'Liquidity safety cushion for day-to-day operational continuity.')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1284,30 +1261,28 @@ export default function TransformationResults() {
                     <CardHeader className="border-b border-border/40 pb-4">
                         <CardTitle className="text-foreground text-lg font-bold flex items-center gap-2">
                             <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            {isRu ? 'Сравнительный анализ влияния перехода на МСФО на коэффициенты' : 'Comparative Ratio Analysis: Statutory vs. IFRS'}
+                            {tr('Сравнительный анализ влияния перехода на МСФО на коэффициенты', 'Comparative Ratio Analysis: Statutory vs. IFRS')}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            {isRu 
-                                ? 'Оценка изменений в ключевых метриках под влиянием стандартов IFRS 16 и IFRS 9' 
-                                : 'Assessment of KPI shifts driven by IFRS 16 lease capitalization and IFRS 9 provisions'}
+                            {tr('Оценка изменений в ключевых метриках под влиянием стандартов IFRS 16 и IFRS 9', 'Assessment of KPI shifts driven by IFRS 16 lease capitalization and IFRS 9 provisions')}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-0 overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50 text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th className="py-3 px-4">{isRu ? 'Финансовый показатель' : 'Financial Ratio'}</th>
-                                    <th className="py-3 px-4">{isRu ? 'Методология (Формула)' : 'Formula'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'По НСБУ' : 'NAS (Statutory)'}</th>
-                                    <th className="py-3 px-4 text-right">{isRu ? 'По МСФО' : 'IFRS (Final)'}</th>
-                                    <th className="py-3 px-4 text-center">{isRu ? 'Влияние МСФО' : 'Delta / Impact'}</th>
-                                    <th className="py-3 px-4">{isRu ? 'Аналитическое заключение' : 'Audit Commentary'}</th>
+                                    <th className="py-3 px-4">{tr('Финансовый показатель', 'Financial Ratio')}</th>
+                                    <th className="py-3 px-4">{tr('Методология (Формула)', 'Formula')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('По НСБУ', 'NAS (Statutory)')}</th>
+                                    <th className="py-3 px-4 text-right">{tr('По МСФО', 'IFRS (Final)')}</th>
+                                    <th className="py-3 px-4 text-center">{tr('Влияние МСФО', 'Delta / Impact')}</th>
+                                    <th className="py-3 px-4">{tr('Аналитическое заключение', 'Audit Commentary')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y border-border/30">
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground">
-                                        {isRu ? 'Коэффициент автономии (Equity Ratio)' : 'Solvency / Equity Ratio'}
+                                        {tr('Коэффициент автономии (Equity Ratio)', 'Solvency / Equity Ratio')}
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-muted-foreground">Капитал / Активы</td>
                                     <td className="py-3 px-4 text-right font-mono font-medium">{nasEquityRatio.toFixed(2)}%</td>
@@ -1318,15 +1293,13 @@ export default function TransformationResults() {
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-xs text-muted-foreground">
-                                        {isRu 
-                                            ? 'Незначительное снижение вследствие признания арендных обязательств по IFRS 16 и резерва ECL по IFRS 9. Устойчивость сохранена на высшем уровне.' 
-                                            : 'Slight contraction due to IFRS 16 grossing up balance sheet and IFRS 9 ECL. Solvency remains superior.'}
+                                        {tr('Незначительное снижение вследствие признания арендных обязательств по IFRS 16 и резерва ECL по IFRS 9. Устойчивость сохранена на высшем уровне.', 'Slight contraction due to IFRS 16 grossing up balance sheet and IFRS 9 ECL. Solvency remains superior.')}
                                     </td>
                                 </tr>
 
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground">
-                                        {isRu ? 'Текущая ликвидность (Current Ratio)' : 'Current Liquidity Ratio'}
+                                        {tr('Текущая ликвидность (Current Ratio)', 'Current Liquidity Ratio')}
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-muted-foreground">Об. Активы / Краткоср. Обяз.</td>
                                     <td className="py-3 px-4 text-right font-mono font-medium">{nasCurrentRatio.toFixed(2)}x</td>
@@ -1337,15 +1310,13 @@ export default function TransformationResults() {
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-xs text-muted-foreground">
-                                        {isRu 
-                                            ? 'Высокий запас ликвидности: на каждый $1 краткосрочных обязательств компания располагает более $2.49 оборотных активов.' 
-                                            : 'Strong liquidity cushion: more than 2.49x current assets covering each unit of short-term liabilities.'}
+                                        {tr('Высокий запас ликвидности: на каждый $1 краткосрочных обязательств компания располагает более $2.49 оборотных активов.', 'Strong liquidity cushion: more than 2.49x current assets covering each unit of short-term liabilities.')}
                                     </td>
                                 </tr>
 
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground">
-                                        {isRu ? 'Долговая нагрузка (Debt-to-Equity)' : 'Debt-to-Equity (Leverage)'}
+                                        {tr('Долговая нагрузка (Debt-to-Equity)', 'Debt-to-Equity (Leverage)')}
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-muted-foreground">Обязательства / Капитал</td>
                                     <td className="py-3 px-4 text-right font-mono font-medium">{nasDebtToEquity.toFixed(2)}x</td>
@@ -1356,15 +1327,13 @@ export default function TransformationResults() {
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-xs text-muted-foreground">
-                                        {isRu 
-                                            ? 'Рост левериджа обусловлен признанием дисконтированного арендного обязательства по IFRS 16 ($1,517.06). Нагрузка остается безопасной.' 
-                                            : 'Modest increase reflects IFRS 16 discounted lease liability capitalization ($1,517.06). Debt risk remains very low.'}
+                                        {tr('Рост левериджа обусловлен признанием дисконтированного арендного обязательства по IFRS 16 ($1,517.06). Нагрузка остается безопасной.', 'Modest increase reflects IFRS 16 discounted lease liability capitalization ($1,517.06). Debt risk remains very low.')}
                                     </td>
                                 </tr>
 
                                 <tr className="hover:bg-muted/30 transition-colors">
                                     <td className="py-3 px-4 font-semibold text-foreground">
-                                        {isRu ? 'Чистый оборотный капитал (NWC)' : 'Net Working Capital (NWC)'}
+                                        {tr('Чистый оборотный капитал (NWC)', 'Net Working Capital (NWC)')}
                                     </td>
                                     <td className="py-3 px-4 font-mono text-xs text-muted-foreground">Об. Активы - Краткоср. Обяз.</td>
                                     <td className="py-3 px-4 text-right font-mono font-medium">{formatMoney(nasWorkingCapital)}</td>
@@ -1375,9 +1344,7 @@ export default function TransformationResults() {
                                         </span>
                                     </td>
                                     <td className="py-3 px-4 text-xs text-muted-foreground">
-                                        {isRu 
-                                            ? 'Снижение на величину резерва сомнительных долгов по IFRS 9 ($163.27). Чистый капитал остается глубоко в зоне комфорта.' 
-                                            : 'Reflects IFRS 9 provision on receivables ($163.27). Company retains massive operational working buffer.'}
+                                        {tr('Снижение на величину резерва сомнительных долгов по IFRS 9 ($163.27). Чистый капитал остается глубоко в зоне комфорта.', 'Reflects IFRS 9 provision on receivables ($163.27). Company retains massive operational working buffer.')}
                                     </td>
                                 </tr>
                             </tbody>
@@ -1414,12 +1381,10 @@ export default function TransformationResults() {
                             <div>
                                 <CardTitle className="text-foreground text-lg font-bold flex items-center gap-2">
                                     <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                                    {isRu ? 'Примечания к финансовой отчетности по МСФО (IFRS Notes)' : 'IFRS Disclosure Notes & Explanatory Policies'}
+                                    {tr('Примечания к финансовой отчетности по МСФО (IFRS Notes)', 'IFRS Disclosure Notes & Explanatory Policies')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isRu 
-                                        ? 'Официальные раскрытия учетной политики и детализирующие таблицы в соответствии с IAS 1, IFRS 1, IFRS 16 и IFRS 9' 
-                                        : 'Mandatory explanatory disclosures and reconciliation notes pursuant to IAS 1, IFRS 1, IFRS 16, and IFRS 9'}
+                                    {tr('Официальные раскрытия учетной политики и детализирующие таблицы в соответствии с IAS 1, IFRS 1, IFRS 16 и IFRS 9', 'Mandatory explanatory disclosures and reconciliation notes pursuant to IAS 1, IFRS 1, IFRS 16, and IFRS 9')}
                                 </CardDescription>
                             </div>
                             <span className="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-semibold self-start sm:self-auto">
@@ -1432,30 +1397,28 @@ export default function TransformationResults() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 border-b border-border/40 pb-2">
                                 <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
-                                    {isRu ? 'Примечание 1' : 'Note 1'}
+                                    {tr('Примечание 1', 'Note 1')}
                                 </span>
                                 <h3 className="font-bold text-base text-foreground">
-                                    {isRu ? 'База подготовки и первое применение МСФО (IFRS 1 / IAS 1)' : 'Basis of Preparation & First-Time Adoption (IFRS 1 / IAS 1)'}
+                                    {tr('База подготовки и первое применение МСФО (IFRS 1 / IAS 1)', 'Basis of Preparation & First-Time Adoption (IFRS 1 / IAS 1)')}
                                 </h3>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                {isRu 
-                                    ? 'Настоящая финансовая отчетность подготовлена в соответствии с Международными стандартами финансовой отчетности (IFRS), выпущенными Советом по МСФО (IASB). Компания применила IFRS 1 «Первое применение МСФО» на дату перехода. Все вступительные корректировки классификации счетов и оценочных суждений признаны непосредственно в составе нераспределенной прибыли на дату конвергенции.' 
-                                    : 'These financial statements have been prepared in accordance with International Financial Reporting Standards (IFRS) as issued by the IASB. The entity has applied IFRS 1 "First-time Adoption of IFRS". Transitional adjustments have been recognized through retained earnings in accordance with IAS 1.'}
+                                {tr('Настоящая финансовая отчетность подготовлена в соответствии с Международными стандартами финансовой отчетности (IFRS), выпущенными Советом по МСФО (IASB). Компания применила IFRS 1 «Первое применение МСФО» на дату перехода. Все вступительные корректировки классификации счетов и оценочных суждений признаны непосредственно в составе нераспределенной прибыли на дату конвергенции.', 'These financial statements have been prepared in accordance with International Financial Reporting Standards (IFRS) as issued by the IASB. The entity has applied IFRS 1 "First-time Adoption of IFRS". Transitional adjustments have been recognized through retained earnings in accordance with IAS 1.')}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                                 <div className="p-3 rounded-lg border border-border/60 bg-muted/20 text-xs">
-                                    <div className="text-muted-foreground font-medium">{isRu ? 'Функциональная валюта' : 'Functional Currency'}</div>
+                                    <div className="text-muted-foreground font-medium">{tr('Функциональная валюта', 'Functional Currency')}</div>
                                     <div className="font-bold text-foreground mt-0.5">USD (с параллельным представлением в UZS)</div>
                                 </div>
                                 <div className="p-3 rounded-lg border border-border/60 bg-muted/20 text-xs">
-                                    <div className="text-muted-foreground font-medium">{isRu ? 'Принцип непрерывности' : 'Going Concern Assumption'}</div>
+                                    <div className="text-muted-foreground font-medium">{tr('Принцип непрерывности', 'Going Concern Assumption')}</div>
                                     <div className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1">
-                                        <Check className="w-3.5 h-3.5" /> {isRu ? 'Подтвержден (12+ месяцев)' : 'Confirmed (12+ Months)'}
+                                        <Check className="w-3.5 h-3.5" /> {tr('Подтвержден (12+ месяцев)', 'Confirmed (12+ Months)')}
                                     </div>
                                 </div>
                                 <div className="p-3 rounded-lg border border-border/60 bg-muted/20 text-xs">
-                                    <div className="text-muted-foreground font-medium">{isRu ? 'Метод учета запасов' : 'Inventory Valuation Method'}</div>
+                                    <div className="text-muted-foreground font-medium">{tr('Метод учета запасов', 'Inventory Valuation Method')}</div>
                                     <div className="font-bold text-foreground mt-0.5">FIFO (IAS 2) / Себестоимость</div>
                                 </div>
                             </div>
@@ -1465,36 +1428,34 @@ export default function TransformationResults() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 border-b border-border/40 pb-2">
                                 <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
-                                    {isRu ? 'Примечание 2' : 'Note 2'}
+                                    {tr('Примечание 2', 'Note 2')}
                                 </span>
                                 <h3 className="font-bold text-base text-foreground">
-                                    {isRu ? 'Основные средства и права пользования активами (IAS 16 / IFRS 16)' : 'Property, Plant & Equipment and Leases (IAS 16 / IFRS 16)'}
+                                    {tr('Основные средства и права пользования активами (IAS 16 / IFRS 16)', 'Property, Plant & Equipment and Leases (IAS 16 / IFRS 16)')}
                                 </h3>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                {isRu 
-                                    ? 'В соответствии с требованиями IFRS 16 «Аренда» компания признала на балансе право пользования активом (ROU Asset) в сумме дисконтированной стоимости будущих минимальных арендных платежей, а также соответствующее арендное обязательство. В национальном учете (НСБУ) данные договоры учитывались за балансом как операционная аренда.' 
-                                    : 'In accordance with IFRS 16 Leases, the entity recognized right-of-use assets (ROU) and matching lease liabilities measured at the present value of remaining lease payments discounted using the incremental borrowing rate.'}
+                                {tr('В соответствии с требованиями IFRS 16 «Аренда» компания признала на балансе право пользования активом (ROU Asset) в сумме дисконтированной стоимости будущих минимальных арендных платежей, а также соответствующее арендное обязательство. В национальном учете (НСБУ) данные договоры учитывались за балансом как операционная аренда.', 'In accordance with IFRS 16 Leases, the entity recognized right-of-use assets (ROU) and matching lease liabilities measured at the present value of remaining lease payments discounted using the incremental borrowing rate.')}
                             </p>
                             <div className="overflow-hidden border border-border/60 rounded-lg">
                                 <table className="w-full text-xs text-left">
                                     <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50">
                                         <tr>
-                                            <th className="py-2.5 px-3">{isRu ? 'Статья учета' : 'Disclosed Category'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'Баланс НСБУ' : 'NAS Baseline'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'Поправка IFRS 16' : 'IFRS 16 Adjustment'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'Баланс МСФО' : 'IFRS Carrying Amount'}</th>
+                                            <th className="py-2.5 px-3">{tr('Статья учета', 'Disclosed Category')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('Баланс НСБУ', 'NAS Baseline')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('Поправка IFRS 16', 'IFRS 16 Adjustment')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('Баланс МСФО', 'IFRS Carrying Amount')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y border-border/30">
                                         <tr>
-                                            <td className="py-2.5 px-3 text-foreground font-medium">{isRu ? 'Счет 0804: Право пользования активами (ROU)' : 'Acc 0804: Right-of-Use Assets (ROU)'}</td>
+                                            <td className="py-2.5 px-3 text-foreground font-medium">{tr('Счет 0804: Право пользования активами (ROU)', 'Acc 0804: Right-of-Use Assets (ROU)')}</td>
                                             <td className="py-2.5 px-3 text-right font-mono text-muted-foreground">$0.00</td>
                                             <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">+{formatMoney(rouAmount)}</td>
                                             <td className="py-2.5 px-3 text-right font-mono font-bold text-foreground">{formatMoney(rouAmount)}</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2.5 px-3 text-foreground font-medium">{isRu ? 'Счет 7910: Обязательства по финансовой аренде' : 'Acc 7910: Lease Liabilities (Present Value)'}</td>
+                                            <td className="py-2.5 px-3 text-foreground font-medium">{tr('Счет 7910: Обязательства по финансовой аренде', 'Acc 7910: Lease Liabilities (Present Value)')}</td>
                                             <td className="py-2.5 px-3 text-right font-mono text-muted-foreground">$0.00</td>
                                             <td className="py-2.5 px-3 text-right font-mono font-semibold text-amber-600 dark:text-amber-400">+{formatMoney(rouAmount)}</td>
                                             <td className="py-2.5 px-3 text-right font-mono font-bold text-foreground">{formatMoney(rouAmount)}</td>
@@ -1508,48 +1469,46 @@ export default function TransformationResults() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 border-b border-border/40 pb-2">
                                 <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
-                                    {isRu ? 'Примечание 3' : 'Note 3'}
+                                    {tr('Примечание 3', 'Note 3')}
                                 </span>
                                 <h3 className="font-bold text-base text-foreground">
-                                    {isRu ? 'Торговая дебиторская задолженность и резерв ECL (IFRS 9 / IFRS 7)' : 'Trade Receivables & Expected Credit Loss Reserve (IFRS 9 / IFRS 7)'}
+                                    {tr('Торговая дебиторская задолженность и резерв ECL (IFRS 9 / IFRS 7)', 'Trade Receivables & Expected Credit Loss Reserve (IFRS 9 / IFRS 7)')}
                                 </h3>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                {isRu 
-                                    ? 'В соответствии с IFRS 9 «Финансовые инструменты» компания применяет упрощенный матричный подход (Simplified Provision Matrix) для оценки ожидаемых кредитных убытков (ECL) по торговой дебиторской задолженности. Резерв начисляется на весь срок действия задолженности исходя из статистики дефолтов.' 
-                                    : 'Under IFRS 9 Financial Instruments, the entity applies the simplified provision matrix approach for estimating life-time expected credit losses (ECL) on trade receivables.'}
+                                {tr('В соответствии с IFRS 9 «Финансовые инструменты» компания применяет упрощенный матричный подход (Simplified Provision Matrix) для оценки ожидаемых кредитных убытков (ECL) по торговой дебиторской задолженности. Резерв начисляется на весь срок действия задолженности исходя из статистики дефолтов.', 'Under IFRS 9 Financial Instruments, the entity applies the simplified provision matrix approach for estimating life-time expected credit losses (ECL) on trade receivables.')}
                             </p>
                             <div className="overflow-hidden border border-border/60 rounded-lg">
                                 <table className="w-full text-xs text-left">
                                     <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50">
                                         <tr>
-                                            <th className="py-2.5 px-3">{isRu ? 'Интервал просрочки (Aging bucket)' : 'Aging Bucket'}</th>
-                                            <th className="py-2.5 px-3 text-center">{isRu ? 'Ставка резервирования ECL' : 'ECL Loss Rate'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'Резерв обесценения' : 'ECL Allowance'}</th>
-                                            <th className="py-2.5 px-3 text-center">{isRu ? 'Стадия МСФО' : 'IFRS Staging'}</th>
+                                            <th className="py-2.5 px-3">{tr('Интервал просрочки (Aging bucket)', 'Aging Bucket')}</th>
+                                            <th className="py-2.5 px-3 text-center">{tr('Ставка резервирования ECL', 'ECL Loss Rate')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('Резерв обесценения', 'ECL Allowance')}</th>
+                                            <th className="py-2.5 px-3 text-center">{tr('Стадия МСФО', 'IFRS Staging')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y border-border/30">
                                         <tr>
-                                            <td className="py-2 px-3 text-foreground">{isRu ? 'Текущая задолженность (0-30 дней)' : 'Current (0-30 days)'}</td>
+                                            <td className="py-2 px-3 text-foreground">{tr('Текущая задолженность (0-30 дней)', 'Current (0-30 days)')}</td>
                                             <td className="py-2 px-3 text-center font-mono">0.5%</td>
                                             <td className="py-2 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount * 0.4)}</td>
                                             <td className="py-2 px-3 text-center"><span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">Stage 1</span></td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-foreground">{isRu ? 'Просрочка 31-90 дней' : 'Past due 31-90 days'}</td>
+                                            <td className="py-2 px-3 text-foreground">{tr('Просрочка 31-90 дней', 'Past due 31-90 days')}</td>
                                             <td className="py-2 px-3 text-center font-mono">3.0%</td>
                                             <td className="py-2 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount * 0.4)}</td>
                                             <td className="py-2 px-3 text-center"><span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">Stage 2</span></td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-foreground">{isRu ? 'Просрочка свыше 90 дней' : 'Past due >90 days'}</td>
+                                            <td className="py-2 px-3 text-foreground">{tr('Просрочка свыше 90 дней', 'Past due >90 days')}</td>
                                             <td className="py-2 px-3 text-center font-mono">25.0%</td>
                                             <td className="py-2 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount * 0.2)}</td>
                                             <td className="py-2 px-3 text-center"><span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold">Stage 3</span></td>
                                         </tr>
                                         <tr className="bg-muted/30 font-bold">
-                                            <td className="py-2.5 px-3 text-foreground">{isRu ? 'Итого резерв под ожидаемые кредитные убытки' : 'Total Expected Credit Loss Allowance'}</td>
+                                            <td className="py-2.5 px-3 text-foreground">{tr('Итого резерв под ожидаемые кредитные убытки', 'Total Expected Credit Loss Allowance')}</td>
                                             <td className="py-2.5 px-3 text-center font-mono">-</td>
                                             <td className="py-2.5 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount)}</td>
                                             <td className="py-2.5 px-3 text-center font-mono text-emerald-600 dark:text-emerald-400">100% Зарезервировано</td>
@@ -1563,36 +1522,34 @@ export default function TransformationResults() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-2 border-b border-border/40 pb-2">
                                 <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border/50">
-                                    {isRu ? 'Примечание 4' : 'Note 4'}
+                                    {tr('Примечание 4', 'Note 4')}
                                 </span>
                                 <h3 className="font-bold text-base text-foreground">
-                                    {isRu ? 'Капитал и нераспределенная прибыль (IAS 1)' : 'Equity & Retained Earnings Movement (IAS 1)'}
+                                    {tr('Капитал и нераспределенная прибыль (IAS 1)', 'Equity & Retained Earnings Movement (IAS 1)')}
                                 </h3>
                             </div>
                             <p className="text-xs text-muted-foreground leading-relaxed">
-                                {isRu 
-                                    ? 'Влияние переходных корректировок на нераспределенную прибыль отражает признание расхода по формированию резерва ECL по дебиторской задолженности. Уставный и добавочный капитал конвертированы по историческим обменным курсам в соответствии с IAS 21.' 
-                                    : 'Retained earnings movement reflects IFRS 9 ECL provisioning expense recorded at transition. Share capital is maintained at historical translated rates per IAS 21.'}
+                                {tr('Влияние переходных корректировок на нераспределенную прибыль отражает признание расхода по формированию резерва ECL по дебиторской задолженности. Уставный и добавочный капитал конвертированы по историческим обменным курсам в соответствии с IAS 21.', 'Retained earnings movement reflects IFRS 9 ECL provisioning expense recorded at transition. Share capital is maintained at historical translated rates per IAS 21.')}
                             </p>
                             <div className="overflow-hidden border border-border/60 rounded-lg">
                                 <table className="w-full text-xs text-left">
                                     <thead className="bg-muted/50 text-muted-foreground font-semibold border-b border-border/50">
                                         <tr>
-                                            <th className="py-2.5 px-3">{isRu ? 'Компонент собственного капитала' : 'Equity Component'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'По НСБУ' : 'Statutory'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'Корректировки' : 'Adjustments'}</th>
-                                            <th className="py-2.5 px-3 text-right">{isRu ? 'По МСФО' : 'IFRS Balance'}</th>
+                                            <th className="py-2.5 px-3">{tr('Компонент собственного капитала', 'Equity Component')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('По НСБУ', 'Statutory')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('Корректировки', 'Adjustments')}</th>
+                                            <th className="py-2.5 px-3 text-right">{tr('По МСФО', 'IFRS Balance')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y border-border/30">
                                         <tr>
-                                            <td className="py-2 px-3 text-foreground font-medium">{isRu ? 'Уставный капитал' : 'Share Capital'}</td>
+                                            <td className="py-2 px-3 text-foreground font-medium">{tr('Уставный капитал', 'Share Capital')}</td>
                                             <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(statutoryShareCapital)}</td>
                                             <td className="py-2 px-3 text-right font-mono text-muted-foreground">$0.00</td>
                                             <td className="py-2 px-3 text-right font-mono font-medium text-foreground">{formatMoney(statutoryShareCapital)}</td>
                                         </tr>
                                         <tr>
-                                            <td className="py-2 px-3 text-foreground font-medium">{isRu ? 'Нераспределенная прибыль' : 'Retained Earnings'}</td>
+                                            <td className="py-2 px-3 text-foreground font-medium">{tr('Нераспределенная прибыль', 'Retained Earnings')}</td>
                                             <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(statutoryRetainedEarnings)}</td>
                                             <td className="py-2 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount)}</td>
                                             <td className="py-2 px-3 text-right font-mono font-bold text-foreground">
@@ -1600,7 +1557,7 @@ export default function TransformationResults() {
                                             </td>
                                         </tr>
                                         <tr className="bg-muted/30 font-bold">
-                                            <td className="py-2.5 px-3 text-foreground">{isRu ? 'Итого собственный капитал' : 'Total Equity'}</td>
+                                            <td className="py-2.5 px-3 text-foreground">{tr('Итого собственный капитал', 'Total Equity')}</td>
                                             <td className="py-2.5 px-3 text-right font-mono">{formatMoney(statutoryEquity)}</td>
                                             <td className="py-2.5 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount)}</td>
                                             <td className="py-2.5 px-3 text-right font-mono font-black text-foreground">{formatMoney(totalEquity)}</td>
@@ -1626,12 +1583,12 @@ export default function TransformationResults() {
                         <CardHeader className="border-b border-border/40 pb-4">
                             <CardTitle className="text-emerald-600 dark:text-emerald-400 text-lg font-bold flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5" />
-                                {isRu ? 'Активы (НСБУ)' : 'Assets (NAS / НСБУ)'}
+                                {tr('Активы (НСБУ)', 'Assets (NAS / НСБУ)')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6 space-y-6">
                             <div>
-                                <h4 className="font-bold text-foreground mb-3 text-sm">{isRu ? 'Оборотные активы' : 'Current Assets'}</h4>
+                                <h4 className="font-bold text-foreground mb-3 text-sm">{tr('Оборотные активы', 'Current Assets')}</h4>
                                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                     {mcfoData.assets?.current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
@@ -1642,7 +1599,7 @@ export default function TransformationResults() {
                                 </div>
                             </div>
                             <div>
-                                <h4 className="font-bold text-foreground mb-3 text-sm">{isRu ? 'Внеоборотные активы' : 'Non-Current Assets'}</h4>
+                                <h4 className="font-bold text-foreground mb-3 text-sm">{tr('Внеоборотные активы', 'Non-Current Assets')}</h4>
                                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                     {mcfoData.assets?.non_current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
@@ -1653,7 +1610,7 @@ export default function TransformationResults() {
                                 </div>
                             </div>
                             <div className="mt-4 p-4 rounded-xl flex items-center justify-between border bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold">
-                                <span className="text-sm uppercase tracking-wide">{isRu ? 'Итого активы (НСБУ)' : 'Total Assets (NAS)'}</span>
+                                <span className="text-sm uppercase tracking-wide">{tr('Итого активы (НСБУ)', 'Total Assets (NAS)')}</span>
                                 <span className="font-mono text-lg">{formatMoney(mcfoData.assets?.total || 0)}</span>
                             </div>
                         </CardContent>
@@ -1666,7 +1623,7 @@ export default function TransformationResults() {
                             <CardHeader className="border-b border-border/40 pb-4">
                                 <CardTitle className="text-indigo-600 dark:text-indigo-400 text-lg font-bold flex items-center gap-2">
                                     <Scale className="w-5 h-5" />
-                                    {isRu ? 'Собственный капитал (НСБУ)' : 'Equity (NAS / НСБУ)'}
+                                    {tr('Собственный капитал (НСБУ)', 'Equity (NAS / НСБУ)')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6 space-y-4">
@@ -1679,7 +1636,7 @@ export default function TransformationResults() {
                                     ))}
                                 </div>
                                 <div className="mt-4 p-4 rounded-xl flex items-center justify-between border bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 font-bold">
-                                    <span className="text-sm uppercase tracking-wide">{isRu ? 'Итого капитал (НСБУ)' : 'Total Equity (NAS)'}</span>
+                                    <span className="text-sm uppercase tracking-wide">{tr('Итого капитал (НСБУ)', 'Total Equity (NAS)')}</span>
                                     <span className="font-mono text-lg">{formatMoney(mcfoData.equity?.total || 0)}</span>
                                 </div>
                             </CardContent>
@@ -1690,12 +1647,12 @@ export default function TransformationResults() {
                             <CardHeader className="border-b border-border/40 pb-4">
                                 <CardTitle className="text-amber-600 dark:text-amber-400 text-lg font-bold flex items-center gap-2">
                                     <Building2 className="w-5 h-5" />
-                                    {isRu ? 'Обязательства (НСБУ)' : 'Liabilities (NAS / НСБУ)'}
+                                    {tr('Обязательства (НСБУ)', 'Liabilities (NAS / НСБУ)')}
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="pt-6 space-y-6">
                                 <div>
-                                    <h4 className="font-bold text-foreground mb-3 text-sm">{isRu ? 'Краткосрочные обязательства' : 'Current Liabilities'}</h4>
+                                    <h4 className="font-bold text-foreground mb-3 text-sm">{tr('Краткосрочные обязательства', 'Current Liabilities')}</h4>
                                     <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                         {mcfoData.liabilities?.current?.map((item: any, idx: number) => (
                                             <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
@@ -1706,7 +1663,7 @@ export default function TransformationResults() {
                                     </div>
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-foreground mb-3 text-sm">{isRu ? 'Долгосрочные обязательства' : 'Non-Current Liabilities'}</h4>
+                                    <h4 className="font-bold text-foreground mb-3 text-sm">{tr('Долгосрочные обязательства', 'Non-Current Liabilities')}</h4>
                                     <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                         {mcfoData.liabilities?.non_current?.map((item: any, idx: number) => (
                                             <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
@@ -1717,7 +1674,7 @@ export default function TransformationResults() {
                                     </div>
                                 </div>
                                 <div className="mt-4 p-4 rounded-xl flex items-center justify-between border bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold">
-                                    <span className="text-sm uppercase tracking-wide">{isRu ? 'Итого обязательства (НСБУ)' : 'Total Liabilities (NAS)'}</span>
+                                    <span className="text-sm uppercase tracking-wide">{tr('Итого обязательства (НСБУ)', 'Total Liabilities (NAS)')}</span>
                                     <span className="font-mono text-lg">{formatMoney(mcfoData.liabilities?.total || 0)}</span>
                                 </div>
                             </CardContent>
@@ -1732,7 +1689,7 @@ export default function TransformationResults() {
         return (
             <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-3">
                 <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">{isRu ? 'Загрузка финансовых результатов...' : 'Loading financial results...'}</p>
+                <p className="text-sm text-muted-foreground">{tr('Загрузка финансовых результатов...', 'Loading financial results...')}</p>
             </div>
         );
     }
@@ -1749,11 +1706,11 @@ export default function TransformationResults() {
                         className="text-muted-foreground hover:text-foreground -ml-2 mb-1 h-8 group transition-colors cursor-pointer"
                     >
                         <ArrowLeft className="mr-1.5 h-4 w-4 transition-transform duration-200 group-hover:-translate-x-1" />
-                        {isRu ? 'Назад к панели трансформаций' : 'Back to Dashboard'}
+                        {tr('Назад к панели трансформаций', 'Back to Dashboard')}
                     </Button>
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
-                            {isRu ? 'Результаты трансформации' : 'Transformation Results'}
+                            {tr('Результаты трансформации', 'Transformation Results')}
                         </h1>
                         <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                             IFRS / МСФО
@@ -1762,7 +1719,7 @@ export default function TransformationResults() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
                         <span className="inline-flex items-center gap-1">
                             <Building2 className="w-3.5 h-3.5" />
-                            {balanceSheet?.company_name || (isRu ? 'Организация' : 'Entity')}
+                            {balanceSheet?.company_name || (tr('Организация', 'Entity'))}
                         </span>
                         <span>•</span>
                         <span className="inline-flex items-center gap-1">
@@ -1778,7 +1735,7 @@ export default function TransformationResults() {
                     <div className="flex items-center bg-muted/80 p-0.5 rounded-lg border border-border/60 text-xs font-medium shadow-2xs">
                         <div className="px-2 py-1 text-muted-foreground flex items-center gap-1">
                             <Coins className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">{isRu ? 'Валюта' : 'Curr'}</span>
+                            <span className="hidden sm:inline">{tr('Валюта', 'Curr')}</span>
                         </div>
                         {(['USD', 'UZS', 'EUR'] as const).map(c => (
                             <button
@@ -1791,7 +1748,7 @@ export default function TransformationResults() {
                                         : 'text-muted-foreground hover:text-foreground'
                                 }`}
                             >
-                                {c === 'UZS' ? (isRu ? 'UZS сум' : 'UZS') : c === 'USD' ? 'USD ($)' : 'EUR (€)'}
+                                {c === 'UZS' ? (tr('UZS сум', 'UZS')) : c === 'USD' ? 'USD ($)' : 'EUR (€)'}
                             </button>
                         ))}
                     </div>
@@ -1802,7 +1759,7 @@ export default function TransformationResults() {
                         className="border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:border-indigo-500/70 active:scale-95 flex items-center gap-1.5 h-9 font-medium transition-all duration-200 group cursor-pointer shadow-xs"
                     >
                         <SlidersHorizontal className="h-4 w-4 text-indigo-500 dark:text-indigo-400 transition-transform duration-200 group-hover:rotate-12" />
-                        {isRu ? 'Корректировки' : 'Adjustments'}
+                        {tr('Корректировки', 'Adjustments')}
                     </Button>
 
                     <Button 
@@ -1812,10 +1769,10 @@ export default function TransformationResults() {
                     >
                         <RefreshCw className={`h-4 w-4 transition-transform duration-300 ${transforming ? 'animate-spin' : 'group-hover:rotate-180'}`} />
                         {transforming 
-                            ? (isRu ? 'Трансформация...' : 'Transforming...') 
+                            ? (tr('Трансформация...', 'Transforming...')) 
                             : (mcfoData || ifrsData) 
-                                ? (isRu ? 'Пересчитать' : 'Re-Transform') 
-                                : (isRu ? 'Трансформировать' : 'Transform Now')}
+                                ? (tr('Пересчитать', 'Re-Transform')) 
+                                : (tr('Трансформировать', 'Transform Now'))}
                     </Button>
 
                     {(mcfoData || ifrsData) && (
@@ -1830,7 +1787,7 @@ export default function TransformationResults() {
                                 ) : (
                                     <Sparkles className="w-4 h-4 text-purple-200 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12" />
                                 )}
-                                {aiAuditing ? (isRu ? 'Аудит...' : 'Auditing...') : (isRu ? 'AI Меморандум' : 'AI Audit Memo')}
+                                {aiAuditing ? (tr('Аудит...', 'Auditing...')) : (tr('AI Меморандум', 'AI Audit Memo'))}
                             </Button>
 
                             <Button
@@ -1840,7 +1797,7 @@ export default function TransformationResults() {
                                 className="border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/70 active:scale-95 flex items-center gap-1.5 h-9 font-medium transition-all duration-200 group cursor-pointer shadow-xs"
                             >
                                 <FileSpreadsheet className={`w-4 h-4 text-emerald-500 dark:text-emerald-400 transition-transform duration-200 ${exportingExcel ? 'animate-bounce' : 'group-hover:scale-110'}`} />
-                                {exportingExcel ? (isRu ? 'Экспорт...' : 'Exporting...') : 'Excel (.xlsx)'}
+                                {exportingExcel ? (tr('Экспорт...', 'Exporting...')) : 'Excel (.xlsx)'}
                             </Button>
 
                             <Button
@@ -1849,7 +1806,7 @@ export default function TransformationResults() {
                                 className="border border-sky-500/40 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-300 hover:border-sky-500/70 active:scale-95 flex items-center gap-1.5 h-9 font-medium transition-all duration-200 group cursor-pointer shadow-xs hover:shadow-sky-500/20"
                             >
                                 <Printer className="w-4 h-4 text-sky-500 dark:text-sky-400 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110" />
-                                <span>{isRu ? 'Аудиторский PDF' : 'PDF Report'}</span>
+                                <span>{tr('Аудиторский PDF', 'PDF Report')}</span>
                             </Button>
 
                             <Button
@@ -1859,7 +1816,7 @@ export default function TransformationResults() {
                                 className="border border-indigo-500/40 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:border-indigo-500/70 active:scale-95 flex items-center gap-1.5 h-9 font-medium transition-all duration-200 group cursor-pointer shadow-xs"
                             >
                                 <Layers className={`w-4 h-4 text-indigo-500 dark:text-indigo-400 transition-transform duration-200 ${downloadingPackage ? 'animate-spin' : 'group-hover:scale-110'}`} />
-                                <span>{downloadingPackage ? (isRu ? 'Генерация...' : 'Generating...') : (isRu ? 'Пакет МСФО (4 стр)' : 'Full Package PDF')}</span>
+                                <span>{downloadingPackage ? (tr('Генерация...', 'Generating...')) : (tr('Пакет МСФО (4 стр)', 'Full Package PDF'))}</span>
                             </Button>
                         </>
                     )}
@@ -1885,7 +1842,7 @@ export default function TransformationResults() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Активы по МСФО' : 'IFRS Total Assets'}
+                                    {tr('Активы по МСФО', 'IFRS Total Assets')}
                                 </span>
                                 <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                                     <TrendingUp className="w-4 h-4" />
@@ -1895,7 +1852,7 @@ export default function TransformationResults() {
                                 {formatMoney(totalAssets)}
                             </div>
                             <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                                {isRu ? 'Внеоборотные: ' : 'Non-Current: '}{formatMoney(nonCurrentAssets)} • {isRu ? 'Оборотные: ' : 'Current: '}{formatMoney(currentAssets)}
+                                {tr('Внеоборотные: ', 'Non-Current: ')}{formatMoney(nonCurrentAssets)} • {tr('Оборотные: ', 'Current: ')}{formatMoney(currentAssets)}
                             </p>
                         </CardContent>
                     </Card>
@@ -1904,7 +1861,7 @@ export default function TransformationResults() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Собственный капитал' : 'IFRS Total Equity'}
+                                    {tr('Собственный капитал', 'IFRS Total Equity')}
                                 </span>
                                 <div className="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
                                     <Scale className="w-4 h-4" />
@@ -1914,7 +1871,7 @@ export default function TransformationResults() {
                                 {formatMoney(totalEquity)}
                             </div>
                             <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                                {totalAssets > 0 ? `${((totalEquity / totalAssets) * 100).toFixed(1)}%` : '0%'} {isRu ? 'от валюты баланса' : 'of balance sheet'}
+                                {totalAssets > 0 ? `${((totalEquity / totalAssets) * 100).toFixed(1)}%` : '0%'} {tr('от валюты баланса', 'of balance sheet')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1923,7 +1880,7 @@ export default function TransformationResults() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Обязательства' : 'IFRS Total Liabilities'}
+                                    {tr('Обязательства', 'IFRS Total Liabilities')}
                                 </span>
                                 <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
                                     <Building2 className="w-4 h-4" />
@@ -1933,7 +1890,7 @@ export default function TransformationResults() {
                                 {formatMoney(totalLiabilities)}
                             </div>
                             <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                                {isRu ? 'Краткосрочные + Долгосрочные' : 'Short + Long Term'}
+                                {tr('Краткосрочные + Долгосрочные', 'Short + Long Term')}
                             </p>
                         </CardContent>
                     </Card>
@@ -1942,7 +1899,7 @@ export default function TransformationResults() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                    {isRu ? 'Контроль баланса' : 'Equilibrium Guard'}
+                                    {tr('Контроль баланса', 'Equilibrium Guard')}
                                 </span>
                                 <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${
                                     isBalanced 
@@ -1953,12 +1910,12 @@ export default function TransformationResults() {
                                 </div>
                             </div>
                             <div className="text-2xl font-black tracking-tight text-foreground mt-2">
-                                {isBalanced ? (isRu ? 'Сбалансирован' : 'Balanced') : `Δ ${formatMoney(diff)}`}
+                                {isBalanced ? (tr('Сбалансирован', 'Balanced')) : `Δ ${formatMoney(diff)}`}
                             </div>
                             <p className={`text-[11px] mt-1 font-mono font-medium truncate ${
                                 isBalanced ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                             }`}>
-                                {isBalanced ? (isRu ? 'Активы = Обязательства + Капитал' : 'A = L + E Verified') : (isRu ? 'Требуется проверка' : 'Variance detected')}
+                                {isBalanced ? (tr('Активы = Обязательства + Капитал', 'A = L + E Verified')) : (tr('Требуется проверка', 'Variance detected'))}
                             </p>
                         </CardContent>
                     </Card>
@@ -1979,7 +1936,7 @@ export default function TransformationResults() {
                             onClick={() => setActiveTab('ifrs')}
                         >
                             <Scale className="w-4 h-4 mr-1.5 text-indigo-500" />
-                            {isRu ? 'Формат МСФО (IFRS)' : 'IFRS / МСФО Format'}
+                            {tr('Формат МСФО (IFRS)', 'IFRS / МСФО Format')}
                         </button>
                         <button
                             type="button"
@@ -1991,7 +1948,7 @@ export default function TransformationResults() {
                             onClick={() => setActiveTab('bridge')}
                         >
                             <GitCompare className="w-4 h-4 mr-1.5 text-blue-500" />
-                            {isRu ? 'Сверка и Трансформационный мост' : 'Reconciliation Bridge'}
+                            {tr('Сверка и Трансформационный мост', 'Reconciliation Bridge')}
                         </button>
                         <button
                             type="button"
@@ -2003,7 +1960,7 @@ export default function TransformationResults() {
                             onClick={() => setActiveTab('ratios')}
                         >
                             <BarChart3 className="w-4 h-4 mr-1.5 text-emerald-500" />
-                            {isRu ? 'Коэффициенты и анализ' : 'Financial Ratios & Health'}
+                            {tr('Коэффициенты и анализ', 'Financial Ratios & Health')}
                         </button>
                         <button
                             type="button"
@@ -2015,7 +1972,7 @@ export default function TransformationResults() {
                             onClick={() => setActiveTab('notes')}
                         >
                             <BookOpen className="w-4 h-4 mr-1.5 text-purple-500" />
-                            {isRu ? 'Примечания МСФО' : 'IFRS Notes & Disclosures'}
+                            {tr('Примечания МСФО', 'IFRS Notes & Disclosures')}
                         </button>
                         <button
                             type="button"
@@ -2027,7 +1984,7 @@ export default function TransformationResults() {
                             onClick={() => setActiveTab('mcfo')}
                         >
                             <FileText className="w-4 h-4 mr-1.5 text-muted-foreground" />
-                            {isRu ? 'Формат НСБУ' : 'NAS / НСБУ Format'}
+                            {tr('Формат НСБУ', 'NAS / НСБУ Format')}
                         </button>
                     </div>
 
@@ -2051,17 +2008,15 @@ export default function TransformationResults() {
                         </div>
                         <div>
                             <h3 className="text-lg font-bold text-foreground">
-                                {isRu ? 'Баланс готов к трансформации' : 'Ready to Transform'}
+                                {tr('Баланс готов к трансформации', 'Ready to Transform')}
                             </h3>
                             <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                                {isRu 
-                                    ? 'Нажмите кнопку ниже, чтобы запустить автоматическую реклассификацию статей НСБУ в стандарты МСФО (IAS 1, IFRS 16, IAS 36, IFRS 9).' 
-                                    : 'Click the button below to convert this balance sheet from NAS to IFRS format.'}
+                                {tr('Нажмите кнопку ниже, чтобы запустить автоматическую реклассификацию статей НСБУ в стандарты МСФО (IAS 1, IFRS 16, IAS 36, IFRS 9).', 'Click the button below to convert this balance sheet from NAS to IFRS format.')}
                             </p>
                         </div>
                         <Button onClick={handleTransform} disabled={transforming} className="bg-blue-600 hover:bg-blue-700 text-white">
                             <RefreshCw className={`mr-2 h-4 w-4 ${transforming ? 'animate-spin' : ''}`} />
-                            {transforming ? (isRu ? 'Трансформация...' : 'Transforming...') : (isRu ? 'Трансформировать сейчас' : 'Transform Now')}
+                            {transforming ? (tr('Трансформация...', 'Transforming...')) : (tr('Трансформировать сейчас', 'Transform Now'))}
                         </Button>
                     </CardContent>
                 </Card>
@@ -2078,15 +2033,13 @@ export default function TransformationResults() {
                             </div>
                             <div>
                                 <h3 className="text-lg md:text-xl font-bold flex items-center gap-2 text-foreground flex-wrap">
-                                    {isRu ? 'Аудиторский отчет трансформации НСБУ в МСФО' : 'Executive Statutory-to-IFRS Audit Report'}
+                                    {tr('Аудиторский отчет трансформации НСБУ в МСФО', 'Executive Statutory-to-IFRS Audit Report')}
                                     <span className="text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                                        {isRu ? '100% Сверено' : '100% Reconciled'}
+                                        {tr('100% Сверено', '100% Reconciled')}
                                     </span>
                                 </h3>
                                 <p className="text-xs text-muted-foreground mt-0.5">
-                                    {isRu 
-                                        ? 'Официальный протокол конвергенции и сверки балансовых статей с контролем Zero-Delta.' 
-                                        : 'Official statutory-to-IFRS convergence protocol with zero-delta mathematical assurance.'}
+                                    {tr('Официальный протокол конвергенции и сверки балансовых статей с контролем Zero-Delta.', 'Official statutory-to-IFRS convergence protocol with zero-delta mathematical assurance.')}
                                 </p>
                             </div>
                         </div>
@@ -2097,7 +2050,7 @@ export default function TransformationResults() {
                                 className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white flex items-center gap-1.5 text-xs font-semibold shadow-xs transition-all h-8 cursor-pointer"
                             >
                                 <Download className="w-3.5 h-3.5" />
-                                {isRu ? 'Скачать PDF' : 'Download PDF'}
+                                {tr('Скачать PDF', 'Download PDF')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -2106,7 +2059,7 @@ export default function TransformationResults() {
                                 className="border-border/80 text-foreground hover:bg-muted active:scale-95 flex items-center gap-1.5 text-xs h-8 cursor-pointer"
                             >
                                 <Printer className="w-3.5 h-3.5" />
-                                {isRu ? 'Печать' : 'Print'}
+                                {tr('Печать', 'Print')}
                             </Button>
                             <Button
                                 variant="ghost"
@@ -2134,7 +2087,7 @@ export default function TransformationResults() {
                                         <span className="hidden sm:inline text-muted-foreground">ISA 700 / 701</span>
                                     </div>
                                     <h2 className="text-xl md:text-2xl font-black text-foreground mt-1 tracking-tight">
-                                        {isRu ? 'ОТЧЕТ О КОНВЕРГЕНЦИИ СТАНДАРТОВ НСБУ В МСФО' : 'STATUTORY TO IFRS CONVERGENCE REPORT'}
+                                        {tr('ОТЧЕТ О КОНВЕРГЕНЦИИ СТАНДАРТОВ НСБУ В МСФО', 'STATUTORY TO IFRS CONVERGENCE REPORT')}
                                     </h2>
                                     <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                                         <span className="font-semibold text-foreground">{balanceSheet?.company_name || 'ООО «ТехноПром Инвест»'}</span>
@@ -2145,13 +2098,13 @@ export default function TransformationResults() {
                                 <div className="text-left sm:text-right shrink-0">
                                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-bold shadow-2xs">
                                         <CheckCircle2 className="w-3.5 h-3.5" />
-                                        {isRu ? '100% СБАЛАНСИРОВАНО (Δ 0.00)' : '100% BALANCED & VERIFIED (Δ 0.00)'}
+                                        {tr('100% СБАЛАНСИРОВАНО (Δ 0.00)', '100% BALANCED & VERIFIED (Δ 0.00)')}
                                     </div>
                                     <div className="text-xs text-muted-foreground mt-2">
-                                        {isRu ? 'Дата формирования:' : 'Generated Date:'} {new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        {tr('Дата формирования:', 'Generated Date:')} {new Date().toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                     </div>
                                     <div className="text-xs text-muted-foreground">
-                                        {isRu ? 'Отчетный период:' : 'Reporting Period:'} {balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { month: 'long', year: 'numeric' }) : 'Октябрь 2026'}
+                                        {tr('Отчетный период:', 'Reporting Period:')} {balanceSheet?.period ? new Date(balanceSheet.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { month: 'long', year: 'numeric' }) : 'Октябрь 2026'}
                                     </div>
                                 </div>
                             </div>
@@ -2160,7 +2113,7 @@ export default function TransformationResults() {
                             <div className="print-avoid-break">
                                 <div className="flex items-center justify-between mb-2.5">
                                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                        {isRu ? '1. Матрица конвергенции балансовых статей (Сверка НСБУ — МСФО)' : '1. Executive Convergence Matrix (Balance Sheet Reconciliation)'}
+                                        {tr('1. Матрица конвергенции балансовых статей (Сверка НСБУ — МСФО)', '1. Executive Convergence Matrix (Balance Sheet Reconciliation)')}
                                     </h4>
                                     <span className="text-[11px] font-mono text-muted-foreground">
                                         Zero-Delta Double-Entry Guard
@@ -2170,18 +2123,18 @@ export default function TransformationResults() {
                                     <table className="min-w-full text-xs text-left">
                                         <thead className="bg-muted/60 text-muted-foreground font-semibold border-b border-border/60">
                                             <tr>
-                                                <th className="py-2.5 px-3.5">{isRu ? 'Категория финансового отчета' : 'Statement Category'}</th>
-                                                <th className="py-2.5 px-3 text-right">{isRu ? 'Баланс по НСБУ' : 'Statutory Ledger (NAS)'}</th>
-                                                <th className="py-2.5 px-3 text-right">{isRu ? 'Корректировки МСФО' : 'IFRS Adjustments'}</th>
-                                                <th className="py-2.5 px-3 text-right">{isRu ? 'Отчет по МСФО' : 'IFRS Statement'}</th>
-                                                <th className="py-2.5 px-3 text-center">{isRu ? 'Статус сверки' : 'Convergence'}</th>
+                                                <th className="py-2.5 px-3.5">{tr('Категория финансового отчета', 'Statement Category')}</th>
+                                                <th className="py-2.5 px-3 text-right">{tr('Баланс по НСБУ', 'Statutory Ledger (NAS)')}</th>
+                                                <th className="py-2.5 px-3 text-right">{tr('Корректировки МСФО', 'IFRS Adjustments')}</th>
+                                                <th className="py-2.5 px-3 text-right">{tr('Отчет по МСФО', 'IFRS Statement')}</th>
+                                                <th className="py-2.5 px-3 text-center">{tr('Статус сверки', 'Convergence')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/30">
                                             <tr className="hover:bg-muted/30 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-medium text-foreground flex items-center gap-2">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                    {isRu ? 'Итого активы' : 'Total Assets'}
+                                                    {tr('Итого активы', 'Total Assets')}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-right font-mono text-muted-foreground">{formatMoney(mcfoData?.assets?.total || 0)}</td>
                                                 <td className="py-2.5 px-3 text-right font-mono font-semibold text-emerald-600 dark:text-emerald-400">
@@ -2192,14 +2145,14 @@ export default function TransformationResults() {
                                                 </td>
                                                 <td className="py-2.5 px-3 text-center">
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                        {isRu ? 'Сверено' : 'Reconciled'}
+                                                        {tr('Сверено', 'Reconciled')}
                                                     </span>
                                                 </td>
                                             </tr>
                                             <tr className="hover:bg-muted/30 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-medium text-foreground flex items-center gap-2">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                                                    {isRu ? 'Итого обязательства' : 'Total Liabilities'}
+                                                    {tr('Итого обязательства', 'Total Liabilities')}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-right font-mono text-muted-foreground">{formatMoney(mcfoData?.liabilities?.total || 0)}</td>
                                                 <td className="py-2.5 px-3 text-right font-mono font-semibold text-blue-600 dark:text-blue-400">
@@ -2210,14 +2163,14 @@ export default function TransformationResults() {
                                                 </td>
                                                 <td className="py-2.5 px-3 text-center">
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                        {isRu ? 'Сверено' : 'Reconciled'}
+                                                        {tr('Сверено', 'Reconciled')}
                                                     </span>
                                                 </td>
                                             </tr>
                                             <tr className="hover:bg-muted/30 transition-colors">
                                                 <td className="py-2.5 px-3.5 font-medium text-foreground flex items-center gap-2">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                                                    {isRu ? 'Итого собственный капитал' : 'Total Equity'}
+                                                    {tr('Итого собственный капитал', 'Total Equity')}
                                                 </td>
                                                 <td className="py-2.5 px-3 text-right font-mono text-muted-foreground">{formatMoney(mcfoData?.equity?.total || 0)}</td>
                                                 <td className={`py-2.5 px-3 text-right font-mono font-semibold ${
@@ -2232,14 +2185,14 @@ export default function TransformationResults() {
                                                 </td>
                                                 <td className="py-2.5 px-3 text-center">
                                                     <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                        {isRu ? 'Сверено' : 'Reconciled'}
+                                                        {tr('Сверено', 'Reconciled')}
                                                     </span>
                                                 </td>
                                             </tr>
                                             <tr className="bg-muted/40 font-bold border-t-2 border-border/80">
                                                 <td className="py-3 px-3.5 text-foreground flex items-center gap-2">
                                                     <Scale className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                                                    {isRu ? 'Итого капитал и обязательства' : 'Total Equity & Liabilities'}
+                                                    {tr('Итого капитал и обязательства', 'Total Equity & Liabilities')}
                                                 </td>
                                                 <td className="py-3 px-3 text-right font-mono text-muted-foreground">{formatMoney((mcfoData?.liabilities?.total || 0) + (mcfoData?.equity?.total || 0))}</td>
                                                 <td className="py-3 px-3 text-right font-mono text-muted-foreground">-</td>
@@ -2259,43 +2212,43 @@ export default function TransformationResults() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 print-avoid-break">
                                 <div className="p-3 rounded-xl border border-border/80 bg-muted/20">
                                     <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        {isRu ? 'Текущая ликвидность (CR)' : 'Current Ratio (CA / CL)'}
+                                        {tr('Текущая ликвидность (CR)', 'Current Ratio (CA / CL)')}
                                     </div>
                                     <div className="text-lg font-black text-foreground mt-0.5 flex items-baseline gap-2">
                                         {ifrsCurrentRatio.toFixed(2)}x
                                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">
-                                            {isRu ? 'Оптимально' : 'Optimal'}
+                                            {tr('Оптимально', 'Optimal')}
                                         </span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                                        {isRu ? 'По НСБУ:' : 'NAS:'} {nasCurrentRatio.toFixed(2)}x
+                                        {tr('По НСБУ:', 'NAS:')} {nasCurrentRatio.toFixed(2)}x
                                     </div>
                                 </div>
 
                                 <div className="p-3 rounded-xl border border-border/80 bg-muted/20">
                                     <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        {isRu ? 'Леверидж (D / E)' : 'Debt-to-Equity (Liab / Equity)'}
+                                        {tr('Леверидж (D / E)', 'Debt-to-Equity (Liab / Equity)')}
                                     </div>
                                     <div className="text-lg font-black text-foreground mt-0.5 flex items-baseline gap-2">
                                         {ifrsDebtToEquity.toFixed(2)}x
                                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">
-                                            {isRu ? 'Низкий риск' : 'Low Risk'}
+                                            {tr('Низкий риск', 'Low Risk')}
                                         </span>
                                     </div>
                                     <div className="text-[10px] text-muted-foreground mt-0.5">
-                                        {isRu ? 'По НСБУ:' : 'NAS:'} {nasDebtToEquity.toFixed(2)}x
+                                        {tr('По НСБУ:', 'NAS:')} {nasDebtToEquity.toFixed(2)}x
                                     </div>
                                 </div>
 
                                 <div className="p-3 rounded-xl border border-border/80 bg-muted/20">
                                     <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                                        {isRu ? 'Чистый оборотный капитал' : 'Net Working Capital (NWC)'}
+                                        {tr('Чистый оборотный капитал', 'Net Working Capital (NWC)')}
                                     </div>
                                     <div className="text-lg font-black font-mono text-foreground mt-0.5">
                                         {formatMoney(ifrsWorkingCapital)}
                                     </div>
                                     <div className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-bold">
-                                        {isRu ? 'Положительная подушка' : 'Positive Liquidity'}
+                                        {tr('Положительная подушка', 'Positive Liquidity')}
                                     </div>
                                 </div>
                             </div>
@@ -2304,7 +2257,7 @@ export default function TransformationResults() {
                             <div className="print-avoid-break">
                                 <div className="flex items-center justify-between mb-2.5">
                                     <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                        {isRu ? '2. Реестр трансформационных корректировок (Audit Schedule)' : '2. Audit Schedule of Transformation Adjustments'}
+                                        {tr('2. Реестр трансформационных корректировок (Audit Schedule)', '2. Audit Schedule of Transformation Adjustments')}
                                     </h4>
                                     <span className="text-[11px] font-mono text-muted-foreground">
                                         IAS 8 & IFRS 1 Taxonomy
@@ -2314,10 +2267,10 @@ export default function TransformationResults() {
                                     <table className="min-w-full text-xs text-left">
                                         <thead className="bg-muted/60 text-muted-foreground font-semibold border-b border-border/60">
                                             <tr>
-                                                <th className="py-2.5 px-3.5">{isRu ? 'Описание проводки' : 'Entry Description'}</th>
-                                                <th className="py-2.5 px-3">{isRu ? 'Стандарт МСФО' : 'Standard Reference'}</th>
-                                                <th className="py-2.5 px-3 text-center">{isRu ? 'Тип' : 'Type'}</th>
-                                                <th className="py-2.5 px-3 text-right">{isRu ? 'Сумма проводки' : 'Adjustment Amount'}</th>
+                                                <th className="py-2.5 px-3.5">{tr('Описание проводки', 'Entry Description')}</th>
+                                                <th className="py-2.5 px-3">{tr('Стандарт МСФО', 'Standard Reference')}</th>
+                                                <th className="py-2.5 px-3 text-center">{tr('Тип', 'Type')}</th>
+                                                <th className="py-2.5 px-3 text-right">{tr('Сумма проводки', 'Adjustment Amount')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/30">
@@ -2362,9 +2315,7 @@ export default function TransformationResults() {
                                             ) : (
                                                 <tr>
                                                     <td colSpan={4} className="py-4 px-3 text-center text-muted-foreground italic">
-                                                        {isRu 
-                                                            ? 'Применена автоматическая реклассификация счетов. Ручные корректировки отсутствуют.' 
-                                                            : 'Standard automated reclassification applied. No manual overrides recorded.'}
+                                                        {tr('Применена автоматическая реклассификация счетов. Ручные корректировки отсутствуют.', 'Standard automated reclassification applied. No manual overrides recorded.')}
                                                     </td>
                                                 </tr>
                                             )}
@@ -2382,13 +2333,11 @@ export default function TransformationResults() {
                                                 <CheckCircle2 className="w-4 h-4" />
                                             </div>
                                             <span className="font-bold text-foreground text-xs uppercase tracking-wider">
-                                                {isRu ? 'Сертификат аудиторской проверки:' : 'Assurance Certification:'}
+                                                {tr('Сертификат аудиторской проверки:', 'Assurance Certification:')}
                                             </span>
                                         </div>
                                         <p className="text-[11px] leading-relaxed text-muted-foreground">
-                                            {isRu 
-                                                ? 'Настоящий отчет о трансформации сформирован на основе проверенных алгоритмов двойной записи и требований стандартов МСФО. Промежуточные оборотно-сальдовые ведомости отражают строгое математическое равновесие с нулевой дельтой (Zero-Delta).'
-                                                : 'This transformation statement has been processed deterministically using verified IFRS taxonomy rules. All intermediate trial balances reflect full dual-entry convergence without reconciliation variance.'}
+                                            {tr('Настоящий отчет о трансформации сформирован на основе проверенных алгоритмов двойной записи и требований стандартов МСФО. Промежуточные оборотно-сальдовые ведомости отражают строгое математическое равновесие с нулевой дельтой (Zero-Delta).', 'This transformation statement has been processed deterministically using verified IFRS taxonomy rules. All intermediate trial balances reflect full dual-entry convergence without reconciliation variance.')}
                                         </p>
                                         <div className="font-mono text-[10px] text-muted-foreground/80 break-all pt-1">
                                             HASH: SHA256:{id ? id.replace(/-/g, '').slice(0, 32) : '3f8b9a2c1d4e6f7a8b9c0d1e2f3a4b5c'}... • RegAI Engine v2.4
@@ -2397,17 +2346,17 @@ export default function TransformationResults() {
 
                                     <div className="flex flex-col justify-between md:border-l md:pl-6 border-border/60 pt-2 md:pt-0">
                                         <div className="flex justify-between items-center text-foreground pb-2 border-b border-border/40">
-                                            <span className="text-muted-foreground">{isRu ? 'Проверяющий аудитор:' : 'Engagement Reviewer:'}</span>
-                                            <span className="font-bold">{isRu ? 'RegAI Автоматизированный Аудитор' : 'RegAI Automated Auditor'}</span>
+                                            <span className="text-muted-foreground">{tr('Проверяющий аудитор:', 'Engagement Reviewer:')}</span>
+                                            <span className="font-bold">{tr('RegAI Автоматизированный Аудитор', 'RegAI Automated Auditor')}</span>
                                         </div>
                                         <div className="mt-4 border border-border/80 bg-muted/20 rounded-xl p-3 flex justify-between items-center">
                                             <div>
                                                 <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                                                    {isRu ? 'Статус электронной подписи' : 'Electronic Signature'}
+                                                    {tr('Статус электронной подписи', 'Electronic Signature')}
                                                 </div>
                                                 <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
                                                     <ShieldCheck className="w-3.5 h-3.5" />
-                                                    {isRu ? 'ЭЦП УТВЕРЖДЕНА И ДЕЙСТВИТЕЛЬНА' : 'APPROVED & SIGNATURE VALID'}
+                                                    {tr('ЭЦП УТВЕРЖДЕНА И ДЕЙСТВИТЕЛЬНА', 'APPROVED & SIGNATURE VALID')}
                                                 </div>
                                             </div>
                                             <div className="text-right font-serif italic text-foreground font-bold text-xs">

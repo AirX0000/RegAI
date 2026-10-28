@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { tr } from '@/lib/i18n';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import { Button } from '@/components/ui/button';
@@ -113,7 +114,7 @@ export default function TransformationAdjustmentsPage() {
 
         if (isUzs) {
             if (currency === 'UZS') {
-                return `${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${isRu ? 'сум' : 'UZS'}`;
+                return `${val.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${tr('сум', 'UZS')}`;
             }
             if (currency === 'EUR') {
                 const eur = (val / 12850) * 0.92;
@@ -123,7 +124,7 @@ export default function TransformationAdjustmentsPage() {
             return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         } else {
             if (currency === 'UZS') {
-                return `${(val * 12850).toLocaleString(undefined, { maximumFractionDigits: 0 })} ${isRu ? 'сум' : 'UZS'}`;
+                return `${(val * 12850).toLocaleString(undefined, { maximumFractionDigits: 0 })} ${tr('сум', 'UZS')}`;
             }
             if (currency === 'EUR') {
                 return `€${(val * 0.92).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -151,8 +152,8 @@ export default function TransformationAdjustmentsPage() {
             console.error("Failed to fetch balance sheet", error);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось загрузить данные бухгалтерского баланса" : "Failed to load balance sheet data"
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось загрузить данные бухгалтерского баланса", "Failed to load balance sheet data")
             });
         } finally {
             setIsLoading(false);
@@ -167,15 +168,15 @@ export default function TransformationAdjustmentsPage() {
                 balance_sheet_id: id
             })));
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Корректировки успешно применены" : "Adjustments applied successfully"
+                title: tr("Успешно", "Success"),
+                description: tr("Корректировки успешно применены", "Adjustments applied successfully")
             });
             fetchBalanceSheet();
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось применить корректировки" : "Failed to apply adjustments"
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось применить корректировки", "Failed to apply adjustments")
             });
         }
     };
@@ -196,8 +197,8 @@ export default function TransformationAdjustmentsPage() {
         if (!balanceSheet || !newAdjustment.adjustment_amount || !newAdjustment.description) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка валидации" : "Validation Error",
-                description: isRu ? "Пожалуйста, заполните все обязательные поля" : "Please fill in all required fields"
+                title: tr("Ошибка валидации", "Validation Error"),
+                description: tr("Пожалуйста, заполните все обязательные поля", "Please fill in all required fields")
             });
             return;
         }
@@ -209,8 +210,8 @@ export default function TransformationAdjustmentsPage() {
             }]);
 
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Корректировка успешно добавлена" : "Adjustment added successfully"
+                title: tr("Успешно", "Success"),
+                description: tr("Корректировка успешно добавлена", "Adjustment added successfully")
             });
             setIsAdjustmentModalOpen(false);
             fetchBalanceSheet();
@@ -218,8 +219,8 @@ export default function TransformationAdjustmentsPage() {
             console.error("Failed to save adjustment", error);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось сохранить корректировку" : "Failed to save adjustment"
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось сохранить корректировку", "Failed to save adjustment")
             });
         }
     };
@@ -228,8 +229,8 @@ export default function TransformationAdjustmentsPage() {
         try {
             await api.delete(`/balance-sheets/${id}/adjustments/${adjId}`);
             toast({
-                title: isRu ? "Удалено" : "Deleted",
-                description: isRu ? "Корректировка успешно удалена" : "Adjustment removed"
+                title: tr("Удалено", "Deleted"),
+                description: tr("Корректировка успешно удалена", "Adjustment removed")
             });
             fetchBalanceSheet();
         } catch (error) {
@@ -322,7 +323,7 @@ export default function TransformationAdjustmentsPage() {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-slate-500">
                 <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
-                <p className="text-sm font-medium">{isRu ? 'Загрузка ведомости корректировок...' : 'Loading adjustments worksheet...'}</p>
+                <p className="text-sm font-medium">{tr('Загрузка ведомости корректировок...', 'Loading adjustments worksheet...')}</p>
             </div>
         );
     }
@@ -333,9 +334,9 @@ export default function TransformationAdjustmentsPage() {
                 <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/50 text-red-600 flex items-center justify-center mx-auto">
                     <ShieldAlert className="w-6 h-6" />
                 </div>
-                <h2 className="text-xl font-bold">{isRu ? 'Бухгалтерский баланс не найден' : 'Balance Sheet not found'}</h2>
+                <h2 className="text-xl font-bold">{tr('Бухгалтерский баланс не найден', 'Balance Sheet not found')}</h2>
                 <Button onClick={() => navigate('/transformation')} variant="outline">
-                    {isRu ? 'Вернуться в панель управления' : 'Back to Dashboard'}
+                    {tr('Вернуться в панель управления', 'Back to Dashboard')}
                 </Button>
             </div>
         );
@@ -353,19 +354,19 @@ export default function TransformationAdjustmentsPage() {
                         className="mb-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 -ml-2.5"
                     >
                         <ArrowLeft className="mr-1.5 h-4 w-4" />
-                        {isRu ? 'К проектам трансформации' : 'Back to Dashboard'}
+                        {tr('К проектам трансформации', 'Back to Dashboard')}
                     </Button>
                     <div className="flex items-center gap-3 flex-wrap">
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50">
-                            {isRu ? 'Корректировки трансформации' : 'Transformation Adjustments'}
+                            {tr('Корректировки трансформации', 'Transformation Adjustments')}
                         </h1>
                         <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                            {isRu ? 'НСБУ ➔ МСФО' : 'NAS ➔ IFRS'}
+                            {tr('НСБУ ➔ МСФО', 'NAS ➔ IFRS')}
                         </span>
                     </div>
                     <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5" />
-                        <span>{isRu ? 'Отчетный период: ' : 'Reporting Period: '}</span>
+                        <span>{tr('Отчетный период: ', 'Reporting Period: ')}</span>
                         <strong className="text-slate-700 dark:text-slate-300">
                             {new Date(balanceSheet.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { year: 'numeric', month: 'long' })}
                         </strong>
@@ -387,7 +388,7 @@ export default function TransformationAdjustmentsPage() {
                             className={`px-2 py-1 rounded-lg transition-all ${currency === 'UZS' ? 'bg-white dark:bg-slate-900 shadow-xs text-blue-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
                             onClick={() => setCurrency('UZS')}
                         >
-                            UZS ({isRu ? 'сум' : 'UZS'})
+                            UZS ({tr('сум', 'UZS')})
                         </button>
                         <button
                             className={`px-2 py-1 rounded-lg transition-all ${currency === 'USD' ? 'bg-white dark:bg-slate-900 shadow-xs text-blue-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
@@ -411,14 +412,14 @@ export default function TransformationAdjustmentsPage() {
                         className="rounded-xl border-slate-200 dark:border-slate-800"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        {isRu ? 'Обновить' : 'Refresh'}
+                        {tr('Обновить', 'Refresh')}
                     </Button>
 
                     <Button 
                         onClick={() => navigate(`/transformation/results/${id}`)}
                         className="rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/20 font-medium px-4 text-xs md:text-sm"
                     >
-                        <span>{isRu ? 'Финальный отчет МСФО' : 'Finalize IFRS Report'}</span>
+                        <span>{tr('Финальный отчет МСФО', 'Finalize IFRS Report')}</span>
                         <ArrowRight className="ml-1.5 h-4 w-4" />
                     </Button>
                 </div>
@@ -431,13 +432,13 @@ export default function TransformationAdjustmentsPage() {
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                {isRu ? 'Активы по НСБУ' : 'Statutory Assets'}
+                                {tr('Активы по НСБУ', 'Statutory Assets')}
                             </p>
                             <h3 className="text-lg md:text-xl font-bold font-mono text-slate-900 dark:text-slate-50 mt-1">
                                 {formatMoney(stats.statutoryAssets)}
                             </h3>
                             <p className="text-[11px] text-slate-400 mt-0.5">
-                                {stats.totalItems} {isRu ? 'статей учета' : 'line items'}
+                                {stats.totalItems} {tr('статей учета', 'line items')}
                             </p>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -451,7 +452,7 @@ export default function TransformationAdjustmentsPage() {
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                {isRu ? 'Корректировки МСФО' : 'IFRS Adjustments'}
+                                {tr('Корректировки МСФО', 'IFRS Adjustments')}
                             </p>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="text-xs font-bold font-mono text-emerald-600 dark:text-emerald-400">
@@ -473,13 +474,13 @@ export default function TransformationAdjustmentsPage() {
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                {isRu ? 'Проект активов МСФО' : 'Projected IFRS Assets'}
+                                {tr('Проект активов МСФО', 'Projected IFRS Assets')}
                             </p>
                             <h3 className="text-lg md:text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
                                 {formatMoney(stats.ifrsAssets)}
                             </h3>
                             <p className="text-[11px] text-slate-400 mt-0.5">
-                                {stats.totalAdjustments} {isRu ? 'активных проводок' : 'active postings'}
+                                {stats.totalAdjustments} {tr('активных проводок', 'active postings')}
                             </p>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -493,13 +494,13 @@ export default function TransformationAdjustmentsPage() {
                     <CardContent className="p-4 flex items-center justify-between">
                         <div>
                             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                {isRu ? 'Контроль баланса' : 'Capital Equilibrium'}
+                                {tr('Контроль баланса', 'Capital Equilibrium')}
                             </p>
                             <div className="flex items-center gap-1.5 mt-1.5">
                                 {stats.isBalanced ? (
                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                                         <CheckCircle2 className="w-3.5 h-3.5" />
-                                        {isRu ? 'Сбалансирован' : 'Balanced (Δ 0.00)'}
+                                        {tr('Сбалансирован', 'Balanced (Δ 0.00)')}
                                     </span>
                                 ) : (
                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
@@ -529,12 +530,10 @@ export default function TransformationAdjustmentsPage() {
                             </div>
                             <div>
                                 <CardTitle className="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100">
-                                    {isRu ? 'Инструменты автоматизации стандартов МСФО' : 'IFRS Automation Toolset'}
+                                    {tr('Инструменты автоматизации стандартов МСФО', 'IFRS Automation Toolset')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isRu 
-                                        ? 'Интерактивные калькуляторы для сложных стандартов (МСФО 16, МСБУ 36, МСФО 9) с формированием двойных проводок.' 
-                                        : 'Automated valuation and impairment models generating compliant double-entry journal entries.'}
+                                    {tr('Интерактивные калькуляторы для сложных стандартов (МСФО 16, МСБУ 36, МСФО 9) с формированием двойных проводок.', 'Automated valuation and impairment models generating compliant double-entry journal entries.')}
                                 </CardDescription>
                             </div>
                         </div>
@@ -551,12 +550,10 @@ export default function TransformationAdjustmentsPage() {
                                 <Building2 className="w-4 h-4 text-blue-500" />
                             </div>
                             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Аренда и права пользования' : 'Leases & ROU Assets'}
+                                {tr('Аренда и права пользования', 'Leases & ROU Assets')}
                             </h4>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                {isRu 
-                                    ? 'Дисконтирование аннуитета по эффективной ставке и капитализация актива ROU и обязательства.' 
-                                    : 'Discount lease cash flows into Right-of-Use Asset and Lease Liability at NPV.'}
+                                {tr('Дисконтирование аннуитета по эффективной ставке и капитализация актива ROU и обязательства.', 'Discount lease cash flows into Right-of-Use Asset and Lease Liability at NPV.')}
                             </p>
                         </div>
                         <div className="mt-4">
@@ -568,7 +565,7 @@ export default function TransformationAdjustmentsPage() {
                                 trigger={
                                     <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs">
                                         <Building2 className="w-3.5 h-3.5 mr-1.5" />
-                                        {isRu ? 'Рассчитать аренду (IFRS 16)' : 'Calculate Lease (IFRS 16)'}
+                                        {tr('Рассчитать аренду (IFRS 16)', 'Calculate Lease (IFRS 16)')}
                                     </Button>
                                 }
                             />
@@ -585,12 +582,10 @@ export default function TransformationAdjustmentsPage() {
                                 <TrendingDown className="w-4 h-4 text-amber-500" />
                             </div>
                             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Обесценение активов' : 'Asset Impairment Test'}
+                                {tr('Обесценение активов', 'Asset Impairment Test')}
                             </h4>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                {isRu 
-                                    ? 'Определение возмещаемой суммы = max(Справедливая за вычетом затрат, Ценность использования).' 
-                                    : 'Recoverable amount test: Max(Fair Value Less Costs, Value in Use).'}
+                                {tr('Определение возмещаемой суммы = max(Справедливая за вычетом затрат, Ценность использования).', 'Recoverable amount test: Max(Fair Value Less Costs, Value in Use).')}
                             </p>
                         </div>
                         <div className="mt-4">
@@ -602,7 +597,7 @@ export default function TransformationAdjustmentsPage() {
                                 trigger={
                                     <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs">
                                         <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
-                                        {isRu ? 'Проверить обесценение (IAS 36)' : 'Impairment Test (IAS 36)'}
+                                        {tr('Проверить обесценение (IAS 36)', 'Impairment Test (IAS 36)')}
                                     </Button>
                                 }
                             />
@@ -619,12 +614,10 @@ export default function TransformationAdjustmentsPage() {
                                 <ShieldAlert className="w-4 h-4 text-emerald-500" />
                             </div>
                             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Ожидаемые кредитные убытки' : 'Expected Credit Loss (ECL)'}
+                                {tr('Ожидаемые кредитные убытки', 'Expected Credit Loss (ECL)')}
                             </h4>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                {isRu 
-                                    ? '3-стадийная матрица дефолта: ECL = EAD × PD × LGD × DF для дебиторской задолженности.' 
-                                    : '3-stage forward-looking impairment model: ECL = EAD × PD × LGD × DF.'}
+                                {tr('3-стадийная матрица дефолта: ECL = EAD × PD × LGD × DF для дебиторской задолженности.', '3-stage forward-looking impairment model: ECL = EAD × PD × LGD × DF.')}
                             </p>
                         </div>
                         <div className="mt-4">
@@ -636,7 +629,7 @@ export default function TransformationAdjustmentsPage() {
                                 trigger={
                                     <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs">
                                         <Calculator className="w-3.5 h-3.5 mr-1.5" />
-                                        {isRu ? 'Оценить резерв ECL (IFRS 9)' : 'Calculate ECL (IFRS 9)'}
+                                        {tr('Оценить резерв ECL (IFRS 9)', 'Calculate ECL (IFRS 9)')}
                                     </Button>
                                 }
                             />
@@ -653,12 +646,10 @@ export default function TransformationAdjustmentsPage() {
                                 <Percent className="w-4 h-4 text-indigo-500" />
                             </div>
                             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Отложенные налоги (DTA / DTL)' : 'Deferred Taxes (IAS 12)'}
+                                {tr('Отложенные налоги (DTA / DTL)', 'Deferred Taxes (IAS 12)')}
                             </h4>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                {isRu 
-                                    ? 'Временные разницы между МСФО и налоговой базой: расчёт ОНА (актив) или ОНО (обязательство).' 
-                                    : 'Temporary differences between IFRS carrying values and tax base producing DTA or DTL.'}
+                                {tr('Временные разницы между МСФО и налоговой базой: расчёт ОНА (актив) или ОНО (обязательство).', 'Temporary differences between IFRS carrying values and tax base producing DTA or DTL.')}
                             </p>
                         </div>
                         <div className="mt-4">
@@ -679,7 +670,7 @@ export default function TransformationAdjustmentsPage() {
                                 trigger={
                                     <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2 rounded-lg shadow-xs">
                                         <Percent className="w-3.5 h-3.5 mr-1.5" />
-                                        {isRu ? 'Рассчитать налог (IAS 12)' : 'Calculate Tax (IAS 12)'}
+                                        {tr('Рассчитать налог (IAS 12)', 'Calculate Tax (IAS 12)')}
                                     </Button>
                                 }
                             />
@@ -695,12 +686,10 @@ export default function TransformationAdjustmentsPage() {
                         <div>
                             <CardTitle className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                                 <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-                                {isRu ? 'Трансформационная ведомость счетов' : 'NAS to IFRS Transformation Worksheet'}
+                                {tr('Трансформационная ведомость счетов', 'NAS to IFRS Transformation Worksheet')}
                             </CardTitle>
                             <CardDescription className="text-xs mt-0.5">
-                                {isRu 
-                                    ? 'Нажмите на строку или кнопку «+ Корректировка», чтобы привязать индивидуальную проводку реклассификации.' 
-                                    : 'Click any row to attach item-level reclassifications or audit adjustments.'}
+                                {tr('Нажмите на строку или кнопку «+ Корректировка», чтобы привязать индивидуальную проводку реклассификации.', 'Click any row to attach item-level reclassifications or audit adjustments.')}
                             </CardDescription>
                         </div>
 
@@ -712,25 +701,25 @@ export default function TransformationAdjustmentsPage() {
                                     onClick={() => setSelectedCategory('all')}
                                     className={`px-2.5 py-1 rounded-lg transition-all ${selectedCategory === 'all' ? 'bg-white dark:bg-slate-900 shadow-xs text-blue-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
                                 >
-                                    {isRu ? 'Все' : 'All'} ({balanceSheet.items.length})
+                                    {tr('Все', 'All')} ({balanceSheet.items.length})
                                 </button>
                                 <button
                                     onClick={() => setSelectedCategory('assets')}
                                     className={`px-2.5 py-1 rounded-lg transition-all ${selectedCategory === 'assets' ? 'bg-white dark:bg-slate-900 shadow-xs text-emerald-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
                                 >
-                                    {isRu ? 'Активы' : 'Assets'}
+                                    {tr('Активы', 'Assets')}
                                 </button>
                                 <button
                                     onClick={() => setSelectedCategory('liabilities')}
                                     className={`px-2.5 py-1 rounded-lg transition-all ${selectedCategory === 'liabilities' ? 'bg-white dark:bg-slate-900 shadow-xs text-amber-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
                                 >
-                                    {isRu ? 'Обязательства' : 'Liabilities'}
+                                    {tr('Обязательства', 'Liabilities')}
                                 </button>
                                 <button
                                     onClick={() => setSelectedCategory('equity')}
                                     className={`px-2.5 py-1 rounded-lg transition-all ${selectedCategory === 'equity' ? 'bg-white dark:bg-slate-900 shadow-xs text-indigo-600 font-bold' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'}`}
                                 >
-                                    {isRu ? 'Капитал' : 'Equity'}
+                                    {tr('Капитал', 'Equity')}
                                 </button>
                             </div>
 
@@ -740,7 +729,7 @@ export default function TransformationAdjustmentsPage() {
                                 <Input
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder={isRu ? 'Поиск по счету или названию...' : 'Search account or code...'}
+                                    placeholder={tr('Поиск по счету или названию...', 'Search account or code...')}
                                     className="pl-8 h-8 text-xs rounded-xl"
                                 />
                             </div>
@@ -752,20 +741,20 @@ export default function TransformationAdjustmentsPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-border text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                <th className="py-3 px-4 w-24">{isRu ? 'Счет' : 'Account'}</th>
-                                <th className="py-3 px-4 min-w-[220px]">{isRu ? 'Наименование статьи (НСБУ)' : 'Description'}</th>
-                                <th className="py-3 px-4 w-32">{isRu ? 'Категория' : 'Category'}</th>
-                                <th className="py-3 px-4 text-right w-40">{isRu ? 'Сумма по НСБУ' : 'NAS Amount'}</th>
-                                <th className="py-3 px-4 text-center w-32">{isRu ? 'Корректировки' : 'Adjustments'}</th>
-                                <th className="py-3 px-4 text-right w-44">{isRu ? 'Оценка МСФО' : 'IFRS Amount'}</th>
-                                <th className="py-3 px-4 text-center w-28">{isRu ? 'Действие' : 'Action'}</th>
+                                <th className="py-3 px-4 w-24">{tr('Счет', 'Account')}</th>
+                                <th className="py-3 px-4 min-w-[220px]">{tr('Наименование статьи (НСБУ)', 'Description')}</th>
+                                <th className="py-3 px-4 w-32">{tr('Категория', 'Category')}</th>
+                                <th className="py-3 px-4 text-right w-40">{tr('Сумма по НСБУ', 'NAS Amount')}</th>
+                                <th className="py-3 px-4 text-center w-32">{tr('Корректировки', 'Adjustments')}</th>
+                                <th className="py-3 px-4 text-right w-44">{tr('Оценка МСФО', 'IFRS Amount')}</th>
+                                <th className="py-3 px-4 text-center w-28">{tr('Действие', 'Action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border text-xs">
                             {filteredItems.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="py-8 text-center text-slate-500">
-                                        {isRu ? 'Статьи баланса по заданным критериям не найдены' : 'No items found matching filter criteria'}
+                                        {tr('Статьи баланса по заданным критериям не найдены', 'No items found matching filter criteria')}
                                     </td>
                                 </tr>
                             ) : (
@@ -803,17 +792,17 @@ export default function TransformationAdjustmentsPage() {
                                             <td className="py-3.5 px-4">
                                                 {cat === 'assets' && (
                                                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                        {isRu ? 'Активы' : 'Assets'}
+                                                        {tr('Активы', 'Assets')}
                                                     </span>
                                                 )}
                                                 {cat === 'liabilities' && (
                                                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                                        {isRu ? 'Обязательства' : 'Liabilities'}
+                                                        {tr('Обязательства', 'Liabilities')}
                                                     </span>
                                                 )}
                                                 {cat === 'equity' && (
                                                     <span className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                                                        {isRu ? 'Капитал' : 'Equity'}
+                                                        {tr('Капитал', 'Equity')}
                                                     </span>
                                                 )}
                                             </td>
@@ -827,7 +816,7 @@ export default function TransformationAdjustmentsPage() {
                                             <td className="py-3.5 px-4 text-center">
                                                 {hasAdjustments ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                                                        {itemAdjustments.length} {isRu ? 'корр.' : 'adj'}
+                                                        {itemAdjustments.length} {tr('корр.', 'adj')}
                                                     </span>
                                                 ) : (
                                                     <span className="text-slate-300 dark:text-slate-600 text-xs">—</span>
@@ -848,7 +837,7 @@ export default function TransformationAdjustmentsPage() {
                                                     className="h-7 px-2.5 text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg font-medium opacity-80 group-hover:opacity-100"
                                                 >
                                                     <Plus className="w-3 h-3 mr-1" />
-                                                    {isRu ? 'Проводка' : 'Adjust'}
+                                                    {tr('Проводка', 'Adjust')}
                                                 </Button>
                                             </td>
                                         </tr>
@@ -871,17 +860,15 @@ export default function TransformationAdjustmentsPage() {
                                 </div>
                                 <div>
                                     <CardTitle className="text-sm md:text-base font-bold text-slate-900 dark:text-slate-100">
-                                        {isRu ? 'Журнал глобальных проводок МСФО' : 'Global IFRS Adjustments Journal'}
+                                        {tr('Журнал глобальных проводок МСФО', 'Global IFRS Adjustments Journal')}
                                     </CardTitle>
                                     <CardDescription className="text-xs">
-                                        {isRu 
-                                            ? 'Корректировки по МСФО 16, МСБУ 36 и МСФО 9, влияющие на структуру баланса и финансовый результат.' 
-                                            : 'Dual-ledger adjustment entries generated by calculators and assurance directives.'}
+                                        {tr('Корректировки по МСФО 16, МСБУ 36 и МСФО 9, влияющие на структуру баланса и финансовый результат.', 'Dual-ledger adjustment entries generated by calculators and assurance directives.')}
                                     </CardDescription>
                                 </div>
                             </div>
                             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                                {globalAdjustments.length} {isRu ? 'записей' : 'entries'}
+                                {globalAdjustments.length} {tr('записей', 'entries')}
                             </span>
                         </div>
                     </CardHeader>
@@ -890,11 +877,11 @@ export default function TransformationAdjustmentsPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50/80 dark:bg-slate-900/60 border-b border-border text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <th className="py-3 px-4 w-28">{isRu ? 'Стандарт' : 'Standard'}</th>
-                                    <th className="py-3 px-4">{isRu ? 'Содержание бухгалтерской записи (Меморандум)' : 'Entry Description'}</th>
-                                    <th className="py-3 px-4 text-center w-32">{isRu ? 'Тип записи' : 'Type'}</th>
-                                    <th className="py-3 px-4 text-right w-44">{isRu ? 'Сумма проводки' : 'Amount'}</th>
-                                    <th className="py-3 px-4 text-center w-20">{isRu ? 'Удалить' : 'Action'}</th>
+                                    <th className="py-3 px-4 w-28">{tr('Стандарт', 'Standard')}</th>
+                                    <th className="py-3 px-4">{tr('Содержание бухгалтерской записи (Меморандум)', 'Entry Description')}</th>
+                                    <th className="py-3 px-4 text-center w-32">{tr('Тип записи', 'Type')}</th>
+                                    <th className="py-3 px-4 text-right w-44">{tr('Сумма проводки', 'Amount')}</th>
+                                    <th className="py-3 px-4 text-center w-20">{tr('Удалить', 'Action')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border text-xs">
@@ -961,10 +948,10 @@ export default function TransformationAdjustmentsPage() {
                 <DialogContent className="sm:max-w-[500px] rounded-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-lg font-bold">
-                            {isRu ? 'Добавить трансформационную проводку' : 'Add Item Adjustment'}
+                            {tr('Добавить трансформационную проводку', 'Add Item Adjustment')}
                         </DialogTitle>
                         <DialogDescription className="text-xs">
-                            {isRu ? 'Корректировка для статьи: ' : 'Adjusting balance sheet line: '}
+                            {tr('Корректировка для статьи: ', 'Adjusting balance sheet line: ')}
                             <strong className="text-slate-900 dark:text-slate-100 font-semibold">
                                 {selectedItem?.account_name} ({selectedItem?.account_code})
                             </strong>
@@ -973,7 +960,7 @@ export default function TransformationAdjustmentsPage() {
 
                     <div className="grid gap-4 py-3 text-xs">
                         <div className="grid grid-cols-4 items-center gap-3">
-                            <Label htmlFor="type" className="text-right font-semibold">{isRu ? 'Тип записи' : 'Type'}</Label>
+                            <Label htmlFor="type" className="text-right font-semibold">{tr('Тип записи', 'Type')}</Label>
                             <select
                                 id="type"
                                 value={newAdjustment.adjustment_type}
@@ -981,16 +968,16 @@ export default function TransformationAdjustmentsPage() {
                                 className="col-span-3 flex h-9 w-full rounded-xl border border-input bg-background px-3 py-1.5 text-xs shadow-xs focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="debit">
-                                    {isRu ? 'Дебет (Дт) — увеличение актива / уменьшение обязательств' : 'Debit (Dr) — increase asset / decrease liability'}
+                                    {tr('Дебет (Дт) — увеличение актива / уменьшение обязательств', 'Debit (Dr) — increase asset / decrease liability')}
                                 </option>
                                 <option value="credit">
-                                    {isRu ? 'Кредит (Кт) — уменьшение актива / увеличение обязательств' : 'Credit (Cr) — decrease asset / increase liability'}
+                                    {tr('Кредит (Кт) — уменьшение актива / увеличение обязательств', 'Credit (Cr) — decrease asset / increase liability')}
                                 </option>
                             </select>
                         </div>
 
                         <div className="grid grid-cols-4 items-center gap-3">
-                            <Label htmlFor="amount" className="text-right font-semibold">{isRu ? 'Сумма' : 'Amount'}</Label>
+                            <Label htmlFor="amount" className="text-right font-semibold">{tr('Сумма', 'Amount')}</Label>
                             <Input
                                 id="amount"
                                 type="number"
@@ -1002,12 +989,12 @@ export default function TransformationAdjustmentsPage() {
                         </div>
 
                         <div className="grid grid-cols-4 items-center gap-3">
-                            <Label htmlFor="desc" className="text-right font-semibold">{isRu ? 'Обоснование' : 'Description'}</Label>
+                            <Label htmlFor="desc" className="text-right font-semibold">{tr('Обоснование', 'Description')}</Label>
                             <Input
                                 id="desc"
                                 value={newAdjustment.description}
                                 onChange={(e) => setNewAdjustment({ ...newAdjustment, description: e.target.value })}
-                                placeholder={isRu ? 'Причина проводки, ссылка на стандарт МСФО...' : 'Audit justification, IFRS clause...'}
+                                placeholder={tr('Причина проводки, ссылка на стандарт МСФО...', 'Audit justification, IFRS clause...')}
                                 className="col-span-3 h-9 text-xs rounded-xl"
                             />
                         </div>
@@ -1017,7 +1004,7 @@ export default function TransformationAdjustmentsPage() {
                     {selectedItem && Array.isArray(balanceSheet?.adjustments) && balanceSheet.adjustments.filter(a => a.balance_sheet_item_id === selectedItem.id).length > 0 && (
                         <div className="border-t border-border pt-3 mt-1">
                             <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                {isRu ? 'Уже привязанные проводки по этой статье:' : 'Existing adjustments for this item:'}
+                                {tr('Уже привязанные проводки по этой статье:', 'Existing adjustments for this item:')}
                             </h4>
                             <div className="space-y-1.5 max-h-36 overflow-y-auto">
                                 {balanceSheet.adjustments
@@ -1050,10 +1037,10 @@ export default function TransformationAdjustmentsPage() {
 
                     <DialogFooter className="gap-2">
                         <Button variant="outline" size="sm" onClick={() => setIsAdjustmentModalOpen(false)} className="rounded-xl">
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button size="sm" onClick={handleSaveAdjustment} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-                            {isRu ? 'Сохранить корректировку' : 'Save Adjustment'}
+                            {tr('Сохранить корректировку', 'Save Adjustment')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

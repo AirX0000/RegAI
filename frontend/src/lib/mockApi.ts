@@ -1,4 +1,5 @@
 import seedData from './seedDatabase.json';
+import { tr } from '@/lib/i18n';
 import { createMockToken, safeBase64Decode } from './authUtils';
 import * as XLSX from 'xlsx';
 
@@ -2662,31 +2663,31 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             findings: [
                 {
                     code: 'KAM-01',
-                    title: isRu ? 'Контрольное равенство баланса подтверждено' : 'Zero-Delta Capital Equilibrium Verified',
+                    title: tr('Контрольное равенство баланса подтверждено', 'Zero-Delta Capital Equilibrium Verified'),
                     severity: 'info',
-                    detail: isRu ? `Активы (${totalAssets.toLocaleString()} UZS) строго равны сумме капитала и обязательств. Дельта = 0.00.` : `Total Assets equal Equity and Liabilities. Delta = 0.00.`
+                    detail: tr(`Активы (${totalAssets.toLocaleString()} UZS) строго равны сумме капитала и обязательств. Дельта = 0.00.`, `Total Assets equal Equity and Liabilities. Delta = 0.00.`)
                 },
                 {
                     code: 'KAM-02',
-                    title: isRu ? 'Капитализация аренды по IFRS 16' : 'IFRS 16 Lease Capitalization',
+                    title: tr('Капитализация аренды по IFRS 16', 'IFRS 16 Lease Capitalization'),
                     severity: 'info',
-                    detail: isRu ? 'Признаны активы в форме права пользования и дисконтированные арендные обязательства.' : 'Recognized ROU assets and lease liabilities.'
+                    detail: tr('Признаны активы в форме права пользования и дисконтированные арендные обязательства.', 'Recognized ROU assets and lease liabilities.')
                 },
                 {
                     code: 'KAM-03',
-                    title: isRu ? 'Оценка кредитных рисков по IFRS 9' : 'IFRS 9 Expected Credit Loss Provisioning',
+                    title: tr('Оценка кредитных рисков по IFRS 9', 'IFRS 9 Expected Credit Loss Provisioning'),
                     severity: 'info',
-                    detail: isRu ? 'Применена 3-стадийная модель резервирования дебиторской задолженности.' : '3-stage ECL provisioning model applied.'
+                    detail: tr('Применена 3-стадийная модель резервирования дебиторской задолженности.', '3-stage ECL provisioning model applied.')
                 },
                 {
                     code: 'KAM-04',
-                    title: isRu ? 'Тестирование на обесценение (IAS 36)' : 'IAS 36 Impairment Testing & DCF',
+                    title: tr('Тестирование на обесценение (IAS 36)', 'IAS 36 Impairment Testing & DCF'),
                     severity: 'info',
-                    detail: isRu ? 'Возмещаемая стоимость внеоборотных активов подтверждена дисконтированными денежными потоками.' : 'Recoverable amount verified against discounted cash flows.'
+                    detail: tr('Возмещаемая стоимость внеоборотных активов подтверждена дисконтированными денежными потоками.', 'Recoverable amount verified against discounted cash flows.')
                 }
             ],
             expert_role: 'Senior IFRS Big-4 Audit Partner & Lead Assurance Director',
-            executive_summary: isRu ? `Аудит завершен со статусом: Безоговорочно положительное мнение. Баланс сходится в 0 дельту.` : `Audit completed: Unqualified Clean Opinion. Zero delta equilibrium confirmed.`,
+            executive_summary: tr(`Аудит завершен со статусом: Безоговорочно положительное мнение. Баланс сходится в 0 дельту.`, `Audit completed: Unqualified Clean Opinion. Zero delta equilibrium confirmed.`),
             audit_memo_markdown: memoMarkdown,
             audited_at: new Date().toISOString()
         };

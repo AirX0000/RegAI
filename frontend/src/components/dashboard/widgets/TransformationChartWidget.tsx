@@ -1,4 +1,5 @@
 import React from 'react';
+import { tr } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { WidgetProps } from '../types';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -7,15 +8,14 @@ import { useTranslation } from 'react-i18next';
 
 export const TransformationChartWidget: React.FC<WidgetProps> = ({ data }) => {
     const { i18n } = useTranslation();
-    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
-
+    void i18n.language;
     const chartData = data?.chart_data && data.chart_data.length > 0 ? data.chart_data : [
-        { month: isEn ? "May" : "Май", statements: 4, volume_uzs: 48000000, ifrs16: 12000000, ifrs9: 3500000 },
-        { month: isEn ? "Jun" : "Июн", statements: 7, volume_uzs: 82000000, ifrs16: 18500000, ifrs9: 6200000 },
-        { month: isEn ? "Jul" : "Июл", statements: 9, volume_uzs: 115000000, ifrs16: 24000000, ifrs9: 8100000 },
-        { month: isEn ? "Aug" : "Авг", statements: 11, volume_uzs: 152000000, ifrs16: 31000000, ifrs9: 10400000 },
-        { month: isEn ? "Sep" : "Сен", statements: 13, volume_uzs: 198000000, ifrs16: 38000000, ifrs9: 12800000 },
-        { month: isEn ? "Oct" : "Окт", statements: 14, volume_uzs: 248200000, ifrs16: 45000000, ifrs9: 15600000 },
+        { month: tr("Май", "May"), statements: 4, volume_uzs: 48000000, ifrs16: 12000000, ifrs9: 3500000 },
+        { month: tr("Июн", "Jun"), statements: 7, volume_uzs: 82000000, ifrs16: 18500000, ifrs9: 6200000 },
+        { month: tr("Июл", "Jul"), statements: 9, volume_uzs: 115000000, ifrs16: 24000000, ifrs9: 8100000 },
+        { month: tr("Авг", "Aug"), statements: 11, volume_uzs: 152000000, ifrs16: 31000000, ifrs9: 10400000 },
+        { month: tr("Сен", "Sep"), statements: 13, volume_uzs: 198000000, ifrs16: 38000000, ifrs9: 12800000 },
+        { month: tr("Окт", "Oct"), statements: 14, volume_uzs: 248200000, ifrs16: 45000000, ifrs9: 15600000 },
     ];
 
     const formattedData = chartData.map(d => ({
@@ -32,18 +32,16 @@ export const TransformationChartWidget: React.FC<WidgetProps> = ({ data }) => {
                     <div>
                         <CardTitle className="text-base font-semibold flex items-center gap-2">
                             <TrendingUp className="h-4 w-4 text-indigo-500" />
-                            {isEn ? "IFRS Transformation Dynamics" : "Динамика трансформации в МСФО"}
+                            {tr("Динамика трансформации в МСФО", "IFRS Transformation Dynamics")}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            {isEn 
-                                ? "Aggregated monthly volume and standard adjustments (M UZS)" 
-                                : "Совокупный объем трансформаций и корректировок (млн сум)"}
+                            {tr("Совокупный объем трансформаций и корректировок (млн сум)", "Aggregated monthly volume and standard adjustments (M UZS)")}
                         </CardDescription>
                     </div>
                     <div className="flex items-center gap-3 text-xs">
                         <span className="flex items-center gap-1.5 text-muted-foreground">
                             <span className="h-2.5 w-2.5 rounded-full bg-indigo-500 inline-block" />
-                            {isEn ? "Total Volume" : "Общий объем"}
+                            {tr("Общий объем", "Total Volume")}
                         </span>
                         <span className="flex items-center gap-1.5 text-muted-foreground">
                             <span className="h-2.5 w-2.5 rounded-full bg-purple-500 inline-block" />
@@ -94,7 +92,7 @@ export const TransformationChartWidget: React.FC<WidgetProps> = ({ data }) => {
                                 }}
                                 formatter={(value: any, name: any) => {
                                     const label = name === 'volume_mln' 
-                                        ? (isEn ? 'Total Volume' : 'Общий объем')
+                                        ? (tr('Общий объем', 'Total Volume'))
                                         : name === 'ifrs16_mln'
                                         ? 'IFRS 16'
                                         : 'IFRS 9';

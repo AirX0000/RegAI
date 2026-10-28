@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
@@ -16,8 +17,7 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     useEffect(() => {
         fetchChecklist();
     }, [reportId]);
@@ -37,8 +37,8 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
         if (!checklist?.can_submit) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Невозможно отправить" : "Cannot Submit",
-                description: isRu ? "Пожалуйста, выполните все обязательные пункты перед отправкой" : "Please complete all required items before submitting",
+                title: tr("Невозможно отправить", "Cannot Submit"),
+                description: tr("Пожалуйста, выполните все обязательные пункты перед отправкой", "Please complete all required items before submitting"),
             });
             return;
         }
@@ -56,7 +56,7 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
     if (!checklist) {
         return (
             <div className="text-center p-8 text-gray-500">
-                {isRu ? 'Не удалось загрузить чек-лист' : 'Failed to load checklist'}
+                {tr('Не удалось загрузить чек-лист', 'Failed to load checklist')}
             </div>
         );
     }
@@ -65,10 +65,10 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
         <div className="space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    {isRu ? 'Чек-лист перед отправкой отчета' : 'Pre-Submission Checklist'}
+                    {tr('Чек-лист перед отправкой отчета', 'Pre-Submission Checklist')}
                 </h3>
                 <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {checklist.completed_items}/{checklist.total_items} {isRu ? 'выполнено' : 'completed'}
+                    {checklist.completed_items}/{checklist.total_items} {tr('выполнено', 'completed')}
                 </div>
             </div>
 
@@ -102,10 +102,10 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
                         <div className="flex-1">
                             <p className="font-medium text-sm text-slate-900 dark:text-slate-100">{item.label}</p>
                             {item.required && !item.completed && (
-                                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{isRu ? 'Обязательно' : 'Required'}</p>
+                                <p className="text-xs text-red-600 dark:text-red-400 mt-1">{tr('Обязательно', 'Required')}</p>
                             )}
                             {!item.required && (
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{isRu ? 'Опционально' : 'Optional'}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{tr('Опционально', 'Optional')}</p>
                             )}
                         </div>
                     </div>
@@ -116,9 +116,7 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
             {!checklist.can_submit && (
                 <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-lg">
                     <p className="text-sm text-amber-800 dark:text-amber-300">
-                        ⚠️ {isRu 
-                            ? `Выполните все обязательные пункты (${checklist.completed_required}/${checklist.required_items}) перед отправкой` 
-                            : `Complete all required items (${checklist.completed_required}/${checklist.required_items}) before submitting`}
+                        ⚠️ {tr(`Выполните все обязательные пункты (${checklist.completed_required}/${checklist.required_items}) перед отправкой`, `Complete all required items (${checklist.completed_required}/${checklist.required_items}) before submitting`)}
                     </p>
                 </div>
             )}
@@ -131,11 +129,11 @@ export default function PreSubmissionChecklist({ reportId, onClose, onSubmit }: 
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
                 >
                     {checklist.can_submit 
-                        ? (isRu ? 'Отправить отчет' : 'Submit Report') 
-                        : (isRu ? 'Заполните обязательные поля' : 'Complete Required Items')}
+                        ? (tr('Отправить отчет', 'Submit Report')) 
+                        : (tr('Заполните обязательные поля', 'Complete Required Items'))}
                 </Button>
                 <Button onClick={onClose} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
-                    {isRu ? 'Отмена' : 'Cancel'}
+                    {tr('Отмена', 'Cancel')}
                 </Button>
             </div>
         </div>

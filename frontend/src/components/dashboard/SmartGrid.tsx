@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { tr } from '@/lib/i18n';
 import api from '@/lib/api';
 import { WidgetConfig, DashboardLayout, DashboardData } from './types';
 import { WIDGET_REGISTRY } from './WidgetRegistry';
@@ -69,8 +70,7 @@ const SkeletonCard: React.FC<{ wide?: boolean }> = ({ wide }) => (
 
 export const SmartGrid: React.FC = () => {
     const { i18n } = useTranslation();
-    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
-
+    void i18n.language;
     const [layout, setLayout] = useState<WidgetConfig[]>([]);
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -141,14 +141,14 @@ export const SmartGrid: React.FC = () => {
             const updatedLayout = layout.map((w, index) => ({ ...w, order: index }));
             await api.post('/dashboard/config', { widgets: updatedLayout });
             toast({ 
-                title: isEn ? "Success" : "Успешно", 
-                description: isEn ? "Dashboard layout saved" : "Расположение виджетов сохранено" 
+                title: tr("Успешно", "Success"), 
+                description: tr("Расположение виджетов сохранено", "Dashboard layout saved") 
             });
             setIsEditing(false);
         } catch (error) {
             toast({ 
-                title: isEn ? "Error" : "Ошибка", 
-                description: isEn ? "Failed to save layout" : "Не удалось сохранить конфигурацию", 
+                title: tr("Ошибка", "Error"), 
+                description: tr("Не удалось сохранить конфигурацию", "Failed to save layout"), 
                 variant: "destructive" 
             });
         } finally {
@@ -172,8 +172,8 @@ export const SmartGrid: React.FC = () => {
     const resetToDefaultLayout = () => {
         setLayout(DEFAULT_WIDGETS);
         toast({ 
-            title: isEn ? "Reset" : "Сброшено", 
-            description: isEn ? "Default widget layout restored" : "Восстановлена стандартная сетка виджетов" 
+            title: tr("Сброшено", "Reset"), 
+            description: tr("Восстановлена стандартная сетка виджетов", "Default widget layout restored") 
         });
     };
 
@@ -223,39 +223,39 @@ export const SmartGrid: React.FC = () => {
             {isDemoData && (
                 <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-amber-800 dark:text-amber-200 text-sm">
                     <WifiOff className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                    <span className="font-medium">{isEn ? "Demo Data" : "Демо-данные"}</span>
+                    <span className="font-medium">{tr("Демо-данные", "Demo Data")}</span>
                     <span className="text-amber-700 dark:text-amber-300">
-                        {isEn ? "— API unavailable. Displaying approximate values, not actual company data." : "— API недоступен. Отображаются примерные значения, не реальные данные компании."}
+                        {tr("— API недоступен. Отображаются примерные значения, не реальные данные компании.", "— API unavailable. Displaying approximate values, not actual company data.")}
                     </span>
                     <button
                         onClick={() => { setLoading(true); fetchDashboard(); }}
                         className="ml-auto flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300 hover:text-amber-900 dark:hover:text-amber-100 transition-colors"
                     >
-                        <RefreshCw className="h-3 w-3" /> {isEn ? "Retry" : "Повторить"}
+                        <RefreshCw className="h-3 w-3" /> {tr("Повторить", "Retry")}
                     </button>
                 </div>
             )}
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                    {isEn ? "Smart Dashboard" : "Аналитическая панель"}
+                    {tr("Аналитическая панель", "Smart Dashboard")}
                 </h2>
                 <div className="flex space-x-2">
                     {isEditing ? (
                         <>
                             <Button variant="ghost" onClick={resetToDefaultLayout} disabled={saving} size="sm">
-                                <RotateCcw className="h-4 w-4 mr-2" /> {isEn ? "Reset" : "Сбросить"}
+                                <RotateCcw className="h-4 w-4 mr-2" /> {tr("Сбросить", "Reset")}
                             </Button>
                             <Button variant="outline" onClick={() => setIsEditing(false)} disabled={saving} size="sm">
-                                <X className="h-4 w-4 mr-2" /> {isEn ? "Cancel" : "Отмена"}
+                                <X className="h-4 w-4 mr-2" /> {tr("Отмена", "Cancel")}
                             </Button>
                             <Button onClick={saveLayout} disabled={saving} size="sm">
-                                <Save className="h-4 w-4 mr-2" /> {isEn ? "Save Layout" : "Сохранить"}
+                                <Save className="h-4 w-4 mr-2" /> {tr("Сохранить", "Save Layout")}
                             </Button>
                         </>
                     ) : (
                         <Button variant="outline" onClick={() => setIsEditing(true)} size="sm">
-                            <Edit2 className="h-4 w-4 mr-2" /> {isEn ? "Personalize" : "Настроить"}
+                            <Edit2 className="h-4 w-4 mr-2" /> {tr("Настроить", "Personalize")}
                         </Button>
                     )}
                 </div>
@@ -301,7 +301,7 @@ export const SmartGrid: React.FC = () => {
             {visibleWidgets.length === 0 && !loading && (
                 <div className="text-center py-20 bg-muted/20 rounded-lg border-dashed border-2">
                     <p className="text-muted-foreground">
-                        {isEn ? 'No widgets visible. Click "Personalize" to add them.' : 'Виджеты не выбраны. Нажмите «Настроить», чтобы добавить.'}
+                        {tr('Виджеты не выбраны. Нажмите «Настроить», чтобы добавить.', 'No widgets visible. Click "Personalize" to add them.')}
                     </p>
                 </div>
             )}

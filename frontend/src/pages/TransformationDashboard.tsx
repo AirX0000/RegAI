@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../lib/api';
@@ -122,8 +123,8 @@ export default function TransformationDashboard() {
             };
             await api.put(`/balance-sheets/${editingSheet.id}`, payload);
             toast({
-                title: isRu ? 'Сохранено' : 'Saved',
-                description: isRu ? 'Параметры отчета успешно обновлены' : 'Balance sheet updated successfully',
+                title: tr('Сохранено', 'Saved'),
+                description: tr('Параметры отчета успешно обновлены', 'Balance sheet updated successfully'),
             });
             setEditSheetOpen(false);
             setEditingSheet(null);
@@ -131,8 +132,8 @@ export default function TransformationDashboard() {
         } catch (err: any) {
             console.error('Failed to update balance sheet', err);
             toast({
-                title: isRu ? 'Ошибка' : 'Error',
-                description: err?.response?.data?.detail || (isRu ? 'Не удалось обновить отчет' : 'Failed to update balance sheet'),
+                title: tr('Ошибка', 'Error'),
+                description: err?.response?.data?.detail || (tr('Не удалось обновить отчет', 'Failed to update balance sheet')),
                 variant: 'destructive',
             });
         } finally {
@@ -203,7 +204,7 @@ export default function TransformationDashboard() {
         if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
             toast({
                 title: t('error'),
-                description: isRu ? 'Недопустимый формат. Загрузите .xlsx, .xls или .csv' : 'Invalid file type. Please upload .xlsx, .xls, or .csv file',
+                description: tr('Недопустимый формат. Загрузите .xlsx, .xls или .csv', 'Invalid file type. Please upload .xlsx, .xls, or .csv file'),
                 variant: 'destructive'
             });
             return;
@@ -225,21 +226,21 @@ export default function TransformationDashboard() {
                     setRawRows(jsonData);
                     toast({
                         title: isRu ? "Файл прочитан" : t('success'),
-                        description: isRu ? `Загружено ${jsonData.length} строк. Выберите разметку колонок.` : `Read ${jsonData.length} rows. Please verify column mapping.`,
+                        description: tr(`Загружено ${jsonData.length} строк. Выберите разметку колонок.`, `Read ${jsonData.length} rows. Please verify column mapping.`),
                     });
                 } else {
                     toast({
                         variant: "destructive",
-                        title: isRu ? "Файл пуст" : "Empty file",
-                        description: isRu ? "Не удалось обнаружить данные в таблице" : "No rows found in sheet",
+                        title: tr("Файл пуст", "Empty file"),
+                        description: tr("Не удалось обнаружить данные в таблице", "No rows found in sheet"),
                     });
                 }
             } catch (error) {
                 console.error('Error parsing file locally:', error);
                 toast({
                     variant: "destructive",
-                    title: isRu ? "Ошибка чтения файла" : "File read error",
-                    description: isRu ? "Не удалось распарсить Excel документ" : "Failed to parse Excel document",
+                    title: tr("Ошибка чтения файла", "File read error"),
+                    description: tr("Не удалось распарсить Excel документ", "Failed to parse Excel document"),
                 });
             } finally {
                 setUploading(false);
@@ -259,7 +260,7 @@ export default function TransformationDashboard() {
 
             toast({
                 title: isRu ? "Баланс успешно создан" : t('success'),
-                description: isRu ? `Загружено ${items.length} статей. Переход к корректировкам...` : `Balance sheet created with ${items.length} items`,
+                description: tr(`Загружено ${items.length} статей. Переход к корректировкам...`, `Balance sheet created with ${items.length} items`),
             });
 
             setUploadDialogOpen(false);
@@ -273,7 +274,7 @@ export default function TransformationDashboard() {
             console.error('Confirm upload failed', error);
             toast({
                 title: t('error'),
-                description: error.response?.data?.detail || (isRu ? 'Не удалось сохранить баланс' : 'Failed to create balance sheet'),
+                description: error.response?.data?.detail || (tr('Не удалось сохранить баланс', 'Failed to create balance sheet')),
                 variant: 'destructive'
             });
             throw error;
@@ -343,7 +344,7 @@ export default function TransformationDashboard() {
                         </h1>
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
-                            {user?.role === 'superadmin' ? (isRu ? 'Все организации' : 'All Organizations') : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
+                            {user?.role === 'superadmin' ? (tr('Все организации', 'All Organizations')) : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
                         </span>
                     </div>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{t('transform_balance_sheets')}</p>
@@ -366,11 +367,11 @@ export default function TransformationDashboard() {
                             className="border-indigo-300 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 bg-indigo-50/50 dark:bg-indigo-950/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 font-semibold"
                         >
                             <FileSpreadsheet className="mr-2 h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                            {isRu ? 'Умный импорт 1С' : 'Smart 1C Mapper'}
+                            {tr('Умный импорт 1С', 'Smart 1C Mapper')}
                         </Button>
                         <Button onClick={() => setUploadDialogOpen(true)} variant="outline" size="lg" className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
                             <Upload className="mr-2 h-4 w-4" />
-                            {isRu ? 'Загрузить файл' : 'Import File'}
+                            {tr('Загрузить файл', 'Import File')}
                         </Button>
                         <Button onClick={() => navigate('/transformation/new')} size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-medium">
                             <Plus className="mr-2 h-4 w-4" />
@@ -479,7 +480,7 @@ export default function TransformationDashboard() {
                                                 key={bs.id} 
                                                 onClick={() => navigate(`/transformation/edit/${bs.id}`)}
                                                 className="hover:bg-blue-50/40 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group"
-                                                title={isRu ? 'Нажмите для перехода к редактированию статей баланса' : 'Click to edit balance sheet'}
+                                                title={tr('Нажмите для перехода к редактированию статей баланса', 'Click to edit balance sheet')}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors">
                                                     <div className="flex items-center gap-2">
@@ -507,10 +508,10 @@ export default function TransformationDashboard() {
                                                                 navigate(`/transformation/edit/${bs.id}`);
                                                             }}
                                                             className="border-slate-300 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-medium flex items-center gap-1.5 shadow-2xs"
-                                                            title={isRu ? 'Редактировать статьи баланса (Активы, Обязательства, Капитал)' : 'Edit balance sheet items'}
+                                                            title={tr('Редактировать статьи баланса (Активы, Обязательства, Капитал)', 'Edit balance sheet items')}
                                                         >
                                                             <Edit3 className="h-3.5 w-3.5" />
-                                                            {t('edit') || (isRu ? 'Редактировать' : 'Edit')}
+                                                            {t('edit') || (tr('Редактировать', 'Edit'))}
                                                         </Button>
 
                                                         {/* 2. Quick Properties Edit Button */}
@@ -529,10 +530,10 @@ export default function TransformationDashboard() {
                                                                 setEditSheetOpen(true);
                                                             }}
                                                             className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 text-xs px-2"
-                                                            title={isRu ? 'Быстро изменить период, статус и заметки' : 'Quick edit properties'}
+                                                            title={tr('Быстро изменить период, статус и заметки', 'Quick edit properties')}
                                                         >
                                                             <Settings2 className="h-3.5 w-3.5 text-slate-500" />
-                                                            <span className="hidden sm:inline ml-1">{isRu ? 'Свойства' : 'Props'}</span>
+                                                            <span className="hidden sm:inline ml-1">{tr('Свойства', 'Props')}</span>
                                                         </Button>
 
                                                         {/* 3. Adjustments Button */}
@@ -544,10 +545,10 @@ export default function TransformationDashboard() {
                                                                 e.stopPropagation();
                                                                 navigate(`/transformation/adjustments/${bs.id}`);
                                                             }}
-                                                            title={isRu ? 'Корректировки трансформации НСБУ ➔ МСФО' : 'Adjustments'}
+                                                            title={tr('Корректировки трансформации НСБУ ➔ МСФО', 'Adjustments')}
                                                         >
                                                             <SlidersHorizontal className="h-3.5 w-3.5" />
-                                                            <span className="hidden lg:inline">{t('adjustments') || (isRu ? 'Корректировки' : 'Adjustments')}</span>
+                                                            <span className="hidden lg:inline">{t('adjustments') || (tr('Корректировки', 'Adjustments'))}</span>
                                                         </Button>
 
                                                         {/* 4. Results or Transform Button */}
@@ -560,10 +561,10 @@ export default function TransformationDashboard() {
                                                                     navigate(`/transformation/results/${bs.id}`);
                                                                 }}
                                                                 className="border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-medium flex items-center gap-1"
-                                                                title={isRu ? 'Просмотр результатов трансформации в МСФО' : 'View Results'}
+                                                                title={tr('Просмотр результатов трансформации в МСФО', 'View Results')}
                                                             >
                                                                 <CheckCircle className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                                                                <span>{t('view_results') || (isRu ? 'Результаты' : 'Results')}</span>
+                                                                <span>{t('view_results') || (tr('Результаты', 'Results'))}</span>
                                                             </Button>
                                                         ) : (
                                                             <Button
@@ -573,10 +574,10 @@ export default function TransformationDashboard() {
                                                                     e.stopPropagation();
                                                                     navigate(`/transformation/results/${bs.id}`);
                                                                 }}
-                                                                title={isRu ? 'Выполнить трансформацию в МСФО' : 'Transform'}
+                                                                title={tr('Выполнить трансформацию в МСФО', 'Transform')}
                                                             >
                                                                 <TrendingUp className="h-3.5 w-3.5" />
-                                                                <span>{t('transform') || (isRu ? 'Трансформировать' : 'Transform')}</span>
+                                                                <span>{t('transform') || (tr('Трансформировать', 'Transform'))}</span>
                                                             </Button>
                                                         )}
 
@@ -589,7 +590,7 @@ export default function TransformationDashboard() {
                                                                 handleDelete(bs.id, new Date(bs.period).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { month: 'long', year: 'numeric' }));
                                                             }}
                                                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 border-slate-200 dark:border-slate-700 px-2"
-                                                            title={isRu ? 'Удалить отчет' : 'Delete'}
+                                                            title={tr('Удалить отчет', 'Delete')}
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
@@ -639,10 +640,10 @@ export default function TransformationDashboard() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-xl font-bold">
                             <Edit3 className="h-5 w-5 text-blue-600 dark:text-cyan-400" />
-                            {isRu ? 'Быстрое редактирование отчета' : 'Edit Balance Sheet'}
+                            {tr('Быстрое редактирование отчета', 'Edit Balance Sheet')}
                         </DialogTitle>
                         <DialogDescription>
-                            {isRu ? 'Измените отчетный период, статус или примечания к балансу.' : 'Update the reporting period, status, or notes.'}
+                            {tr('Измените отчетный период, статус или примечания к балансу.', 'Update the reporting period, status, or notes.')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -650,7 +651,7 @@ export default function TransformationDashboard() {
                         <div className="space-y-4 py-2">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Отчетный период (Месяц / Год)' : 'Reporting Period (Month / Year)'}
+                                    {tr('Отчетный период (Месяц / Год)', 'Reporting Period (Month / Year)')}
                                 </label>
                                 <Input
                                     type="month"
@@ -661,29 +662,29 @@ export default function TransformationDashboard() {
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Статус отчета' : 'Report Status'}
+                                    {tr('Статус отчета', 'Report Status')}
                                 </label>
                                 <select
                                     value={editingSheet.status}
                                     onChange={(e) => setEditingSheet({ ...editingSheet, status: e.target.value })}
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
-                                    <option value="draft">{isRu ? 'Черновик (Draft)' : 'Draft'}</option>
-                                    <option value="submitted">{isRu ? 'Ожидает трансформации (Submitted)' : 'Submitted'}</option>
-                                    <option value="transformed">{isRu ? 'Трансформировано (Transformed)' : 'Transformed'}</option>
+                                    <option value="draft">{tr('Черновик (Draft)', 'Draft')}</option>
+                                    <option value="submitted">{tr('Ожидает трансформации (Submitted)', 'Submitted')}</option>
+                                    <option value="transformed">{tr('Трансформировано (Transformed)', 'Transformed')}</option>
                                 </select>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Заметки / Описание' : 'Notes / Description'}
+                                    {tr('Заметки / Описание', 'Notes / Description')}
                                 </label>
                                 <textarea
                                     value={editingSheet.notes || ''}
                                     onChange={(e) => setEditingSheet({ ...editingSheet, notes: e.target.value })}
                                     rows={3}
                                     className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder={isRu ? 'Дополнительные примечания к балансу...' : 'Additional notes...'}
+                                    placeholder={tr('Дополнительные примечания к балансу...', 'Additional notes...')}
                                 />
                             </div>
 
@@ -699,7 +700,7 @@ export default function TransformationDashboard() {
                                     className="text-xs text-blue-600 dark:text-cyan-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/40"
                                 >
                                     <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-                                    {isRu ? 'Открыть полный редактор статей' : 'Open Full Item Editor'}
+                                    {tr('Открыть полный редактор статей', 'Open Full Item Editor')}
                                 </Button>
                             </div>
                         </div>
@@ -711,14 +712,14 @@ export default function TransformationDashboard() {
                             onClick={() => setEditSheetOpen(false)}
                             disabled={editSaving}
                         >
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleSaveQuickEdit}
                             disabled={editSaving}
                             className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
                         >
-                            {editSaving ? (isRu ? 'Сохранение...' : 'Saving...') : (isRu ? 'Сохранить изменения' : 'Save Changes')}
+                            {editSaving ? (tr('Сохранение...', 'Saving...')) : (tr('Сохранить изменения', 'Save Changes'))}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -737,13 +738,13 @@ export default function TransformationDashboard() {
                         <DialogTitle className="flex items-center gap-2">
                             <FileUp className="h-5 w-5 text-blue-600" />
                             {rawRows.length > 0 
-                                ? (isRu ? 'Интерактивная разметка колонок ОСВ / 1C' : 'Interactive Column Mapper (1C / Excel)')
-                                : (isRu ? 'Импорт баланса из файла' : 'Import Balance Sheet from File')}
+                                ? (tr('Интерактивная разметка колонок ОСВ / 1C', 'Interactive Column Mapper (1C / Excel)'))
+                                : (tr('Импорт баланса из файла', 'Import Balance Sheet from File'))}
                         </DialogTitle>
                         <DialogDescription>
                             {rawRows.length > 0
-                                ? (isRu ? 'Выберите строку заголовка и сопоставьте колонки счетов, дебета и кредита перед импортом.' : 'Select header row and verify account codes, debit and credit columns before import.')
-                                : (isRu ? 'Загрузите ОСВ или бухгалтерский баланс в формате Excel (.xlsx, .xls) или CSV.' : 'Upload an Excel (.xlsx, .xls) or CSV file with your balance sheet data')}
+                                ? (tr('Выберите строку заголовка и сопоставьте колонки счетов, дебета и кредита перед импортом.', 'Select header row and verify account codes, debit and credit columns before import.'))
+                                : (tr('Загрузите ОСВ или бухгалтерский баланс в формате Excel (.xlsx, .xls) или CSV.', 'Upload an Excel (.xlsx, .xls) or CSV file with your balance sheet data'))}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -768,7 +769,7 @@ export default function TransformationDashboard() {
                                     className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium"
                                 >
                                     <Download className="mr-2 h-4 w-4" />
-                                    {isRu ? 'Скачать шаблон Excel' : 'Download Template'}
+                                    {tr('Скачать шаблон Excel', 'Download Template')}
                                 </Button>
                             </div>
 
@@ -783,10 +784,10 @@ export default function TransformationDashboard() {
                             >
                                 <FileSpreadsheet className="mx-auto h-12 w-12 text-slate-400 mb-4" />
                                 <p className="text-lg font-medium mb-2 text-slate-900 dark:text-white">
-                                    {isRu ? 'Перетащите файл ОСВ сюда' : 'Drag and drop your file here'}
+                                    {tr('Перетащите файл ОСВ сюда', 'Drag and drop your file here')}
                                 </p>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                                    {isRu ? 'или нажмите кнопку для выбора' : 'or click to browse'}
+                                    {tr('или нажмите кнопку для выбора', 'or click to browse')}
                                 </p>
                                 <input
                                     type="file"
@@ -799,13 +800,13 @@ export default function TransformationDashboard() {
                                     <Button variant="outline" asChild className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
                                         <span>
                                             <Upload className="mr-2 h-4 w-4" />
-                                            {isRu ? 'Выбрать файл (.xlsx, .csv)' : 'Choose File'}
+                                            {tr('Выбрать файл (.xlsx, .csv)', 'Choose File')}
                                         </span>
                                     </Button>
                                 </label>
                                 {uploading && (
                                     <p className="mt-4 text-sm text-blue-600 dark:text-blue-400 animate-pulse">
-                                        {isRu ? 'Чтение и анализ структуры таблицы...' : 'Uploading and parsing file...'}
+                                        {tr('Чтение и анализ структуры таблицы...', 'Uploading and parsing file...')}
                                     </p>
                                 )}
                             </div>
@@ -823,7 +824,7 @@ export default function TransformationDashboard() {
                                 }}
                                 className="border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                {isRu ? 'Отмена' : 'Cancel'}
+                                {tr('Отмена', 'Cancel')}
                             </Button>
                         </DialogFooter>
                     )}

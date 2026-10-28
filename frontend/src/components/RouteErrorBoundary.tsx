@@ -1,6 +1,7 @@
 import { useRouteError } from 'react-router-dom';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import { useEffect } from 'react';
+import { tr } from '../lib/i18n';
 
 export default function RouteErrorBoundary() {
     const error: any = useRouteError();
@@ -37,12 +38,22 @@ export default function RouteErrorBoundary() {
                 </div>
 
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                    {isChunkError ? 'Доступна новая версия приложения' : 'Ошибка загрузки страницы'}
+                    {isChunkError
+                        ? tr('Доступна новая версия приложения', 'New Application Version Available', 'Ilovaning yangi versiyasi mavjud')
+                        : tr('Ошибка загрузки страницы', 'Page Load Error', 'Sahifani yuklashda xatolik')}
                 </h1>
                 <p className="text-slate-500 text-sm mt-2 leading-relaxed">
                     {isChunkError
-                        ? 'Было выпущено обновление системы. Для применения изменений требуется перезагрузить страницу.'
-                        : 'Произошла ошибка при загрузке содержимого страницы. Пожалуйста, обновите страницу.'}
+                        ? tr(
+                            'Было выпущено обновление системы. Для применения изменений требуется перезагрузить страницу.',
+                            'A system update has been released. Please reload the page to apply the changes.',
+                            'Tizim yangilanishi chiqarildi. O\'zgarishlarni qo\'llash uchun sahifani qayta yuklang.'
+                        )
+                        : tr(
+                            'Произошла ошибка при загрузке содержимого страницы. Пожалуйста, обновите страницу.',
+                            'An error occurred while loading the page content. Please refresh the page.',
+                            'Sahifa tarkibini yuklashda xatolik yuz berdi. Iltimos, sahifani yangilang.'
+                        )}
                 </p>
 
                 <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
@@ -51,14 +62,14 @@ export default function RouteErrorBoundary() {
                         className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium transition-all shadow-sm hover:shadow"
                     >
                         <RefreshCw className="w-4 h-4" />
-                        Обновить страницу
+                        {tr('Обновить страницу', 'Refresh Page', 'Sahifani yangilash')}
                     </button>
                     <button
                         onClick={handleGoHome}
                         className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-sm font-medium transition-all"
                     >
                         <Home className="w-4 h-4" />
-                        На главную
+                        {tr('На главную', 'Go Home', 'Bosh sahifaga')}
                     </button>
                 </div>
             </div>

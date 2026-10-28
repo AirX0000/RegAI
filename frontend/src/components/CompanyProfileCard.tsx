@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { X, Building2, Globe, Users, Briefcase, Calendar } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { tr } from '../lib/i18n';
 
 interface CompanyProfileCardProps {
     company: any;
@@ -7,6 +9,7 @@ interface CompanyProfileCardProps {
 }
 
 export default function CompanyProfileCard({ company, onClose }: CompanyProfileCardProps) {
+    const { t } = useTranslation();
     return (
         <div>
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -33,7 +36,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
             {/* Description */}
             {company.description && (
                 <div className="mb-6">
-                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">About</h3>
+                    <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">{tr('О компании', 'About', 'Kompaniya haqida')}</h3>
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">{company.description}</p>
                 </div>
             )}
@@ -44,7 +47,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                     <div className="flex items-start gap-2">
                         <Globe className="h-5 w-5 text-slate-400 mt-0.5" />
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Website</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('website')}</p>
                             <a
                                 href={company.website}
                                 target="_blank"
@@ -61,7 +64,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                     <div className="flex items-start gap-2">
                         <Briefcase className="h-5 w-5 text-slate-400 mt-0.5" />
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Industry</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('industry')}</p>
                             <p className="font-medium text-slate-900 dark:text-white text-sm">{company.industry}</p>
                         </div>
                     </div>
@@ -71,7 +74,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                     <div className="flex items-start gap-2">
                         <Users className="h-5 w-5 text-slate-400 mt-0.5" />
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Employees</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('employees')}</p>
                             <p className="font-medium text-slate-900 dark:text-white text-sm">{company.employee_count.toLocaleString()}</p>
                         </div>
                     </div>
@@ -81,7 +84,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                     <div className="flex items-start gap-2">
                         <Calendar className="h-5 w-5 text-slate-400 mt-0.5" />
                         <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Created</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{t('created')}</p>
                             <p className="font-medium text-slate-900 dark:text-white text-sm">
                                 {new Date(company.created_at).toLocaleDateString()}
                             </p>
@@ -96,14 +99,14 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60'
                     : 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/60'
                     }`}>
-                    {company.is_active ? 'Active' : 'Inactive'}
+                    {company.is_active ? t('active') : t('inactive')}
                 </span>
             </div>
 
             {/* Actions */}
             <div className="flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">
                 <Button onClick={onClose} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">
-                    Close
+                    {t('close')}
                 </Button>
             </div>
         </div>

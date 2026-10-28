@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import api from '../lib/api';
@@ -109,8 +110,8 @@ export default function BalanceSheetForm() {
     const onSubmit = async (data: BalanceSheetFormData) => {
         if (!data.items || data.items.length === 0) {
             toast({
-                title: isUz ? "Balans bo'sh" : isRu ? 'Баланс пуст' : 'Balance Sheet Empty',
-                description: isUz ? "Kamida bitta aktiv yoki majburiyat qatorini qo'shing" : isRu ? 'Добавьте хотя бы одну строку активов или пассивов' : 'Please add at least one line item',
+                title: isUz ? "Balans bo'sh" : tr('Баланс пуст', 'Balance Sheet Empty'),
+                description: isUz ? "Kamida bitta aktiv yoki majburiyat qatorini qo'shing" : tr('Добавьте хотя бы одну строку активов или пассивов', 'Please add at least one line item'),
                 variant: 'destructive'
             });
             return;
@@ -118,8 +119,8 @@ export default function BalanceSheetForm() {
 
         if (!isBalanced) {
             toast({
-                title: isUz ? "Balans teng kelmadi" : isRu ? 'Баланс не сходится' : 'Balance Sheet Not Balanced',
-                description: isUz ? "Aktivlar summasi Majburiyatlar va Kapital yig'indisiga qat'iy teng bo'lishi kerak" : isRu ? 'Сумма Активов должна быть строго равна сумме Обязательств и Капитала' : 'Assets must equal Liabilities + Equity',
+                title: isUz ? "Balans teng kelmadi" : tr('Баланс не сходится', 'Balance Sheet Not Balanced'),
+                description: isUz ? "Aktivlar summasi Majburiyatlar va Kapital yig'indisiga qat'iy teng bo'lishi kerak" : tr('Сумма Активов должна быть строго равна сумме Обязательств и Капитала', 'Assets must equal Liabilities + Equity'),
                 variant: 'destructive'
             });
             return;
@@ -145,7 +146,7 @@ export default function BalanceSheetForm() {
 
             localStorage.removeItem('selected_transformation_template');
             toast({
-                title: isRu ? 'Успешно' : 'Success',
+                title: tr('Успешно', 'Success'),
                 description: isRu ? (id ? 'Бухгалтерский баланс успешно сохранён' : 'Бухгалтерский баланс успешно создан') : 'Balance sheet saved successfully'
             });
             if (id) {
@@ -157,8 +158,8 @@ export default function BalanceSheetForm() {
         } catch (error: any) {
             console.error('Failed to save balance sheet', error);
             toast({
-                title: isRu ? 'Ошибка' : 'Error',
-                description: error.response?.data?.detail || (isRu ? 'Не удалось сохранить баланс' : 'Failed to save balance sheet'),
+                title: tr('Ошибка', 'Error'),
+                description: error.response?.data?.detail || (tr('Не удалось сохранить баланс', 'Failed to save balance sheet')),
                 variant: 'destructive'
             });
         } finally {
@@ -168,9 +169,9 @@ export default function BalanceSheetForm() {
 
     const addItem = (category: 'assets' | 'liabilities' | 'equity') => {
         const subcategories = {
-            assets: isRu ? 'Оборотные активы' : 'Current Assets',
-            liabilities: isRu ? 'Краткосрочные обязательства' : 'Current Liabilities',
-            equity: isRu ? 'Уставный капитал' : 'Share Capital'
+            assets: tr('Оборотные активы', 'Current Assets'),
+            liabilities: tr('Краткосрочные обязательства', 'Current Liabilities'),
+            equity: tr('Уставный капитал', 'Share Capital')
         };
         append({
             account_code: '',
@@ -188,11 +189,11 @@ export default function BalanceSheetForm() {
 
     const renderStepIndicator = () => {
         const steps: { id: Step; label: string }[] = [
-            { id: 'selection', label: isRu ? 'Старт' : 'Start' },
-            { id: 'assets', label: isRu ? 'Активы' : 'Assets' },
-            { id: 'liabilities', label: isRu ? 'Обязательства' : 'Liabilities' },
-            { id: 'equity', label: isRu ? 'Капитал' : 'Equity' },
-            { id: 'review', label: isRu ? 'Проверка' : 'Review' }
+            { id: 'selection', label: tr('Старт', 'Start') },
+            { id: 'assets', label: tr('Активы', 'Assets') },
+            { id: 'liabilities', label: tr('Обязательства', 'Liabilities') },
+            { id: 'equity', label: tr('Капитал', 'Equity') },
+            { id: 'review', label: tr('Проверка', 'Review') }
         ];
 
         return (
@@ -202,7 +203,7 @@ export default function BalanceSheetForm() {
                         key={step.id} 
                         onClick={() => setCurrentStep(step.id)}
                         className="flex items-center cursor-pointer select-none group"
-                        title={isRu ? `Перейти: ${step.label}` : `Go to ${step.label}`}
+                        title={tr(`Перейти: ${step.label}`, `Go to ${step.label}`)}
                     >
                         <div className={cn(
                             "flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-medium transition-all group-hover:scale-110",
@@ -244,12 +245,12 @@ export default function BalanceSheetForm() {
                     <div>
                         <CardTitle className={cn("text-2xl font-bold", colorClass)}>{title}</CardTitle>
                         <CardDescription className="text-slate-500 dark:text-slate-400">
-                            {isRu ? `Введите статьи раздела «${title}»` : `Enter your ${title.toLowerCase()} line items`}
+                            {tr(`Введите статьи раздела «${title}»`, `Enter your ${title.toLowerCase()} line items`)}
                         </CardDescription>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{isRu ? `Всего (${title})` : `Total ${title}`}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">{tr(`Всего (${title})`, `Total ${title}`)}</p>
                             <p className="text-2xl font-bold font-mono text-slate-900 dark:text-white">${total.toLocaleString()}</p>
                         </div>
                         <Button
@@ -258,7 +259,7 @@ export default function BalanceSheetForm() {
                             className="bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 hover:from-cyan-400 hover:via-blue-500 hover:to-violet-500 text-white font-medium shadow-md shadow-cyan-500/20"
                         >
                             <Plus className="mr-1 h-4 w-4" />
-                            {isRu ? 'Добавить статью' : 'Add Item'}
+                            {tr('Добавить статью', 'Add Item')}
                         </Button>
                     </div>
                 </CardHeader>
@@ -267,7 +268,7 @@ export default function BalanceSheetForm() {
                         {categoryItems.length === 0 ? (
                             <div className="text-center py-12 bg-slate-50/60 dark:bg-[#070c1e] rounded-xl border-2 border-dashed border-slate-200 dark:border-[#162244]">
                                 <p className="text-slate-500 dark:text-slate-400 font-medium">
-                                    {isRu ? 'Статьи еще не добавлены.' : 'No items added yet.'}
+                                    {tr('Статьи еще не добавлены.', 'No items added yet.')}
                                 </p>
                                 <Button
                                     type="button"
@@ -275,37 +276,35 @@ export default function BalanceSheetForm() {
                                     onClick={() => addItem(category)}
                                     className="text-cyan-600 dark:text-cyan-400 font-semibold hover:underline mt-1"
                                 >
-                                    {isRu 
-                                        ? 'Добавить первую запись' 
-                                        : `Add your first ${category === 'equity' ? 'equity item' : category === 'liabilities' ? 'liability' : 'asset'}`}
+                                    {tr('Добавить первую запись', `Add your first ${category === 'equity' ? 'equity item' : category === 'liabilities' ? 'liability' : 'asset'}`)}
                                 </Button>
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-2">
-                                    <div className="col-span-2">{isRu ? 'Код' : 'Code'}</div>
-                                    <div className="col-span-4">{isRu ? 'Наименование статьи' : 'Account Name'}</div>
-                                    <div className="col-span-2">{isRu ? 'Сумма' : 'Amount'}</div>
-                                    <div className="col-span-3">{isRu ? 'Подкатегория' : 'Subcategory'}</div>
+                                    <div className="col-span-2">{tr('Код', 'Code')}</div>
+                                    <div className="col-span-4">{tr('Наименование статьи', 'Account Name')}</div>
+                                    <div className="col-span-2">{tr('Сумма', 'Amount')}</div>
+                                    <div className="col-span-3">{tr('Подкатегория', 'Subcategory')}</div>
                                     <div className="col-span-1"></div>
                                 </div>
                                 {categoryItems.map(({ id, index }) => (
                                     <div key={id} className="grid grid-cols-12 gap-2 items-center bg-white dark:bg-[#070c1e] p-2.5 rounded-lg border border-slate-200 dark:border-[#162244] hover:border-cyan-400 dark:hover:border-cyan-500/50 transition-colors shadow-xs">
                                         <Input
                                             {...register(`items.${index}.account_code` as const)}
-                                            placeholder={isRu ? 'Код' : 'Code'}
+                                            placeholder={tr('Код', 'Code')}
                                             className="col-span-2 bg-white dark:bg-[#050814] border-slate-200 dark:border-[#162244] text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
                                         />
                                         <Input
                                             {...register(`items.${index}.account_name` as const)}
-                                            placeholder={isRu ? 'Наименование' : 'Account Name'}
+                                            placeholder={tr('Наименование', 'Account Name')}
                                             className="col-span-4 bg-white dark:bg-[#050814] border-slate-200 dark:border-[#162244] text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
                                         />
                                         <Input
                                             {...register(`items.${index}.amount` as const, { valueAsNumber: true })}
                                             type="number"
                                             step="0.01"
-                                            placeholder={isRu ? 'Сумма' : 'Amount'}
+                                            placeholder={tr('Сумма', 'Amount')}
                                             className="col-span-2 font-mono bg-white dark:bg-[#050814] border-slate-200 dark:border-[#162244] text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
                                         />
                                         <select
@@ -314,24 +313,24 @@ export default function BalanceSheetForm() {
                                         >
                                             {category === 'assets' && (
                                                 <>
-                                                    <option>{isRu ? 'Оборотные активы' : 'Current Assets'}</option>
-                                                    <option>{isRu ? 'Внеоборотные активы' : 'Non-Current Assets'}</option>
-                                                    <option>{isRu ? 'Основные средства' : 'Fixed Assets'}</option>
-                                                    <option>{isRu ? 'Нематериальные активы' : 'Intangible Assets'}</option>
+                                                    <option>{tr('Оборотные активы', 'Current Assets')}</option>
+                                                    <option>{tr('Внеоборотные активы', 'Non-Current Assets')}</option>
+                                                    <option>{tr('Основные средства', 'Fixed Assets')}</option>
+                                                    <option>{tr('Нематериальные активы', 'Intangible Assets')}</option>
                                                 </>
                                             )}
                                             {category === 'liabilities' && (
                                                 <>
-                                                    <option>{isRu ? 'Краткосрочные обязательства' : 'Current Liabilities'}</option>
-                                                    <option>{isRu ? 'Долгосрочные обязательства' : 'Non-Current Liabilities'}</option>
-                                                    <option>{isRu ? 'Долгосрочные кредиты и займы' : 'Long-term Debt'}</option>
+                                                    <option>{tr('Краткосрочные обязательства', 'Current Liabilities')}</option>
+                                                    <option>{tr('Долгосрочные обязательства', 'Non-Current Liabilities')}</option>
+                                                    <option>{tr('Долгосрочные кредиты и займы', 'Long-term Debt')}</option>
                                                 </>
                                             )}
                                             {category === 'equity' && (
                                                 <>
-                                                    <option>{isRu ? 'Уставный капитал' : 'Share Capital'}</option>
-                                                    <option>{isRu ? 'Нераспределенная прибыль' : 'Retained Earnings'}</option>
-                                                    <option>{isRu ? 'Резервный капитал' : 'Reserves'}</option>
+                                                    <option>{tr('Уставный капитал', 'Share Capital')}</option>
+                                                    <option>{tr('Нераспределенная прибыль', 'Retained Earnings')}</option>
+                                                    <option>{tr('Резервный капитал', 'Reserves')}</option>
                                                 </>
                                             )}
                                         </select>
@@ -356,14 +355,14 @@ export default function BalanceSheetForm() {
                             onClick={() => setCurrentStep('selection')}
                             className="border-slate-300 dark:border-[#162244] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#121c3d]"
                         >
-                            {isRu ? 'Назад к разделам' : 'Back to Selection'}
+                            {tr('Назад к разделам', 'Back to Selection')}
                         </Button>
                         <Button
                             type="button"
                             onClick={() => handleStepComplete(category, nextStep)}
                             className="bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 hover:from-cyan-400 hover:via-blue-500 hover:to-violet-500 text-white font-medium shadow-md shadow-cyan-500/20"
                         >
-                            {isRu ? 'Далее' : 'Continue'}
+                            {tr('Далее', 'Continue')}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </div>
@@ -379,17 +378,17 @@ export default function BalanceSheetForm() {
                 <div>
                     <Button variant="ghost" onClick={() => navigate('/transformation')} className="mb-2">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        {isRu ? 'Назад к панели проектов' : 'Back to Dashboard'}
+                        {tr('Назад к панели проектов', 'Back to Dashboard')}
                     </Button>
                     <h1 className="text-3xl font-bold tracking-tight">
                         {id
-                            ? (isRu ? 'Редактирование бухгалтерского баланса' : 'Edit Balance Sheet')
-                            : (isRu ? 'Новый проект трансформации' : 'New Transformation Project')}
+                            ? (tr('Редактирование бухгалтерского баланса', 'Edit Balance Sheet'))
+                            : (tr('Новый проект трансформации', 'New Transformation Project'))}
                     </h1>
                     <p className="text-gray-500 mt-1">
                         {id
-                            ? (isRu ? 'Редактирование исходных данных НСБУ и статей баланса' : 'Edit baseline NAS data and balance sheet line items')
-                            : (isRu ? 'Введите исходные данные НСБУ для начала перехода к МСФО' : 'Enter NAS (НСБУ) data to begin transformation to IFRS')}
+                            ? (tr('Редактирование исходных данных НСБУ и статей баланса', 'Edit baseline NAS data and balance sheet line items'))
+                            : (tr('Введите исходные данные НСБУ для начала перехода к МСФО', 'Enter NAS (НСБУ) data to begin transformation to IFRS'))}
                     </p>
                 </div>
             </div>
@@ -410,9 +409,7 @@ export default function BalanceSheetForm() {
                                 </h3>
                             </div>
                             <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
-                                {isRu 
-                                    ? 'Шаблон применен: правила трансформации и корректировки IFRS 16, IAS 36, IFRS 9 преднастроены для данного проекта.' 
-                                    : 'Template applied: transformation rules and adjustments for IFRS 16, IAS 36, IFRS 9 are preconfigured.'}
+                                {tr('Шаблон применен: правила трансформации и корректировки IFRS 16, IAS 36, IFRS 9 преднастроены для данного проекта.', 'Template applied: transformation rules and adjustments for IFRS 16, IAS 36, IFRS 9 are preconfigured.')}
                             </p>
                         </div>
                     </div>
@@ -426,7 +423,7 @@ export default function BalanceSheetForm() {
                         }}
                         className="text-xs text-gray-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400"
                     >
-                        {isRu ? 'Сбросить шаблон' : 'Reset template'}
+                        {tr('Сбросить шаблон', 'Reset template')}
                     </Button>
                 </div>
             )}
@@ -439,16 +436,16 @@ export default function BalanceSheetForm() {
                     <div className="space-y-6">
                         <Card className="border-slate-200 dark:border-[#162244] bg-white dark:bg-[#0b1228] shadow-sm">
                             <CardHeader>
-                                <CardTitle className="text-slate-900 dark:text-slate-100">{isRu ? 'Параметры проекта' : 'Project Details'}</CardTitle>
+                                <CardTitle className="text-slate-900 dark:text-slate-100">{tr('Параметры проекта', 'Project Details')}</CardTitle>
                                 <CardDescription className="text-slate-500 dark:text-slate-400">
-                                    {isRu ? 'Укажите отчетный период и сопроводительную информацию' : 'Set the reporting period and basic information'}
+                                    {tr('Укажите отчетный период и сопроводительную информацию', 'Set the reporting period and basic information')}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
-                                            {isRu ? 'Отчетный период' : 'Reporting Period'}
+                                            {tr('Отчетный период', 'Reporting Period')}
                                         </label>
                                         <Input
                                             type="month"
@@ -458,11 +455,11 @@ export default function BalanceSheetForm() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1 text-slate-700 dark:text-slate-300">
-                                            {isRu ? 'Примечания (опционально)' : 'Notes (Optional)'}
+                                            {tr('Примечания (опционально)', 'Notes (Optional)')}
                                         </label>
                                         <Input
                                             {...register('notes')}
-                                            placeholder={isRu ? 'например, Фин. отчетность за 3 кв. 2024' : 'e.g., Q3 2024 Financials'}
+                                            placeholder={tr('например, Фин. отчетность за 3 кв. 2024', 'e.g., Q3 2024 Financials')}
                                             className="bg-white dark:bg-[#050814] border-slate-200 dark:border-[#162244] text-slate-900 dark:text-slate-100 placeholder:text-slate-400"
                                         />
                                     </div>
@@ -478,14 +475,12 @@ export default function BalanceSheetForm() {
                                     </div>
                                     <div>
                                         <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                                            {isRu 
-                                                ? `Загружено ${items.length} статей из файла` 
-                                                : `${items.length} line items loaded from file`}
+                                            {tr(`Загружено ${items.length} статей из файла`, `${items.length} line items loaded from file`)}
                                         </h4>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                             {isBalanced 
-                                                ? (isRu ? `✓ Баланс сходится: Активы (${totalAssets.toLocaleString()} UZS) = Пассивы (${(totalLiabilities + totalEquity).toLocaleString()} UZS)` : '✓ Balance Sheet equilibrium verified')
-                                                : (isRu ? `Внимание: расхождение ${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()} UZS` : 'Notice: Check balance equilibrium')}
+                                                ? (tr(`✓ Баланс сходится: Активы (${totalAssets.toLocaleString()} UZS) = Пассивы (${(totalLiabilities + totalEquity).toLocaleString()} UZS)`, '✓ Balance Sheet equilibrium verified'))
+                                                : (tr(`Внимание: расхождение ${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()} UZS`, 'Notice: Check balance equilibrium'))}
                                         </p>
                                     </div>
                                 </div>
@@ -494,7 +489,7 @@ export default function BalanceSheetForm() {
                                     onClick={() => setCurrentStep('review')}
                                     className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 shrink-0"
                                 >
-                                    {isRu ? 'Открыть сводную таблицу (Шаг 5)' : 'Summary Review (Step 5)'}
+                                    {tr('Открыть сводную таблицу (Шаг 5)', 'Summary Review (Step 5)')}
                                     <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                                 </Button>
                             </div>
@@ -507,15 +502,15 @@ export default function BalanceSheetForm() {
                                         {items.filter(i => i.category === 'assets').length > 0 ? <CheckCircle2 className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{isRu ? 'Активы' : 'Enter Assets'}</h3>
+                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{tr('Активы', 'Enter Assets')}</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
                                             {items.filter(i => i.category === 'assets').length > 0
-                                                ? (isRu ? `${items.filter(i => i.category === 'assets').length} статей • ${totalAssets.toLocaleString()} UZS` : `${items.filter(i => i.category === 'assets').length} items`)
-                                                : (isRu ? 'Денежные средства, запасы, дебиторка...' : 'Cash, Inventory, Receivables...')}
+                                                ? (tr(`${items.filter(i => i.category === 'assets').length} статей • ${totalAssets.toLocaleString()} UZS`, `${items.filter(i => i.category === 'assets').length} items`))
+                                                : (tr('Денежные средства, запасы, дебиторка...', 'Cash, Inventory, Receivables...'))}
                                         </p>
                                     </div>
                                     <Button variant={items.filter(i => i.category === 'assets').length > 0 ? "secondary" : "outline"} className="w-full border-slate-200 dark:border-[#162244] dark:hover:bg-[#121c3d]">
-                                        {items.filter(i => i.category === 'assets').length > 0 ? (isRu ? `Просмотреть статьи (${items.filter(i => i.category === 'assets').length})` : `View items`) : (isRu ? 'Заполнить' : 'Start')}
+                                        {items.filter(i => i.category === 'assets').length > 0 ? (tr(`Просмотреть статьи (${items.filter(i => i.category === 'assets').length})`, `View items`)) : (tr('Заполнить', 'Start'))}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -526,15 +521,15 @@ export default function BalanceSheetForm() {
                                         {items.filter(i => i.category === 'liabilities').length > 0 ? <CheckCircle2 className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{isRu ? 'Обязательства' : 'Enter Liabilities'}</h3>
+                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{tr('Обязательства', 'Enter Liabilities')}</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
                                             {items.filter(i => i.category === 'liabilities').length > 0
-                                                ? (isRu ? `${items.filter(i => i.category === 'liabilities').length} статей • ${totalLiabilities.toLocaleString()} UZS` : `${items.filter(i => i.category === 'liabilities').length} items`)
-                                                : (isRu ? 'Кредиторка, кредиты, резервы...' : 'Payables, Loans, Provisions...')}
+                                                ? (tr(`${items.filter(i => i.category === 'liabilities').length} статей • ${totalLiabilities.toLocaleString()} UZS`, `${items.filter(i => i.category === 'liabilities').length} items`))
+                                                : (tr('Кредиторка, кредиты, резервы...', 'Payables, Loans, Provisions...'))}
                                         </p>
                                     </div>
                                     <Button variant={items.filter(i => i.category === 'liabilities').length > 0 ? "secondary" : "outline"} className="w-full border-slate-200 dark:border-[#162244] dark:hover:bg-[#121c3d]">
-                                        {items.filter(i => i.category === 'liabilities').length > 0 ? (isRu ? `Просмотреть статьи (${items.filter(i => i.category === 'liabilities').length})` : `View items`) : (isRu ? 'Заполнить' : 'Start')}
+                                        {items.filter(i => i.category === 'liabilities').length > 0 ? (tr(`Просмотреть статьи (${items.filter(i => i.category === 'liabilities').length})`, `View items`)) : (tr('Заполнить', 'Start'))}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -545,15 +540,15 @@ export default function BalanceSheetForm() {
                                         {items.filter(i => i.category === 'equity').length > 0 ? <CheckCircle2 className="w-8 h-8" /> : <Plus className="w-8 h-8" />}
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{isRu ? 'Собственный капитал' : 'Enter Equity'}</h3>
+                                        <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100">{tr('Собственный капитал', 'Enter Equity')}</h3>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
                                             {items.filter(i => i.category === 'equity').length > 0
-                                                ? (isRu ? `${items.filter(i => i.category === 'equity').length} статей • ${totalEquity.toLocaleString()} UZS` : `${items.filter(i => i.category === 'equity').length} items`)
-                                                : (isRu ? 'Уставный капитал, резервы, прибыль...' : 'Capital, Reserves, Earnings...')}
+                                                ? (tr(`${items.filter(i => i.category === 'equity').length} статей • ${totalEquity.toLocaleString()} UZS`, `${items.filter(i => i.category === 'equity').length} items`))
+                                                : (tr('Уставный капитал, резервы, прибыль...', 'Capital, Reserves, Earnings...'))}
                                         </p>
                                     </div>
                                     <Button variant={items.filter(i => i.category === 'equity').length > 0 ? "secondary" : "outline"} className="w-full border-slate-200 dark:border-[#162244] dark:hover:bg-[#121c3d]">
-                                        {items.filter(i => i.category === 'equity').length > 0 ? (isRu ? `Просмотреть статьи (${items.filter(i => i.category === 'equity').length})` : `View items`) : (isRu ? 'Заполнить' : 'Start')}
+                                        {items.filter(i => i.category === 'equity').length > 0 ? (tr(`Просмотреть статьи (${items.filter(i => i.category === 'equity').length})`, `View items`)) : (tr('Заполнить', 'Start'))}
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -566,7 +561,7 @@ export default function BalanceSheetForm() {
                                 disabled={items.length === 0}
                                 className="bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 hover:from-cyan-400 hover:via-blue-500 hover:to-violet-500 text-white font-medium shadow-md shadow-cyan-500/20 disabled:opacity-50"
                             >
-                                {isRu ? `Перейти к проверке статей (${items.length})` : `Review Line Items (${items.length})`}
+                                {tr(`Перейти к проверке статей (${items.length})`, `Review Line Items (${items.length})`)}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
@@ -574,9 +569,9 @@ export default function BalanceSheetForm() {
                 )}
 
                 {/* Step 2: Data Entry */}
-                {currentStep === 'assets' && renderDataEntry('assets', isRu ? 'Активы' : 'Assets', 'text-emerald-600 dark:text-emerald-400', 'liabilities')}
-                {currentStep === 'liabilities' && renderDataEntry('liabilities', isRu ? 'Обязательства' : 'Liabilities', 'text-rose-600 dark:text-rose-400', 'equity')}
-                {currentStep === 'equity' && renderDataEntry('equity', isRu ? 'Капитал' : 'Equity', 'text-cyan-600 dark:text-cyan-400', 'review')}
+                {currentStep === 'assets' && renderDataEntry('assets', tr('Активы', 'Assets'), 'text-emerald-600 dark:text-emerald-400', 'liabilities')}
+                {currentStep === 'liabilities' && renderDataEntry('liabilities', tr('Обязательства', 'Liabilities'), 'text-rose-600 dark:text-rose-400', 'equity')}
+                {currentStep === 'equity' && renderDataEntry('equity', tr('Капитал', 'Equity'), 'text-cyan-600 dark:text-cyan-400', 'review')}
 
                 {/* Step 3: Review */}
                 {currentStep === 'review' && (
@@ -590,15 +585,15 @@ export default function BalanceSheetForm() {
                             <CardContent className="pt-6">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                                     <div className="p-4 bg-white dark:bg-[#070c1e] rounded-xl border border-slate-200 dark:border-[#162244] shadow-xs">
-                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{isRu ? 'Итого активы' : 'Total Assets'}</div>
+                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{tr('Итого активы', 'Total Assets')}</div>
                                         <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">${totalAssets.toLocaleString()}</div>
                                     </div>
                                     <div className="p-4 bg-white dark:bg-[#070c1e] rounded-xl border border-slate-200 dark:border-[#162244] shadow-xs">
-                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{isRu ? 'Итого обязательства' : 'Total Liabilities'}</div>
+                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{tr('Итого обязательства', 'Total Liabilities')}</div>
                                         <div className="text-2xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">${totalLiabilities.toLocaleString()}</div>
                                     </div>
                                     <div className="p-4 bg-white dark:bg-[#070c1e] rounded-xl border border-slate-200 dark:border-[#162244] shadow-xs">
-                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{isRu ? 'Итого собственный капитал' : 'Total Equity'}</div>
+                                        <div className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400">{tr('Итого собственный капитал', 'Total Equity')}</div>
                                         <div className="text-2xl font-bold font-mono text-cyan-600 dark:text-cyan-400 mt-1">${totalEquity.toLocaleString()}</div>
                                     </div>
                                 </div>
@@ -606,16 +601,16 @@ export default function BalanceSheetForm() {
                                     {isBalanced ? (
                                         <div className="flex items-center justify-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold text-base sm:text-lg">
                                             <CheckCircle2 className="w-6 h-6 shrink-0" />
-                                            {isRu ? 'Баланс сведён без расхождений! Готово к трансформации в МСФО.' : 'Balance Sheet is balanced! Ready for transformation.'}
+                                            {tr('Баланс сведён без расхождений! Готово к трансформации в МСФО.', 'Balance Sheet is balanced! Ready for transformation.')}
                                         </div>
                                     ) : (
                                         <div className="flex flex-col items-center gap-2 text-rose-600 dark:text-rose-400 font-medium">
                                             <div className="flex items-center gap-2 text-base sm:text-lg font-bold">
                                                 <Trash2 className="w-5 h-5" />
-                                                {isRu ? 'Баланс не сходится' : 'Not Balanced'}
+                                                {tr('Баланс не сходится', 'Not Balanced')}
                                             </div>
-                                            <p className="font-mono text-sm">${isRu ? 'Разница:' : 'Difference:'} ${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Пожалуйста, скорректируйте статьи перед переходом.' : 'Please adjust your entries before proceeding.'}</p>
+                                            <p className="font-mono text-sm">${tr('Разница:', 'Difference:')} ${Math.abs(totalAssets - (totalLiabilities + totalEquity)).toLocaleString()}</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">{tr('Пожалуйста, скорректируйте статьи перед переходом.', 'Please adjust your entries before proceeding.')}</p>
                                         </div>
                                     )}
                                 </div>
@@ -625,16 +620,16 @@ export default function BalanceSheetForm() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Card className="border-slate-200 dark:border-[#162244] bg-white dark:bg-[#0b1228]">
                                 <CardHeader className="border-b border-slate-100 dark:border-[#162244] pb-3">
-                                    <CardTitle className="text-emerald-600 dark:text-emerald-400">{isRu ? 'Активы' : 'Assets'}</CardTitle>
+                                    <CardTitle className="text-emerald-600 dark:text-emerald-400">{tr('Активы', 'Assets')}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="pt-4">
                                     <div className="space-y-2">
                                         {items.filter(i => i.category === 'assets').length === 0 ? (
-                                            <p className="text-xs text-slate-400 italic py-2">{isRu ? 'Нет добавленных статей' : 'No items added'}</p>
+                                            <p className="text-xs text-slate-400 italic py-2">{tr('Нет добавленных статей', 'No items added')}</p>
                                         ) : (
                                             items.filter(i => i.category === 'assets').map((item, idx) => (
                                                 <div key={idx} className="flex justify-between text-sm border-b border-slate-100 dark:border-[#162244] pb-2 text-slate-800 dark:text-slate-200">
-                                                    <span>{item.account_name || (isRu ? 'Без названия' : 'Untitled')}</span>
+                                                    <span>{item.account_name || (tr('Без названия', 'Untitled'))}</span>
                                                     <span className="font-mono font-semibold">${Number(item.amount).toLocaleString()}</span>
                                                 </div>
                                             ))
@@ -645,16 +640,16 @@ export default function BalanceSheetForm() {
                             <div className="space-y-6">
                                 <Card className="border-slate-200 dark:border-[#162244] bg-white dark:bg-[#0b1228]">
                                     <CardHeader className="border-b border-slate-100 dark:border-[#162244] pb-3">
-                                        <CardTitle className="text-rose-600 dark:text-rose-400">{isRu ? 'Обязательства' : 'Liabilities'}</CardTitle>
+                                        <CardTitle className="text-rose-600 dark:text-rose-400">{tr('Обязательства', 'Liabilities')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="pt-4">
                                         <div className="space-y-2">
                                             {items.filter(i => i.category === 'liabilities').length === 0 ? (
-                                                <p className="text-xs text-slate-400 italic py-2">{isRu ? 'Нет добавленных статей' : 'No items added'}</p>
+                                                <p className="text-xs text-slate-400 italic py-2">{tr('Нет добавленных статей', 'No items added')}</p>
                                             ) : (
                                                 items.filter(i => i.category === 'liabilities').map((item, idx) => (
                                                     <div key={idx} className="flex justify-between text-sm border-b border-slate-100 dark:border-[#162244] pb-2 text-slate-800 dark:text-slate-200">
-                                                        <span>{item.account_name || (isRu ? 'Без названия' : 'Untitled')}</span>
+                                                        <span>{item.account_name || (tr('Без названия', 'Untitled'))}</span>
                                                         <span className="font-mono font-semibold">${Number(item.amount).toLocaleString()}</span>
                                                     </div>
                                                 ))
@@ -664,16 +659,16 @@ export default function BalanceSheetForm() {
                                 </Card>
                                 <Card className="border-slate-200 dark:border-[#162244] bg-white dark:bg-[#0b1228]">
                                     <CardHeader className="border-b border-slate-100 dark:border-[#162244] pb-3">
-                                        <CardTitle className="text-cyan-600 dark:text-cyan-400">{isRu ? 'Собственный капитал' : 'Equity'}</CardTitle>
+                                        <CardTitle className="text-cyan-600 dark:text-cyan-400">{tr('Собственный капитал', 'Equity')}</CardTitle>
                                     </CardHeader>
                                     <CardContent className="pt-4">
                                         <div className="space-y-2">
                                             {items.filter(i => i.category === 'equity').length === 0 ? (
-                                                <p className="text-xs text-slate-400 italic py-2">{isRu ? 'Нет добавленных статей' : 'No items added'}</p>
+                                                <p className="text-xs text-slate-400 italic py-2">{tr('Нет добавленных статей', 'No items added')}</p>
                                             ) : (
                                                 items.filter(i => i.category === 'equity').map((item, idx) => (
                                                     <div key={idx} className="flex justify-between text-sm border-b border-slate-100 dark:border-[#162244] pb-2 text-slate-800 dark:text-slate-200">
-                                                        <span>{item.account_name || (isRu ? 'Без названия' : 'Untitled')}</span>
+                                                        <span>{item.account_name || (tr('Без названия', 'Untitled'))}</span>
                                                         <span className="font-mono font-semibold">${Number(item.amount).toLocaleString()}</span>
                                                     </div>
                                                 ))
@@ -691,7 +686,7 @@ export default function BalanceSheetForm() {
                                 onClick={() => setCurrentStep('selection')}
                                 className="border-slate-300 dark:border-[#162244] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#121c3d]"
                             >
-                                {isRu ? 'Вернуться к редактированию' : 'Back to Edit'}
+                                {tr('Вернуться к редактированию', 'Back to Edit')}
                             </Button>
                             <Button
                                 type="submit"
@@ -699,7 +694,7 @@ export default function BalanceSheetForm() {
                                 className="bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 hover:from-cyan-400 hover:via-blue-500 hover:to-violet-500 text-white text-base px-8 py-5 h-auto font-bold shadow-lg shadow-cyan-500/20 disabled:opacity-50"
                             >
                                 <Calculator className="mr-2 h-5 w-5" />
-                                {isSubmitting ? (isRu ? 'Обработка...' : 'Processing...') : (isRu ? 'Начать трансформацию в МСФО' : 'Start IFRS Transformation')}
+                                {isSubmitting ? (tr('Обработка...', 'Processing...')) : (tr('Начать трансформацию в МСФО', 'Start IFRS Transformation'))}
                             </Button>
                         </div>
                     </div>

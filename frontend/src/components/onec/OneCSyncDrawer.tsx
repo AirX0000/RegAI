@@ -20,6 +20,8 @@ import {
     Send,
     Database
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { tr } from '../../lib/i18n';
 
 interface OneCSyncDrawerProps {
     isOpen: boolean;
@@ -34,6 +36,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
     onSyncCompleted,
     defaultBalanceSheetId
 }) => {
+    useTranslation();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState<'ingest' | 'export'>('ingest');
     const [syncing, setSyncing] = useState(false);
@@ -93,8 +96,12 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
             setIngestResult(res.data);
 
             toast({
-                title: "1C Trial Balance Synchronized",
-                description: `Successfully extracted ${res.data.total_accounts} accounts from 1C. Balance Sheet ${res.data.balance_sheet_id ? 'created & linked' : 'analyzed'}.`,
+                title: tr("Оборотно-сальдовая ведомость 1С синхронизирована", "1C Trial Balance Synchronized", "1C aylanma-qoldiq qaydnomasi sinxronizatsiya qilindi"),
+                description: tr(
+                    `Успешно извлечено счетов из 1С: ${res.data.total_accounts}. Баланс ${res.data.balance_sheet_id ? 'создан и привязан' : 'проанализирован'}.`,
+                    `Successfully extracted ${res.data.total_accounts} accounts from 1C. Balance Sheet ${res.data.balance_sheet_id ? 'created & linked' : 'analyzed'}.`,
+                    `1C dan ${res.data.total_accounts} ta hisob muvaffaqiyatli olindi. Balans ${res.data.balance_sheet_id ? 'yaratildi va biriktirildi' : 'tahlil qilindi'}.`
+                ),
             });
 
             if (onSyncCompleted) {
@@ -103,8 +110,8 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
         } catch (err: any) {
             clearInterval(progressTimer);
             toast({
-                title: "1C Synchronization Error",
-                description: err.response?.data?.detail || "Failed to extract trial balance from 1C",
+                title: tr("Ошибка синхронизации с 1С", "1C Synchronization Error", "1C sinxronizatsiya xatosi"),
+                description: err.response?.data?.detail || tr("Не удалось извлечь ОСВ из 1С", "Failed to extract trial balance from 1C", "1C dan aylanma-qoldiq qaydnomasini olib bo'lmadi"),
                 variant: "destructive"
             });
         } finally {
@@ -115,8 +122,8 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
     const handleRunExport = async () => {
         if (!exportBalanceSheetId) {
             toast({
-                title: "Validation Error",
-                description: "Please provide a valid Balance Sheet ID for adjustment export",
+                title: tr("Ошибка валидации", "Validation Error", "Tekshiruv xatosi"),
+                description: tr("Укажите корректный ID баланса для выгрузки корректировок", "Please provide a valid Balance Sheet ID for adjustment export", "Tuzatishlarni eksport qilish uchun to'g'ri Balans ID kiriting"),
                 variant: "destructive"
             });
             return;
@@ -132,7 +139,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
 
             setExportResult(res.data);
             toast({
-                title: "Adjustments Exported to 1C",
+                title: tr("Корректировки выгружены в 1С", "Adjustments Exported to 1C", "Tuzatishlar 1C ga eksport qilindi"),
                 description: res.data.message,
             });
 
@@ -141,8 +148,8 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
             }
         } catch (err: any) {
             toast({
-                title: "1C Export Error",
-                description: err.response?.data?.detail || "Failed to push adjustments to 1C",
+                title: tr("Ошибка выгрузки в 1С", "1C Export Error", "1C eksport xatosi"),
+                description: err.response?.data?.detail || tr("Не удалось отправить корректировки в 1С", "Failed to push adjustments to 1C", "Tuzatishlarni 1C ga yuborib bo'lmadi"),
                 variant: "destructive"
             });
         } finally {
@@ -156,10 +163,14 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
                         <ArrowRightLeft className="h-6 w-6 text-amber-600" />
-                        1C:Enterprise Data Synchronization Hub
+                        {tr('Центр синхронизации данных 1С:Предприятие', '1C:Enterprise Data Synchronization Hub', '1C:Enterprise ma\'lumotlarni sinxronizatsiya qilish markazi')}
                     </DialogTitle>
                     <DialogDescription className="text-slate-500 dark:text-slate-400">
-                        Two-way data pipeline: Extract Trial Balance & General Ledger from 1C or push approved IFRS Adjustments back into 1C (Document_ОперацияБух).
+                        {tr(
+                            'Двусторонний обмен данными: импорт ОСВ и главной книги из 1С или выгрузка утвержденных корректировок МСФО обратно в 1С (Document_ОперацияБух).',
+                            'Two-way data pipeline: Extract Trial Balance & General Ledger from 1C or push approved IFRS Adjustments back into 1C (Document_ОперацияБух).',
+                            'Ikki tomonlama ma\'lumotlar almashinuvi: 1C dan aylanma-qoldiq qaydnomasini (OSV) import qilish yoki tasdiqlangan MHXS tuzatishlarini 1C ga qayta yuborish (Document_ОперацияБух).'
+                        )}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -174,7 +185,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                         }`}
                     >
                         <Download className="h-4 w-4 text-amber-600" />
-                        1C ➔ Axiaris: Import Trial Balance
+                        {tr('1С ➔ Axiaris: Импорт ОСВ / Баланса', '1C ➔ Axiaris: Import Trial Balance', '1C ➔ Axiaris: OSV / Balansni import qilish')}
                     </button>
                     <button
                         onClick={() => setActiveTab('export')}
@@ -185,7 +196,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                         }`}
                     >
                         <Send className="h-4 w-4 text-blue-600" />
-                        Axiaris ➔ 1C: Export IFRS Adjustments
+                        {tr('Axiaris ➔ 1С: Выгрузка корректировок МСФО', 'Axiaris ➔ 1C: Export IFRS Adjustments', 'Axiaris ➔ 1C: MHXS tuzatishlarini eksport qilish')}
                     </button>
                 </div>
 
@@ -196,7 +207,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                         <div className="space-y-2">
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase flex items-center gap-1">
                                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                                Reporting Period
+                                {tr('Отчетный период', 'Reporting Period', 'Hisobot davri')}
                             </Label>
                             <div className="grid grid-cols-4 gap-2">
                                 <button
@@ -208,7 +219,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                             : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                     }`}
                                 >
-                                    2024 Full Year
+                                    {tr('2024 год (Полный)', '2024 Full Year', '2024-yil (To\'liq)')}
                                 </button>
                                 <button
                                     type="button"
@@ -219,7 +230,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                             : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                     }`}
                                 >
-                                    Q4 2024 (Oct-Dec)
+                                    {tr('4 кв. 2024 (Окт-Дек)', 'Q4 2024 (Oct-Dec)', '2024 4-chorak (Okt-Dek)')}
                                 </button>
                                 <button
                                     type="button"
@@ -230,7 +241,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                             : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                     }`}
                                 >
-                                    December 2024
+                                    {tr('Декабрь 2024', 'December 2024', 'Dekabr 2024')}
                                 </button>
                                 <button
                                     type="button"
@@ -241,14 +252,14 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                             : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                     }`}
                                 >
-                                    Custom Dates
+                                    {tr('Произвольные даты', 'Custom Dates', 'Maxsus sanalar')}
                                 </button>
                             </div>
 
                             {periodPreset === 'custom' && (
                                 <div className="grid grid-cols-2 gap-3 pt-2">
                                     <div>
-                                        <Label htmlFor="start_date" className="text-[11px] text-slate-600 dark:text-slate-400">Start Date</Label>
+                                        <Label htmlFor="start_date" className="text-[11px] text-slate-600 dark:text-slate-400">{tr('Дата начала', 'Start Date', 'Boshlanish sanasi')}</Label>
                                         <Input
                                             id="start_date"
                                             type="date"
@@ -258,7 +269,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                         />
                                     </div>
                                     <div>
-                                        <Label htmlFor="end_date" className="text-[11px] text-slate-600 dark:text-slate-400">End Date</Label>
+                                        <Label htmlFor="end_date" className="text-[11px] text-slate-600 dark:text-slate-400">{tr('Дата окончания', 'End Date', 'Tugash sanasi')}</Label>
                                         <Input
                                             id="end_date"
                                             type="date"
@@ -275,13 +286,13 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <Label htmlFor="comp_code" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
-                                    Organization Code / Filter (Optional)
+                                    {tr('Код организации / Фильтр (Необязательно)', 'Organization Code / Filter (Optional)', 'Tashkilot kodi / Filtr (Ixtiyoriy)')}
                                 </Label>
                                 <Input
                                     id="comp_code"
                                     value={companyCode}
                                     onChange={(e) => setCompanyCode(e.target.value)}
-                                    placeholder="Leave empty to use connection default"
+                                    placeholder={tr('Оставьте пустым для значения по умолчанию', 'Leave empty to use connection default', 'Standart qiymat uchun bo\'sh qoldiring')}
                                     className="text-xs bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                                 />
                             </div>
@@ -295,7 +306,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                         className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-amber-600 focus:ring-amber-500"
                                     />
                                     <span className="text-xs font-medium text-slate-800 dark:text-slate-200">
-                                        Auto-create & populate Axiaris Balance Sheet
+                                        {tr('Автоматически создать и заполнить баланс в Axiaris', 'Auto-create & populate Axiaris Balance Sheet', 'Axiaris balansini avtomatik yaratish va to\'ldirish')}
                                     </span>
                                 </label>
                             </div>
@@ -307,7 +318,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 <div className="flex justify-between text-xs text-amber-900 dark:text-amber-200 font-medium">
                                     <span className="flex items-center gap-1.5">
                                         <Loader2 className="h-4 w-4 animate-spin text-amber-600 dark:text-amber-400" />
-                                        Querying 1C AccountingRegister_Хозрасчетный...
+                                        {tr('Запрос к регистру 1С AccountingRegister_Хозрасчетный...', 'Querying 1C AccountingRegister_Хозрасчетный...', '1C AccountingRegister_Хозрасчетный registriga so\'rov yuborilmoqda...')}
                                     </span>
                                     <span>{progress}%</span>
                                 </div>
@@ -330,7 +341,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                             {ingestResult.message}
                                         </h4>
                                         <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
-                                            Total Accounts: {ingestResult.total_accounts} | Assets: {ingestResult.total_assets.toLocaleString()} RUB | Liabilities: {ingestResult.total_liabilities.toLocaleString()} RUB | Equity: {ingestResult.total_equity.toLocaleString()} RUB
+                                            {tr('Всего счетов', 'Total Accounts', 'Jami hisoblar')}: {ingestResult.total_accounts} | {tr('Активы', 'Assets', 'Aktivlar')}: {ingestResult.total_assets.toLocaleString()} | {tr('Обязательства', 'Liabilities', 'Majburiyatlar')}: {ingestResult.total_liabilities.toLocaleString()} | {tr('Капитал', 'Equity', 'Kapital')}: {ingestResult.total_equity.toLocaleString()}
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -339,7 +350,9 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                                 ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700' 
                                                 : 'bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-700'
                                         }`}>
-                                            {ingestResult.is_balanced ? '⚖️ Balanced (A = L + E)' : '⚠️ Balance Discrepancy'}
+                                            {ingestResult.is_balanced
+                                                ? tr('⚖️ Баланс сошелся (А = О + К)', '⚖️ Balanced (A = L + E)', '⚖️ Balans teng (A = M + K)')
+                                                : tr('⚠️ Расхождение баланса', '⚠️ Balance Discrepancy', '⚠️ Balansda tafovut')}
                                         </span>
                                     </div>
                                 </div>
@@ -348,12 +361,12 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                     <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-xs">
                                         <thead className="bg-slate-50 dark:bg-slate-800/80 sticky top-0 font-medium text-slate-700 dark:text-slate-300">
                                             <tr>
-                                                <th className="px-3 py-2 text-left">1C Account</th>
-                                                <th className="px-3 py-2 text-left">Description</th>
-                                                <th className="px-3 py-2 text-left">Axiaris Category</th>
-                                                <th className="px-3 py-2 text-right">Debit Close</th>
-                                                <th className="px-3 py-2 text-right">Credit Close</th>
-                                                <th className="px-3 py-2 text-right">Net Amount</th>
+                                                <th className="px-3 py-2 text-left">{tr('Счет 1С', '1C Account', '1C Hisobi')}</th>
+                                                <th className="px-3 py-2 text-left">{tr('Наименование', 'Description', 'Tavsif')}</th>
+                                                <th className="px-3 py-2 text-left">{tr('Категория Axiaris', 'Axiaris Category', 'Axiaris toifasi')}</th>
+                                                <th className="px-3 py-2 text-right">{tr('Сальдо Дт', 'Debit Close', 'Debet qoldiq')}</th>
+                                                <th className="px-3 py-2 text-right">{tr('Сальдо Кт', 'Credit Close', 'Kredit qoldiq')}</th>
+                                                <th className="px-3 py-2 text-right">{tr('Чистое сальдо', 'Net Amount', 'Sof qoldiq')}</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 font-mono">
@@ -390,7 +403,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 onClick={onClose}
                                 className="border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                Close
+                                {tr('Закрыть', 'Close', 'Yopish')}
                             </Button>
                             <Button
                                 onClick={handleRunIngest}
@@ -400,12 +413,12 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 {syncing ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Synchronizing...
+                                        {tr('Синхронизация...', 'Synchronizing...', 'Sinxronizatsiya...')}
                                     </>
                                 ) : (
                                     <>
                                         <Download className="mr-2 h-4 w-4" />
-                                        Extract & Sync from 1C
+                                        {tr('Извлечь и синхронизировать из 1С', 'Extract & Sync from 1C', '1C dan olish va sinxronizatsiya qilish')}
                                     </>
                                 )}
                             </Button>
@@ -419,16 +432,20 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                         <div className="p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-900 dark:text-blue-200 space-y-1">
                             <p className="font-semibold flex items-center gap-1.5">
                                 <Database className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                Two-Way Accounting Pushback (Axiaris ➔ 1C:Enterprise)
+                                {tr('Двусторонняя выгрузка проводок (Axiaris ➔ 1С:Предприятие)', 'Two-Way Accounting Pushback (Axiaris ➔ 1C:Enterprise)', 'Ikki tomonlama buxgalteriya provodkalarini yuborish (Axiaris ➔ 1C:Enterprise)')}
                             </p>
                             <p className="text-blue-800 dark:text-blue-300">
-                                This will push approved IFRS reclassification adjustments directly into 1C as a standard <code>Document_ОперацияБух</code> (Manual Accounting Journal Entry) with Debit/Credit account lines and analytical dimensions.
+                                {tr(
+                                    'Утвержденные корректировки реклассификации МСФО будут переданы напрямую в 1С как стандартный документ Document_ОперацияБух (Бухгалтерская справка) с проводками Дт/Кт и аналитическими субконто.',
+                                    'This will push approved IFRS reclassification adjustments directly into 1C as a standard Document_ОперацияБух (Manual Accounting Journal Entry) with Debit/Credit account lines and analytical dimensions.',
+                                    'Tasdiqlangan MHXS qayta tasniflash tuzatishlari to\'g\'ridan-to\'g\'ri 1C tizimiga standart Document_ОперацияБух (Buxgalteriya ma\'lumotnomasi) sifatida Debet/Kredit satrlari bilan yuboriladi.'
+                                )}
                             </p>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="bs_id" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
-                                Source Balance Sheet ID
+                                {tr('ID исходного баланса', 'Source Balance Sheet ID', 'Manba balans ID raqami')}
                             </Label>
                             <Input
                                 id="bs_id"
@@ -442,13 +459,13 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
 
                         <div className="space-y-2">
                             <Label htmlFor="exp_comment" className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase">
-                                Document Comment / Description for 1C
+                                {tr('Комментарий к документу / Описание для 1С', 'Document Comment / Description for 1C', '1C hujjati uchun izoh / tavsif')}
                             </Label>
                             <Input
                                 id="exp_comment"
                                 value={exportComment}
                                 onChange={(e) => setExportComment(e.target.value)}
-                                placeholder="Reason for adjustment"
+                                placeholder={tr('Основание корректировки', 'Reason for adjustment', 'Tuzatish asosi')}
                                 className="text-xs bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                             />
                         </div>
@@ -461,16 +478,16 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 </h4>
                                 <div className="grid grid-cols-3 gap-2 text-xs text-emerald-800 dark:text-emerald-300 font-mono pt-1">
                                     <div className="p-2 bg-white/70 dark:bg-slate-800/80 rounded border border-emerald-200 dark:border-emerald-800">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">1C Document No</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('№ документа 1С', '1C Document No', '1C Hujjat raqami')}</span>
                                         <span className="font-bold text-slate-900 dark:text-white">{exportResult.document_number_1c || 'REGAI-0042'}</span>
                                     </div>
                                     <div className="p-2 bg-white/70 dark:bg-slate-800/80 rounded border border-emerald-200 dark:border-emerald-800">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Adjustments Exported</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Выгружено проводок', 'Adjustments Exported', 'Eksport qilingan tuzatishlar')}</span>
                                         <span className="font-bold text-slate-900 dark:text-white">{exportResult.exported_adjustments_count}</span>
                                     </div>
                                     <div className="p-2 bg-white/70 dark:bg-slate-800/80 rounded border border-emerald-200 dark:border-emerald-800">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Total Amount</span>
-                                        <span className="font-bold text-slate-900 dark:text-white">{exportResult.total_amount?.toLocaleString()} RUB</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Общая сумма', 'Total Amount', 'Umumiy summa')}</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{exportResult.total_amount?.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
@@ -482,7 +499,7 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 onClick={onClose}
                                 className="border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                Cancel
+                                {tr('Отмена', 'Cancel', 'Bekor qilish')}
                             </Button>
                             <Button
                                 onClick={handleRunExport}
@@ -492,12 +509,12 @@ export const OneCSyncDrawer: React.FC<OneCSyncDrawerProps> = ({
                                 {syncing ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Pushing to 1C...
+                                        {tr('Выгрузка в 1С...', 'Pushing to 1C...', '1C ga yuborilmoqda...')}
                                     </>
                                 ) : (
                                     <>
                                         <Send className="mr-2 h-4 w-4" />
-                                        Push Adjustments to 1C
+                                        {tr('Отправить корректировки в 1С', 'Push Adjustments to 1C', 'Tuzatishlarni 1C ga yuborish')}
                                     </>
                                 )}
                             </Button>

@@ -2,12 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Search, ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { tr } from '../lib/i18n';
 
 export default function NotFoundPage() {
     const navigate = useNavigate();
     const { i18n, t } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     return (
         <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-6">
             {/* Background glow */}
@@ -36,12 +36,10 @@ export default function NotFoundPage() {
 
                 {/* Message */}
                 <h1 className="text-2xl font-bold text-white mb-2">
-                    {isRu ? 'Страница не найдена' : 'Page Not Found'}
+                    {tr('Страница не найдена', 'Page Not Found')}
                 </h1>
                 <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                    {isRu 
-                        ? 'Страница, которую вы ищете, не существует или была перемещена. Проверьте адрес или воспользуйтесь навигацией.'
-                        : 'The page you are looking for does not exist or has been moved. Please verify the URL or use navigation.'
+                    {tr('Страница, которую вы ищете, не существует или была перемещена. Проверьте адрес или воспользуйтесь навигацией.', 'The page you are looking for does not exist or has been moved. Please verify the URL or use navigation.')
                     }
                 </p>
 
@@ -53,14 +51,14 @@ export default function NotFoundPage() {
                         className="border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
-                        {isRu ? 'Назад' : 'Back'}
+                        {tr('Назад', 'Back')}
                     </Button>
                     <Button
                         onClick={() => navigate('/')}
                         className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/25"
                     >
                         <Home className="w-4 h-4 mr-2" />
-                        {isRu ? 'На главную' : 'Home'}
+                        {tr('На главную', 'Home')}
                     </Button>
                     <Button
                         onClick={() => navigate('/guide')}
@@ -68,13 +66,17 @@ export default function NotFoundPage() {
                         className="border-slate-700 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                     >
                         <FileText className="w-4 h-4 mr-2" />
-                        {t('nav_documentation', isRu ? 'Документация' : 'Documentation')}
+                        {t('nav_documentation', tr('Документация', 'Documentation'))}
                     </Button>
                 </div>
 
                 {/* Bottom hint */}
                 <p className="mt-8 text-xs text-slate-600">
-                    RegAI — Smart Compliance Platform • Если проблема повторяется, обратитесь к администратору
+                    {tr(
+                        'RegAI — Smart Compliance Platform • Если проблема повторяется, обратитесь к администратору',
+                        'RegAI — Smart Compliance Platform • If the issue persists, please contact your administrator',
+                        'RegAI — Smart Compliance Platform • Agar muammo takrorlansa, administratorga murojaat qiling'
+                    )}
                 </p>
             </div>
         </div>

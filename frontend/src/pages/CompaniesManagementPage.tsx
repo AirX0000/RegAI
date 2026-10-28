@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '../context/AuthContext';
@@ -11,8 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 export default function CompaniesManagementPage() {
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const [companies, setCompanies] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -53,9 +53,7 @@ export default function CompaniesManagementPage() {
     };
 
     const handleDelete = async (companyId: string, companyName: string) => {
-        const confirmMsg = isRu
-            ? `Вы уверены, что хотите удалить компанию "${companyName}"? Это действие деактивирует организацию.`
-            : `Are you sure you want to delete "${companyName}"? This will soft-delete the company.`;
+        const confirmMsg = tr(`Вы уверены, что хотите удалить компанию "${companyName}"? Это действие деактивирует организацию.`, `Are you sure you want to delete "${companyName}"? This will soft-delete the company.`);
 
         if (!confirm(confirmMsg)) {
             return;
@@ -64,15 +62,15 @@ export default function CompaniesManagementPage() {
         try {
             await api.delete(`/companies/${companyId}`);
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Компания успешно удалена" : "Company deleted successfully",
+                title: tr("Успешно", "Success"),
+                description: tr("Компания успешно удалена", "Company deleted successfully"),
             });
             fetchCompanies();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось удалить компанию" : "Failed to delete company"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось удалить компанию", "Failed to delete company")),
             });
         }
     };
@@ -94,9 +92,9 @@ export default function CompaniesManagementPage() {
     if (user?.role !== 'superadmin') {
         return (
             <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold text-red-600">{isRu ? 'Доступ ограничен' : 'Access Denied'}</h1>
+                <h1 className="text-2xl font-bold text-red-600">{tr('Доступ ограничен', 'Access Denied')}</h1>
                 <p className="mt-2 text-gray-600">
-                    {isRu ? 'Только суперадминистраторы имеют доступ к управлению компаниями.' : 'Only superadmins can access company management.'}
+                    {tr('Только суперадминистраторы имеют доступ к управлению компаниями.', 'Only superadmins can access company management.')}
                 </p>
             </div>
         );
@@ -108,15 +106,15 @@ export default function CompaniesManagementPage() {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                         <Building2 className="h-8 w-8 text-blue-600" />
-                        {isRu ? 'Управление организациями' : 'Company Management'}
+                        {tr('Управление организациями', 'Company Management')}
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400 mt-1">
-                        {isRu ? 'Управление всеми зарегистрированными организациями и холдингами' : 'Manage all companies in the system'}
+                        {tr('Управление всеми зарегистрированными организациями и холдингами', 'Manage all companies in the system')}
                     </p>
                 </div>
                 <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold">
                     <Plus className="mr-2 h-4 w-4" />
-                    {isRu ? 'Добавить компанию' : 'Create Company'}
+                    {tr('Добавить компанию', 'Create Company')}
                 </Button>
             </div>
 
@@ -124,7 +122,7 @@ export default function CompaniesManagementPage() {
             <div className="mb-6 flex items-center gap-4">
                 <Input
                     type="text"
-                    placeholder={isRu ? 'Поиск организаций по названию или отрасли...' : 'Search companies by name or industry...'}
+                    placeholder={tr('Поиск организаций по названию или отрасли...', 'Search companies by name or industry...')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-md bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
@@ -141,7 +139,7 @@ export default function CompaniesManagementPage() {
                         htmlFor="showInactive"
                         className="text-sm font-medium leading-none cursor-pointer text-slate-700 dark:text-slate-300"
                     >
-                        {isRu ? 'Показывать неактивные' : 'Show Inactive'}
+                        {tr('Показывать неактивные', 'Show Inactive')}
                     </label>
                 </div>
             </div>
@@ -151,12 +149,12 @@ export default function CompaniesManagementPage() {
                 <table className="w-full">
                     <thead className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                         <tr>
-                            <th className="p-4 text-left">{isRu ? 'Компания' : 'Company Name'}</th>
-                            <th className="p-4 text-left">{isRu ? 'Отрасль' : 'Industry'}</th>
-                            <th className="p-4 text-left">{isRu ? 'Веб-сайт' : 'Website'}</th>
-                            <th className="p-4 text-left">{isRu ? 'Сотрудники' : 'Employees'}</th>
-                            <th className="p-4 text-left">{isRu ? 'Статус' : 'Status'}</th>
-                            <th className="p-4 text-left">{isRu ? 'Действия' : 'Actions'}</th>
+                            <th className="p-4 text-left">{tr('Компания', 'Company Name')}</th>
+                            <th className="p-4 text-left">{tr('Отрасль', 'Industry')}</th>
+                            <th className="p-4 text-left">{tr('Веб-сайт', 'Website')}</th>
+                            <th className="p-4 text-left">{tr('Сотрудники', 'Employees')}</th>
+                            <th className="p-4 text-left">{tr('Статус', 'Status')}</th>
+                            <th className="p-4 text-left">{tr('Действия', 'Actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
@@ -189,7 +187,7 @@ export default function CompaniesManagementPage() {
                                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60'
                                         : 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/60'
                                         }`}>
-                                        {company.is_active ? (isRu ? 'Активна' : 'Active') : (isRu ? 'Неактивна' : 'Inactive')}
+                                        {company.is_active ? (tr('Активна', 'Active')) : (tr('Неактивна', 'Inactive'))}
                                     </span>
                                 </td>
                                 <td className="p-4">
@@ -198,7 +196,7 @@ export default function CompaniesManagementPage() {
                                             size="sm"
                                             variant="outline"
                                             onClick={() => handleEdit(company)}
-                                            title={isRu ? 'Редактировать' : 'Edit'}
+                                            title={tr('Редактировать', 'Edit')}
                                             className="dark:border-slate-700 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
                                         >
                                             <Edit className="h-4 w-4" />
@@ -207,7 +205,7 @@ export default function CompaniesManagementPage() {
                                             size="sm"
                                             variant="destructive"
                                             onClick={() => handleDelete(company.id, company.name)}
-                                            title={isRu ? 'Удалить' : 'Delete'}
+                                            title={tr('Удалить', 'Delete')}
                                             className="bg-red-600 hover:bg-red-700 text-white"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -221,7 +219,7 @@ export default function CompaniesManagementPage() {
 
                 {filteredCompanies.length === 0 && (
                     <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                        {isRu ? 'Организации не найдены' : 'No companies found'}
+                        {tr('Организации не найдены', 'No companies found')}
                     </div>
                 )}
             </div>

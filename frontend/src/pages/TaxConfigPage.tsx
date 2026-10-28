@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { tr } from '../lib/i18n';
 import api from '../lib/api';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Button } from '../components/ui/button';
@@ -85,21 +86,20 @@ export default function TaxConfigPage() {
     };
 
     const getTaxTypeLabel = (type: string) => {
-        const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
         const labels: Record<string, string> = {
-            'vat': isRu ? 'НДС (Стандартная ставка)' : 'VAT (Standard Rate)',
-            'vat_reduced': isRu ? 'НДС (Льготная ставка)' : 'VAT (Reduced Rate)',
-            'gst': isRu ? 'GST (Налог на товары и услуги)' : 'GST (Goods and Services Tax)',
-            'corporate': isRu ? 'Корпоративный налог на прибыль (CIT)' : 'Corporate Income Tax (CIT)',
-            'corporate_small': isRu ? 'Налог для малого бизнеса / СЭЗ' : 'Small Business Tax / SEZ',
-            'income': isRu ? 'Подоходный налог (НДФЛ)' : 'Personal Income Tax (PIT)',
-            'income_top': isRu ? 'НДФЛ (Повышенная ставка)' : 'PIT (Higher Bracket)',
-            'consumption': isRu ? 'Налог на цифровые услуги / Потребление' : 'Digital Services / Consumption Tax',
-            'withholding': isRu ? 'Налог у источника выплат (WHT)' : 'Withholding Tax (WHT)',
-            'payroll': isRu ? 'Страховые взносы / ФОТ' : 'Payroll / Social Insurance',
-            'social': isRu ? 'Социальный налог / Взносы' : 'Social Tax / Contributions',
-            'property': isRu ? 'Налог на имущество организаций' : 'Corporate Property Tax',
-            'turnover': isRu ? 'Налог с оборота' : 'Turnover Tax',
+            'vat': tr('НДС (Стандартная ставка)', 'VAT (Standard Rate)', 'QQS (Standart stavka)'),
+            'vat_reduced': tr('НДС (Льготная ставка)', 'VAT (Reduced Rate)', 'QQS (Imtiyozli stavka)'),
+            'gst': tr('GST (Налог на товары и услуги)', 'GST (Goods and Services Tax)', 'GST (Tovarlar va xizmatlar solig\'i)'),
+            'corporate': tr('Корпоративный налог на прибыль (CIT)', 'Corporate Income Tax (CIT)', 'Korporativ foyda solig\'i (CIT)'),
+            'corporate_small': tr('Налог для малого бизнеса / СЭЗ', 'Small Business Tax / SEZ', 'Kichik biznes solig\'i / EIZ'),
+            'income': tr('Подоходный налог (НДФЛ)', 'Personal Income Tax (PIT)', 'Jismoniy shaxslar daromad solig\'i (JSHDS)'),
+            'income_top': tr('НДФЛ (Повышенная ставка)', 'PIT (Higher Bracket)', 'JSHDS (Yuqori stavka)'),
+            'consumption': tr('Налог на цифровые услуги / Потребление', 'Digital Services / Consumption Tax', 'Raqamli xizmatlar / Iste\'mol solig\'i'),
+            'withholding': tr('Налог у источника выплат (WHT)', 'Withholding Tax (WHT)', 'To\'lov manbaidan olinadigan soliq (WHT)'),
+            'payroll': tr('Страховые взносы / ФОТ', 'Payroll / Social Insurance', 'Sug\'urta badallari / Ish haqi fondi'),
+            'social': tr('Социальный налог / Взносы', 'Social Tax / Contributions', 'Ijtimoiy soliq / Badallar'),
+            'property': tr('Налог на имущество организаций', 'Corporate Property Tax', 'Yuridik shaxslar mol-mulk solig\'i'),
+            'turnover': tr('Налог с оборота', 'Turnover Tax', 'Aylanmadan olinadigan soliq'),
         };
         return labels[type] || type.toUpperCase();
     };
@@ -172,7 +172,7 @@ export default function TaxConfigPage() {
                                             <p className="text-sm text-slate-600 dark:text-slate-300">{rate.description}</p>
                                         )}
                                         <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                                            {t('effective_from_date')}: {rate.effective_from ? new Date(rate.effective_from).toLocaleDateString(isRu ? 'ru-RU' : 'en-US') : (isRu ? 'Бессрочно / Актуально' : 'Indefinite / Current')}
+                                            {t('effective_from_date')}: {rate.effective_from ? new Date(rate.effective_from).toLocaleDateString(isRu ? 'ru-RU' : 'en-US') : (tr('Бессрочно / Актуально', 'Indefinite / Current'))}
                                         </div>
                                     </div>
                                 ))}

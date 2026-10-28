@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslation } from 'react-i18next';
 import { Building2, Users as UsersIcon } from 'lucide-react';
+import { tr } from '../lib/i18n';
 
 export default function UsersPage() {
     const { t } = useTranslation();
@@ -108,7 +109,7 @@ export default function UsersPage() {
             await api.put(`/users/${editingUser.id}`, payload);
             toast({
                 title: t('success'),
-                description: 'User updated successfully',
+                description: tr('Данные пользователя успешно обновлены', 'User updated successfully', 'Foydalanuvchi ma\'lumotlari muvaffaqiyatli yangilandi'),
             });
             setIsEditOpen(false);
             fetchUsers();
@@ -116,8 +117,25 @@ export default function UsersPage() {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: error.response?.data?.detail || 'Failed to update user',
+                description: error.response?.data?.detail || tr('Не удалось обновить пользователя', 'Failed to update user', 'Foydalanuvchini yangilab bo\'lmadi'),
             });
+        }
+    };
+
+    const getRoleLabel = (role: string) => {
+        switch ((role || '').toLowerCase()) {
+            case 'superadmin':
+                return tr('Суперадмин', 'Superadmin', 'Superadmin');
+            case 'company_owner':
+                return tr('Владелец бизнеса', 'Company Owner', 'Biznes egasi');
+            case 'admin':
+                return tr('Администратор', 'Admin', 'Administrator');
+            case 'accountant':
+                return tr('Бухгалтер', 'Accountant', 'Buxgalter');
+            case 'auditor':
+                return tr('Аудитор', 'Auditor', 'Auditor');
+            default:
+                return tr('Пользователь', 'User', 'Foydalanuvchi');
         }
     };
 
@@ -154,7 +172,9 @@ export default function UsersPage() {
                 <div className="flex items-center gap-2.5 p-3 rounded-lg bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/60 text-xs text-blue-900 dark:text-blue-200">
                     <UsersIcon className="h-4 w-4 text-cyan-500 shrink-0" />
                     <span>
-                        Реестр сотрудников: отображаются только пользователи компании <strong className="font-semibold">{user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}</strong>. Новые сотрудники автоматически закрепляются за данной организацией.
+                        {tr('Реестр сотрудников: отображаются только пользователи компании', 'Employee registry: showing only users of company', 'Xodimlar reyestri: faqat ushbu kompaniya foydalanuvchilari ko\'rsatilmoqda')}{' '}
+                        <strong className="font-semibold">{user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}</strong>.{' '}
+                        {tr('Новые сотрудники автоматически закрепляются за данной организацией.', 'New employees are automatically assigned to this organization.', 'Yangi xodimlar avtomatik ravishda ushbu tashkilotga biriktiriladi.')}
                     </span>
                 </div>
             )}
@@ -163,11 +183,11 @@ export default function UsersPage() {
             {isEditOpen && editingUser && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
                     <div className="w-full max-w-md rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 shadow-2xl text-slate-900 dark:text-slate-100">
-                        <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">Edit User</h2>
+                        <h2 className="mb-4 text-xl font-bold text-slate-900 dark:text-white">{tr('Редактировать пользователя', 'Edit User', 'Foydalanuvchini tahrirlash')}</h2>
                         <div className="space-y-4">
                             {user?.role === 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('email')}</label>
                                     <input
                                         type="email"
                                         className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
@@ -175,12 +195,12 @@ export default function UsersPage() {
                                         onChange={(e) => setEditData({ ...editData, email: e.target.value })}
                                         placeholder={editingUser.email}
                                     />
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Leave blank to keep current email</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{tr('Оставьте пустым, чтобы сохранить текущий email', 'Leave blank to keep current email', 'Joriy emailni saqlash uchun bo\'sh qoldiring')}</p>
                                 </div>
                             )}
                             {user?.role !== 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{t('email')}</label>
                                     <input
                                         type="email"
                                         className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 p-2 text-sm cursor-not-allowed"
@@ -191,15 +211,15 @@ export default function UsersPage() {
                             )}
                             {user?.role === 'superadmin' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">New Password</label>
+                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{tr('Новый пароль', 'New Password', 'Yangi parol')}</label>
                                     <input
                                         type="password"
                                         className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-sm"
                                         value={editData.password}
                                         onChange={(e) => setEditData({ ...editData, password: e.target.value })}
-                                        placeholder="Leave blank to keep current password"
+                                        placeholder={tr('Оставьте пустым, чтобы сохранить текущий пароль', 'Leave blank to keep current password', 'Joriy parolni saqlash uchun bo\'sh qoldiring')}
                                     />
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Only fill if you want to reset password</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{tr('Заполните только для сброса пароля', 'Only fill if you want to reset password', 'Faqat parolni tiklash kerak bo\'lsa to\'ldiring')}</p>
                                 </div>
                             )}
                             <div>
@@ -210,10 +230,10 @@ export default function UsersPage() {
                                     onChange={(e) => setEditData({ ...editData, role: e.target.value })}
                                 >
                                     <option value="user">{t('user')}</option>
-                                    <option value="accountant">Accountant</option>
-                                    <option value="auditor">Auditor</option>
-                                    {user?.role === 'superadmin' && <option value="admin">Admin</option>}
-                                    {user?.role === 'superadmin' && <option value="superadmin">Superadmin</option>}
+                                    <option value="accountant">{tr('Бухгалтер', 'Accountant', 'Buxgalter')}</option>
+                                    <option value="auditor">{tr('Аудитор', 'Auditor', 'Auditor')}</option>
+                                    {user?.role === 'superadmin' && <option value="admin">{tr('Администратор', 'Admin', 'Administrator')}</option>}
+                                    {user?.role === 'superadmin' && <option value="superadmin">{tr('Суперадмин', 'Superadmin', 'Superadmin')}</option>}
                                 </select>
                             </div>
                             <div className="flex justify-end gap-2 pt-4">
@@ -269,9 +289,9 @@ export default function UsersPage() {
                                     onChange={(e) => setInviteData({ ...inviteData, role: e.target.value })}
                                 >
                                     <option value="user">{t('user')}</option>
-                                    <option value="accountant">Accountant</option>
-                                    <option value="auditor">Auditor</option>
-                                    {user?.role === 'superadmin' && <option value="admin">Admin</option>}
+                                    <option value="accountant">{tr('Бухгалтер', 'Accountant', 'Buxgalter')}</option>
+                                    <option value="auditor">{tr('Аудитор', 'Auditor', 'Auditor')}</option>
+                                    {user?.role === 'superadmin' && <option value="admin">{tr('Администратор', 'Admin', 'Administrator')}</option>}
                                 </select>
                             </div>
                             {user?.role === 'superadmin' && (
@@ -321,7 +341,7 @@ export default function UsersPage() {
                                                     u.role === 'superadmin' ? 'bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 ring-indigo-700/20' :
                                                         'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 ring-slate-500/20'
                                             }`}>
-                                            {u.role}
+                                            {getRoleLabel(u.role)}
                                         </span>
                                     </td>
                                     {user?.role === 'superadmin' && (
@@ -331,11 +351,11 @@ export default function UsersPage() {
                                     )}
                                     <td className="p-4">
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${u.is_active ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800'}`}>
-                                            {u.is_active ? 'Active' : 'Inactive'}
+                                            {u.is_active ? t('active') : t('inactive')}
                                         </span>
                                     </td>
                                     <td className="p-4 text-right">
-                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(u)} className="hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">Edit</Button>
+                                        <Button variant="ghost" size="sm" onClick={() => handleEdit(u)} className="hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200">{t('edit')}</Button>
                                     </td>
                                 </tr>
                             ))

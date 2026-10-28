@@ -1,4 +1,5 @@
 import { useTheme } from '../context/ThemeContext';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon, Laptop, Check } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
@@ -9,8 +10,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
     const { i18n } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
-
+    void i18n.language;
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -29,7 +29,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all ${className || ''}`}
-                title={isEn ? "Switch theme" : "Переключить тему оформления"}
+                title={tr("Переключить тему оформления", "Switch theme")}
             >
                 {resolvedTheme === 'dark' ? (
                     <Moon className="h-4 w-4 text-violet-400 animate-in spin-in-180 duration-200" />
@@ -37,7 +37,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
                     <Sun className="h-4 w-4 text-amber-500 animate-in spin-in-180 duration-200" />
                 )}
                 <span className="font-semibold text-xs text-slate-700 dark:text-slate-200 hidden 2xl:inline-block">
-                    {resolvedTheme === 'dark' ? (isEn ? 'Dark' : 'Тёмная') : (isEn ? 'Light' : 'Светлая')}
+                    {resolvedTheme === 'dark' ? (tr('Тёмная', 'Dark')) : (tr('Светлая', 'Light'))}
                 </span>
             </Button>
 
@@ -52,7 +52,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
                     >
                         <span className="flex items-center gap-2">
                             <Sun className="h-3.5 w-3.5 text-amber-500" />
-                            {isEn ? 'Light' : 'Светлая'}
+                            {tr('Светлая', 'Light')}
                         </span>
                         {theme === 'light' && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
                     </button>
@@ -65,7 +65,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
                     >
                         <span className="flex items-center gap-2">
                             <Moon className="h-3.5 w-3.5 text-violet-400" />
-                            {isEn ? 'Dark' : 'Тёмная'}
+                            {tr('Тёмная', 'Dark')}
                         </span>
                         {theme === 'dark' && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
                     </button>
@@ -78,7 +78,7 @@ export default function ThemeToggle({ className }: { className?: string } = {}) 
                     >
                         <span className="flex items-center gap-2">
                             <Laptop className="h-3.5 w-3.5 text-slate-400" />
-                            {isEn ? 'System' : 'Системная'}
+                            {tr('Системная', 'System')}
                         </span>
                         {theme === 'system' && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />}
                     </button>

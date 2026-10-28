@@ -18,6 +18,8 @@ import {
     Layers,
     FileText
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { tr } from '../../lib/i18n';
 
 interface TemplateWizardModalProps {
     isOpen: boolean;
@@ -26,32 +28,32 @@ interface TemplateWizardModalProps {
     initialTemplate?: any;
 }
 
-const STEPS = [
-    { id: 1, title: 'Scope & Standard', desc: 'Область и регламенты', icon: Scale },
-    { id: 2, title: 'Data Source', desc: 'Источник данных (1С/Excel)', icon: Server },
-    { id: 3, title: 'Accounting Rules', desc: 'Правила МСФО и баланс', icon: Layers },
-    { id: 4, title: 'AI Directives', desc: 'Инструкции для ИИ-аудита', icon: Brain },
-    { id: 5, title: 'Workflow & Review', desc: 'Маршрут и предпросмотр', icon: Workflow },
+const getSteps = () => [
+    { id: 1, title: tr('Область и стандарт', 'Scope & Standard', 'Soha va standart'), desc: tr('Область и регламенты', 'Scope & regulations', 'Qo\'llash sohasi va me\'yorlar'), icon: Scale },
+    { id: 2, title: tr('Источник данных', 'Data Source', 'Ma\'lumot manbasi'), desc: tr('Источник данных (1С/Excel)', 'Data source (1C/Excel)', '1C yoki Excel fayl'), icon: Server },
+    { id: 3, title: tr('Правила учета', 'Accounting Rules', 'Hisob qoidalari'), desc: tr('Правила МСФО и баланс', 'IFRS rules & balance', 'MHXS qoidalari va balans'), icon: Layers },
+    { id: 4, title: tr('ИИ-директивы', 'AI Directives', 'AI ko\'rsatmalari'), desc: tr('Инструкции для ИИ-аудита', 'AI audit instructions', 'AI-audit yo\'riqnomasi'), icon: Brain },
+    { id: 5, title: tr('Маршрут и сводка', 'Workflow & Review', 'Jarayon va yakun'), desc: tr('Маршрут и предпросмотр', 'Workflow & preview', 'Tasdiqlash zanjiri'), icon: Workflow },
 ];
 
-const ACCOUNT_OPTIONS = [
-    { code: '01', name: 'Основные средства (PPE)' },
-    { code: '02', name: 'Амортизация (Accum. Depr.)' },
-    { code: '10', name: 'Сырье и материалы (Inventories)' },
-    { code: '41', name: 'Товары (Goods)' },
-    { code: '51', name: 'Расчетные счета (Cash & Bank)' },
-    { code: '60', name: 'Расчеты с поставщиками (Payables)' },
-    { code: '62', name: 'Расчеты с покупателями (Receivables)' },
-    { code: '67', name: 'Долгосрочные обязательства / Аренда' },
-    { code: '80', name: 'Уставный капитал (Share Capital)' },
-    { code: '84', name: 'Нераспределенная прибыль (Retained Earnings)' },
+const getAccountOptions = () => [
+    { code: '01', name: tr('Основные средства (PPE)', 'Property, Plant & Equipment (PPE)', 'Asosiy vositalar (PPE)') },
+    { code: '02', name: tr('Амортизация (Accum. Depr.)', 'Accumulated Depreciation', 'Jamg\'arilgan amortizatsiya') },
+    { code: '10', name: tr('Сырье и материалы (Inventories)', 'Raw Materials & Inventories', 'Xomashyo va materiallar') },
+    { code: '41', name: tr('Товары (Goods)', 'Merchandise / Goods', 'Tovarlar (Goods)') },
+    { code: '51', name: tr('Расчетные счета (Cash & Bank)', 'Cash & Bank Accounts', 'Hisob-kitob schyotlari (Pul mablag\'lari)') },
+    { code: '60', name: tr('Расчеты с поставщиками (Payables)', 'Trade Payables', 'Yetkazib beruvchilar bilan hisob-kitoblar') },
+    { code: '62', name: tr('Расчеты с покупателями (Receivables)', 'Trade Receivables', 'Xaridorlar bilan hisob-kitoblar') },
+    { code: '67', name: tr('Долгосрочные обязательства / Аренда', 'Long-Term Liabilities / Leases', 'Uzoq muddatli majburiyatlar / Ijara') },
+    { code: '80', name: tr('Уставный капитал (Share Capital)', 'Share Capital', 'Ustav kapitali (Share Capital)') },
+    { code: '84', name: tr('Нераспределенная прибыль (Retained Earnings)', 'Retained Earnings', 'Taqsimlanmagan foyda') },
 ];
 
-const STANDARDS_LIST = [
-    { id: 'IFRS 16', label: 'IFRS 16 (Аренда)', desc: 'Дисконтирование, капитализация ROU-актива и арендных обязательств (01/67)' },
-    { id: 'IAS 36', label: 'IAS 36 (Обесценение)', desc: 'Тест на обесценение ОС/ИТ-оборудования и проводка убытка в Дт 84' },
-    { id: 'IFRS 9', label: 'IFRS 9 (ECL Резерв)', desc: 'Расчет матрицы кредитных убытков по сомнительной дебиторке (63/84)' },
-    { id: 'IAS 12', label: 'IAS 12 (Налоги)', desc: 'Расчет временных разниц и отложенных налоговых обязательств' },
+const getStandardsList = () => [
+    { id: 'IFRS 16', label: tr('IFRS 16 (Аренда)', 'IFRS 16 (Leases)', 'IFRS 16 (Ijara)'), desc: tr('Дисконтирование, капитализация ROU-актива и арендных обязательств (01/67)', 'Discounting, ROU asset capitalization & lease liabilities (01/67)', 'Diskontlash, ROU aktivini kapitallashtirish va ijara majburiyatlari (01/67)') },
+    { id: 'IAS 36', label: tr('IAS 36 (Обесценение)', 'IAS 36 (Impairment)', 'IAS 36 (Qadrsizlanish)'), desc: tr('Тест на обесценение ОС/ИТ-оборудования и проводка убытка в Дт 84', 'Impairment test for PPE/IT assets and loss recognition in Dr 84', 'Asosiy vositalar qadrsizlanish testi va zararni Dt 84 da tan olish') },
+    { id: 'IFRS 9', label: tr('IFRS 9 (ECL Резерв)', 'IFRS 9 (ECL Provision)', 'IFRS 9 (ECL Zaxira)'), desc: tr('Расчет матрицы кредитных убытков по сомнительной дебиторке (63/84)', 'Expected Credit Loss matrix calculation for receivables (63/84)', 'Shubhali debitorlik qarzlari bo\'yicha ECL matritsasini hisoblash (63/84)') },
+    { id: 'IAS 12', label: tr('IAS 12 (Налоги)', 'IAS 12 (Income Taxes)', 'IAS 12 (Foyda solig\'i)'), desc: tr('Расчет временных разниц и отложенных налоговых обязательств', 'Temporary differences and deferred tax assets/liabilities calculation', 'Vaqtinchalik farqlar va kechiktirilgan soliq majburiyatlarini hisoblash') },
 ];
 
 const PRESET_AI_PROMPTS: Record<string, string> = {
@@ -67,6 +69,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
     onSuccess,
     initialTemplate
 }) => {
+    useTranslation();
+    const STEPS = getSteps();
+    const ACCOUNT_OPTIONS = getAccountOptions();
+    const STANDARDS_LIST = getStandardsList();
     const { toast } = useToast();
     const [currentStep, setCurrentStep] = useState(1);
     const [submitting, setSubmitting] = useState(false);
@@ -176,8 +182,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
         if (!name.trim()) {
             toast({
                 variant: 'destructive',
-                title: 'Ошибка',
-                description: 'Укажите название шаблона на шаге 1',
+                title: tr('Ошибка', 'Error', 'Xatolik'),
+                description: tr('Укажите название шаблона на шаге 1', 'Please enter a template name in Step 1', '1-qadamda shablon nomini kiriting'),
             });
             setCurrentStep(1);
             return;
@@ -217,15 +223,15 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                 const res = await api.put(`/templates/${initialTemplate.id}`, payload);
                 savedResult = res?.data || { ...initialTemplate, ...payload };
                 toast({
-                    title: 'Успешно',
-                    description: 'Шаблон обновлен с полной конфигурацией',
+                    title: tr('Успешно', 'Success', 'Muvaffaqiyatli'),
+                    description: tr('Шаблон обновлен с полной конфигурацией', 'Template updated with full configuration', 'Shablon to\'liq konfiguratsiya bilan yangilandi'),
                 });
             } else {
                 const res = await api.post('/templates/', payload);
                 savedResult = res?.data || { id: 'tmpl-' + Date.now(), ...payload };
                 toast({
-                    title: 'Шаблон создан',
-                    description: 'Интеллектуальный шаблон готов к использованию',
+                    title: tr('Шаблон создан', 'Template Created', 'Shablon yaratildi'),
+                    description: tr('Интеллектуальный шаблон готов к использованию', 'Smart template is ready to use', 'Intellektual shablon foydalanishga tayyor'),
                 });
             }
             onSuccess(savedResult);
@@ -234,8 +240,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
             console.error('Failed to save template', error);
             toast({
                 variant: 'destructive',
-                title: 'Ошибка сохранения',
-                description: error.response?.data?.detail || 'Не удалось сохранить шаблон',
+                title: tr('Ошибка сохранения', 'Save Error', 'Saqlashda xatolik'),
+                description: error.response?.data?.detail || tr('Не удалось сохранить шаблон', 'Failed to save template', 'Shablonni saqlab bo\'lmadi'),
             });
         } finally {
             setSubmitting(false);
@@ -253,16 +259,22 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {initialTemplate ? 'Редактирование Smart-Шаблона' : 'Конструктор Smart-Шаблона Axiaris'}
+                                {initialTemplate
+                                    ? tr('Редактирование Smart-Шаблона', 'Edit Smart Template', 'Smart-Shablonni tahrirlash')
+                                    : tr('Конструктор Smart-Шаблона Axiaris', 'Axiaris Smart Template Builder', 'Axiaris Smart-Shablon konstruktori')}
                             </h2>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                Интеллектуальный регламентный пайплайн финансовой трансформации и комплаенса
+                                {tr(
+                                    'Интеллектуальный регламентный пайплайн финансовой трансформации и комплаенса',
+                                    'Intelligent regulatory pipeline for financial transformation and compliance',
+                                    'Moliyaviy transformatsiya va komplayensning intellektual konveyeri'
+                                )}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        aria-label="Закрыть окно конструктора"
+                        aria-label={tr('Закрыть окно конструктора', 'Close builder modal', 'Konstruktor oynasini yopish')}
                         className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
                     >
                         <X className="h-5 w-5" />
@@ -320,90 +332,90 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
                                 <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 1: Название, назначение и юрисдикция
+                                    <Scale className="h-5 w-5 text-blue-600 dark:text-blue-400" /> {tr('Шаг 1: Название, назначение и юрисдикция', 'Step 1: Name, Purpose & Jurisdiction', '1-qadam: Nomi, maqsadi va yurisdiksiya')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Определите регуляторную сферу применения шаблона и стандарты финансового учета
+                                    {tr('Определите регуляторную сферу применения шаблона и стандарты финансового учета', 'Define the regulatory scope of the template and financial accounting standards', 'Shablonning regulyator qo\'llash sohasini va moliyaviy hisob standartlarini belgilang')}
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Название шаблона *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Название шаблона *', 'Template Name *', 'Shablon nomi *')}</label>
                                     <Input
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="Например: Трансформация МСФО 16: Аренда и сверка капитала"
+                                        placeholder={tr('Например: Трансформация МСФО 16: Аренда и сверка капитала', 'e.g. IFRS 16 Transformation: Leases & Equity Reconciliation', 'Masalan: MHXS 16 Transformatsiyasi: Ijara va kapital solishtirmasi')}
                                         className="h-10 text-sm font-medium bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Описание и назначение</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Описание и назначение', 'Description & Purpose', 'Tavsifi va maqsadi')}</label>
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
-                                        placeholder="Опишите цель формирования отчета, обязательные раскрытия и контролируемые риски..."
+                                        placeholder={tr('Опишите цель формирования отчета, обязательные раскрытия и контролируемые риски...', 'Describe the report objective, required disclosures, and monitored risks...', 'Hisobot maqsadini, majburiy ochiqlashlarni va nazorat qilinadigan xavflarni tavsiflang...')}
                                         rows={2}
                                         className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                     />
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Категория отчета *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Категория отчета *', 'Report Category *', 'Hisobot toifasi *')}</label>
                                     <select
                                         value={reportType}
                                         onChange={(e) => setReportType(e.target.value)}
                                         className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="financial">МСФО Трансформация (Financial)</option>
-                                        <option value="compliance">Налоговый комплаенс (Compliance)</option>
-                                        <option value="audit">Аудит и сверка ОСВ (Audit Reconciliation)</option>
-                                        <option value="risk_assessment">Оценка рисков и ESG (Risk Analysis)</option>
+                                        <option value="financial">{tr('МСФО Трансформация (Financial)', 'IFRS Transformation (Financial)', 'MHXS Transformatsiyasi (Financial)')}</option>
+                                        <option value="compliance">{tr('Налоговый комплаенс (Compliance)', 'Tax Compliance (Compliance)', 'Soliq komplayensi (Compliance)')}</option>
+                                        <option value="audit">{tr('Аудит и сверка ОСВ (Audit Reconciliation)', 'Audit & Trial Balance Reconciliation', 'Audit va OSV solishtirmasi')}</option>
+                                        <option value="risk_assessment">{tr('Оценка рисков и ESG (Risk Analysis)', 'Risk Assessment & ESG', 'Xavflarni baholash va ESG')}</option>
                                     </select>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Юрисдикция / Страна *</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Юрисдикция / Страна *', 'Jurisdiction / Country *', 'Yurisdiksiya / Davlat *')}</label>
                                     <select
                                         value={countryCode}
                                         onChange={(e) => setCountryCode(e.target.value)}
                                         className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="UZ">🇺🇿 Узбекистан (Uzbekistan)</option>
-                                        <option value="KZ">🇰🇿 Казахстан (Kazakhstan)</option>
-                                        <option value="GB">🇬🇧 Великобритания (United Kingdom)</option>
-                                        <option value="US">🇺🇸 США (United States)</option>
-                                        <option value="DE">🇩🇪 Германия / ЕС (Germany / EU)</option>
-                                        <option value="GLOBAL">🌐 Глобальный международный (Global)</option>
+                                        <option value="UZ">🇺🇿 {tr('Узбекистан (Uzbekistan)', 'Uzbekistan', 'O\'zbekiston')}</option>
+                                        <option value="KZ">🇰🇿 {tr('Казахстан (Kazakhstan)', 'Kazakhstan', 'Qozog\'iston')}</option>
+                                        <option value="GB">🇬🇧 {tr('Великобритания (United Kingdom)', 'United Kingdom', 'Buyuk Britaniya')}</option>
+                                        <option value="US">🇺🇸 {tr('США (United States)', 'United States', 'AQSH')}</option>
+                                        <option value="DE">🇩🇪 {tr('Германия / ЕС (Germany / EU)', 'Germany / EU', 'Germaniya / YI')}</option>
+                                        <option value="GLOBAL">🌐 {tr('Глобальный международный (Global)', 'Global International', 'Global xalqaro')}</option>
                                     </select>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Исходный стандарт учета</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Исходный стандарт учета', 'Source Accounting Standard', 'Manba buxgalteriya standarti')}</label>
                                     <select
                                         value={sourceStandard}
                                         onChange={(e) => setSourceStandard(e.target.value)}
                                         className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="NAS">НСБУ Республики Узбекистан (NAS / НАС)</option>
-                                        <option value="1C_COA">1С:Типовой план счетов (План счетов 1С)</option>
-                                        <option value="RSBU">РСБУ (Российские стандарты учета)</option>
-                                        <option value="GRI">GRI / Локальный управленческий учет</option>
+                                        <option value="NAS">{tr('НСБУ Республики Узбекистан (NAS)', 'NAS of Uzbekistan (NSBU)', 'O\'zbekiston Respublikasi BHMS (NSBU)')}</option>
+                                        <option value="1C_COA">{tr('1С:Типовой план счетов (План счетов 1С)', '1C Standard Chart of Accounts', '1C Standart schyotlar rejasi')}</option>
+                                        <option value="RSBU">{tr('РСБУ (Российские стандарты учета)', 'RAS (Russian Accounting Standards)', 'RSBU (Rossiya hisob standartlari)')}</option>
+                                        <option value="GRI">{tr('GRI / Локальный управленческий учет', 'GRI / Local Management Accounting', 'GRI / Mahalliy boshqaruv hisobi')}</option>
                                     </select>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Целевой стандарт комплаенса</label>
+                                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Целевой стандарт комплаенса', 'Target Compliance Standard', 'Maqsadli komplayens standarti')}</label>
                                     <select
                                         value={targetStandard}
                                         onChange={(e) => setTargetStandard(e.target.value)}
                                         className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="IFRS">МСФО (IFRS — International Standards)</option>
-                                        <option value="TAX_CODE">Налоговый кодекс (ГНК РУз / Налоговые декларации)</option>
-                                        <option value="US_GAAP">US GAAP (Американские стандарты)</option>
-                                        <option value="IFRS_S1_S2">IFRS S1 / S2 (Климатический комплаенс)</option>
+                                        <option value="IFRS">{tr('МСФО (IFRS — International Standards)', 'IFRS (International Financial Reporting Standards)', 'MHXS (IFRS — Xalqaro standartlar)')}</option>
+                                        <option value="TAX_CODE">{tr('Налоговый кодекс (ГНК РУз / Налоговые декларации)', 'Tax Code of Uzbekistan (Tax Returns)', 'O\'zR Soliq kodeksi (Soliq deklaratsiyalari)')}</option>
+                                        <option value="US_GAAP">{tr('US GAAP (Американские стандарты)', 'US GAAP (American Standards)', 'US GAAP (AQSH standartlari)')}</option>
+                                        <option value="IFRS_S1_S2">{tr('IFRS S1 / S2 (Климатический комплаенс)', 'IFRS S1 / S2 (Sustainability Disclosures)', 'IFRS S1 / S2 (ESG va iqlim komplayensi)')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -415,10 +427,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
                                 <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 2: Источник данных и счета учета
+                                    <Server className="h-5 w-5 text-blue-600 dark:text-blue-400" /> {tr('Шаг 2: Источник данных и счета учета', 'Step 2: Data Source & Chart of Accounts', '2-qadam: Ma\'lumotlar manbasi va hisob schyotlari')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Укажите, откуда шаблон будет получать исходную оборотно-сальдовую ведомость (ОСВ)
+                                    {tr('Укажите, откуда шаблон будет получать исходную оборотно-сальдовую ведомость (ОСВ)', 'Specify where the template will pull the source Trial Balance from', 'Shablon boshlang\'ich aylanma-qoldiq qaydnomasini (OSV) qayerdan olishini belgilang')}
                                 </p>
                             </div>
 
@@ -427,22 +439,22 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 {[
                                     {
                                         id: 'onec_sync',
-                                        title: '1С:Предприятие',
-                                        subtitle: 'Прямая синхронизация по OData/REST',
+                                        title: tr('1С:Предприятие', '1C:Enterprise', '1C:Korxona'),
+                                        subtitle: tr('Прямая синхронизация по OData/REST', 'Direct sync via OData/REST', 'OData/REST orqali bevosita sinxronizatsiya'),
                                         icon: Server,
                                         color: 'amber'
                                     },
                                     {
                                         id: 'excel_upload',
-                                        title: 'Excel / CSV файл',
-                                        subtitle: 'Импорт файла ОСВ по макету',
+                                        title: tr('Excel / CSV файл', 'Excel / CSV File', 'Excel / CSV fayl'),
+                                        subtitle: tr('Импорт файла ОСВ по макету', 'Import Trial Balance file by layout', 'OSV faylini shablon bo\'yicha import qilish'),
                                         icon: FileSpreadsheet,
                                         color: 'emerald'
                                     },
                                     {
                                         id: 'manual_entry',
-                                        title: 'Выбор баланса',
-                                        subtitle: 'Использование ранее созданного баланса',
+                                        title: tr('Выбор баланса', 'Select Balance Sheet', 'Balansni tanlash'),
+                                        subtitle: tr('Использование ранее созданного баланса', 'Use an existing balance sheet', 'Avval yaratilgan balansdan foydalanish'),
                                         icon: FileText,
                                         color: 'blue'
                                     }
@@ -476,14 +488,14 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                        Обязательные классы счетов ОСВ ({requiredAccounts.length} выбрано):
+                                        {tr(`Обязательные классы счетов ОСВ (${requiredAccounts.length} выбрано):`, `Required Trial Balance Account Classes (${requiredAccounts.length} selected):`, `Majburiy OSV hisob sinflari (${requiredAccounts.length} ta tanlandi):`)}
                                     </label>
                                     <button
                                         type="button"
                                         onClick={() => setRequiredAccounts(ACCOUNT_OPTIONS.map(a => a.code))}
                                         className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline font-medium"
                                     >
-                                        Выбрать все счета
+                                        {tr('Выбрать все счета', 'Select all accounts', 'Barcha schyotlarni tanlash')}
                                     </button>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -512,9 +524,9 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
 
                             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <div className="text-xs font-semibold text-slate-900 dark:text-white">Строгая верификация структуры колонок</div>
+                                    <div className="text-xs font-semibold text-slate-900 dark:text-white">{tr('Строгая верификация структуры колонок', 'Strict Column Structure Verification', 'Ustunlar tuzilmasini qat\'iy tekshirish')}</div>
                                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        Требовать обязательное наличие сальдо на начало, оборотов Дт/Кт и конечного сальдо
+                                        {tr('Требовать обязательное наличие сальдо на начало, оборотов Дт/Кт и конечного сальдо', 'Require opening balance, Debit/Credit turnover, and closing balance columns', 'Boshlang\'ich qoldiq, Dt/Kt aylanmalar va yakuniy qoldiq bo\'lishini talab qilish')}
                                     </div>
                                 </div>
                                 <input
@@ -532,16 +544,16 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
                                 <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 3: Бухгалтерская логика и пакеты МСФО
+                                    <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" /> {tr('Шаг 3: Бухгалтерская логика и пакеты МСФО', 'Step 3: Accounting Logic & IFRS Packages', '3-qadam: Buxgalteriya mantiqi va MHXS paketlari')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Настройте автоматические корректировки и правила защиты двойной записи
+                                    {tr('Настройте автоматические корректировки и правила защиты двойной записи', 'Configure automatic adjustments and double-entry balance protection rules', 'Avtomatik tuzatishlar va ikki yoqlama yozuv himoya qoidalarini sozlang')}
                                 </p>
                             </div>
 
                             <div className="space-y-2.5">
                                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                    Активные пакеты трансформационных проводок:
+                                    {tr('Активные пакеты трансформационных проводок:', 'Active Transformation Adjustment Packages:', 'Faol transformatsiya provodkalari paketlari:')}
                                 </label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {STANDARDS_LIST.map(std => {
@@ -578,7 +590,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     <div className="flex items-center gap-2">
                                         <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                                         <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
-                                            Double-Entry Balance Guard (Контроль сходимости капитала)
+                                            {tr('Double-Entry Balance Guard (Контроль сходимости капитала)', 'Double-Entry Balance Guard (Equity Convergence Control)', 'Double-Entry Balance Guard (Kapital tengligini nazorat qilish)')}
                                         </span>
                                     </div>
                                     <input
@@ -589,8 +601,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     />
                                 </div>
                                 <p className="text-[11px] text-emerald-800 dark:text-emerald-300/90">
-                                    При расчете обесценения (IAS 36) и резерва (IFRS 9) движок автоматически проводит парные записи
-                                    в Нераспределенную прибыль (счет 84), гарантируя нулевое расхождение ($\Delta = 0.00$) между активами и пассивами.
+                                    {tr(
+                                        'При расчете обесценения (IAS 36) и резерва (IFRS 9) движок автоматически проводит парные записи в Нераспределенную прибыль (счет 84), гарантируя нулевое расхождение между активами и пассивами.',
+                                        'When calculating impairment (IAS 36) and ECL provisions (IFRS 9), the engine automatically posts offsetting entries to Retained Earnings (Account 84), guaranteeing zero discrepancy between assets and liabilities & equity.',
+                                        'Qadrsizlanish (IAS 36) va ECL zaxirasini (IFRS 9) hisoblashda tizim avtomatik ravishda Taqsimlanmagan foydaga (84-schyot) juft yozuvlarni o\'tkazib, aktivlar va passivlar o\'rtasida nol tafovutni kafolatlaydi.'
+                                    )}
                                 </p>
                             </div>
                         </div>
@@ -601,10 +616,10 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
                                 <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" /> Шаг 4: Директивы для нейросети Axiaris
+                                    <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" /> {tr('Шаг 4: Директивы для нейросети Axiaris', 'Step 4: Axiaris Neural Network Directives', '4-qadam: Axiaris neyrotarmog\'i uchun ko\'rsatmalar')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Задайте специализированные инструкции и пороговые триггеры рисков для ИИ-аудита
+                                    {tr('Задайте специализированные инструкции и пороговые триггеры рисков для ИИ-аудита', 'Configure specialized instructions and risk threshold triggers for AI auditing', 'AI-audit uchun maxsus yo\'riqnomalar va xavf chegaralarini belgilang')}
                                 </p>
                             </div>
 
@@ -612,8 +627,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 <div className="flex items-center gap-2.5">
                                     <Brain className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                                     <div>
-                                        <div className="text-xs font-semibold text-purple-900 dark:text-purple-200">Включить автоматический ИИ-аудит</div>
-                                        <div className="text-[11px] text-purple-700 dark:text-purple-300/80">Генерировать аудиторское заключение и выявлять риски</div>
+                                        <div className="text-xs font-semibold text-purple-900 dark:text-purple-200">{tr('Включить автоматический ИИ-аудит', 'Enable Automated AI Audit', 'Avtomatik AI-auditni yoqish')}</div>
+                                        <div className="text-[11px] text-purple-700 dark:text-purple-300/80">{tr('Генерировать аудиторское заключение и выявлять риски', 'Generate audit opinion and detect compliance risks', 'Auditorlik xulosasini shakllantirish va xavflarni aniqlash')}</div>
                                     </div>
                                 </div>
                                 <input
@@ -628,29 +643,29 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 <div className="space-y-4 pt-1">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Роль ИИ-эксперта</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Роль ИИ-эксперта', 'AI Expert Role', 'AI-ekspert roli')}</label>
                                             <select
                                                 value={aiRole}
                                                 onChange={(e) => setAiRole(e.target.value)}
                                                 className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-purple-500"
                                             >
-                                                <option value="Senior IFRS Big 4 Auditor">Старший аудитор Big 4 по МСФО</option>
-                                                <option value="Tax Compliance Advisor (UZ/CIS)">Налоговый консультант (Узбекистан / СНГ)</option>
-                                                <option value="Forensic & Fraud Investigator">Специалист по форензик и выявлению искажений</option>
-                                                <option value="ESG & Sustainability Lead">ESG и комплаенс-аналитик</option>
+                                                <option value="Senior IFRS Big 4 Auditor">{tr('Старший аудитор Big 4 по МСФО', 'Senior IFRS Big 4 Auditor', 'MHXS bo\'yicha Big 4 katta auditori')}</option>
+                                                <option value="Tax Compliance Advisor (UZ/CIS)">{tr('Налоговый консультант (Узбекистан / СНГ)', 'Tax Compliance Advisor (UZ / CIS)', 'Soliq maslahatchisi (O\'zbekiston / MDH)')}</option>
+                                                <option value="Forensic & Fraud Investigator">{tr('Специалист по форензик и выявлению искажений', 'Forensic & Misstatement Investigator', 'Forenzik va buzilishlarni aniqlash mutaxassisi')}</option>
+                                                <option value="ESG & Sustainability Lead">{tr('ESG и комплаенс-аналитик', 'ESG & Sustainability Lead', 'ESG va komplayens tahlilchisi')}</option>
                                             </select>
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Язык аудиторских замечаний</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Язык аудиторских замечаний', 'Audit Findings Language', 'Auditorlik izohlari tili')}</label>
                                             <select
                                                 value={outputLanguage}
                                                 onChange={(e) => setOutputLanguage(e.target.value)}
                                                 className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium focus:ring-2 focus:ring-purple-500"
                                             >
-                                                <option value="ru">Русский язык (RU)</option>
-                                                <option value="uz">Узбекский язык (O'zbek tili)</option>
-                                                <option value="en">Английский язык (English)</option>
+                                                <option value="ru">{tr('Русский язык (RU)', 'Russian (RU)', 'Rus tili (RU)')}</option>
+                                                <option value="uz">{tr('Узбекский язык (O\'zbek tili)', 'Uzbek (O\'zbek tili)', 'O\'zbek tili (UZ)')}</option>
+                                                <option value="en">{tr('Английский язык (English)', 'English (EN)', 'Ingliz tili (EN)')}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -658,13 +673,13 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     {/* Presets */}
                                     <div className="space-y-1.5">
                                         <div className="flex items-center justify-between">
-                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Промпт-инструкция для ИИ</label>
+                                            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Промпт-инструкция для ИИ', 'AI System Prompt Directive', 'AI uchun tizimli yo\'riqnoma')}</label>
                                             <div className="flex gap-1">
-                                                {Object.entries({
-                                                    'МСФО 16': 'ifrs_full',
-                                                    'Налоги': 'tax_audit',
-                                                    'ОСВ 1С': 'general_ledger'
-                                                }).map(([label, key]) => (
+                                                {[
+                                                    { label: tr('МСФО 16', 'IFRS 16', 'MHXS 16'), key: 'ifrs_full' },
+                                                    { label: tr('Налоги', 'Taxes', 'Soliqlar'), key: 'tax_audit' },
+                                                    { label: tr('ОСВ 1С', '1C TB', '1C OSV'), key: 'general_ledger' }
+                                                ].map(({ label, key }) => (
                                                     <button
                                                         key={key}
                                                         type="button"
@@ -681,20 +696,20 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                             onChange={(e) => setAiPrompt(e.target.value)}
                                             rows={3}
                                             className="w-full text-xs rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500 font-mono bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                                            placeholder="Введите системную директиву для нейросети..."
+                                            placeholder={tr('Введите системную директиву для нейросети...', 'Enter system directive for the neural engine...', 'Neyrotarmoq uchun tizimli ko\'rsatmani kiriting...')}
                                         />
                                     </div>
 
                                     {/* Risk Triggers */}
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Триггеры автоматических предупреждений:</label>
+                                        <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">{tr('Триггеры автоматических предупреждений:', 'Automatic Alert Triggers:', 'Avtomatik ogohlantirish триггерлари:')}</label>
                                         <div className="flex flex-wrap gap-1.5">
                                             {[
-                                                { id: 'unbalanced_equity', label: '🔴 Расхождение баланса > 0' },
-                                                { id: 'undisclosed_lease_terms', label: '🟡 Нераскрытые условия аренды' },
-                                                { id: 'stale_receivables', label: '🟠 Дебиторка > 90 дней без резерва' },
-                                                { id: 'vat_gap', label: '🔴 Разрыв по НДС и выручке' },
-                                                { id: 'abnormal_turnover', label: '🟡 Нетипичные обороты по счету 84' }
+                                                { id: 'unbalanced_equity', label: tr('🔴 Расхождение баланса > 0', '🔴 Balance Discrepancy > 0', '🔴 Balans tafovuti > 0') },
+                                                { id: 'undisclosed_lease_terms', label: tr('🟡 Нераскрытые условия аренды', '🟡 Undisclosed Lease Terms', '🟡 Ochiqlanmagan ijara shartlari') },
+                                                { id: 'stale_receivables', label: tr('🟠 Дебиторка > 90 дней без резерва', '🟠 Receivables > 90d without ECL', '🟠 90 kundan oshgan zaxirasiz debitorlik') },
+                                                { id: 'vat_gap', label: tr('🔴 Разрыв по НДС и выручке', '🔴 VAT vs Revenue Gap', '🔴 QQS va tushum o\'rtasidagi farq') },
+                                                { id: 'abnormal_turnover', label: tr('🟡 Нетипичные обороты по счету 84', '🟡 Unusual Account 84 Turnover', '🟡 84-schyot bo\'yicha noodatiy aylanmalar') }
                                             ].map(t => {
                                                 const isSelected = riskTriggers.includes(t.id);
                                                 return (
@@ -724,17 +739,17 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                         <div className="space-y-5 animate-in fade-in-50 duration-150">
                             <div>
                                 <h3 className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" /> Шаг 5: Маршрут согласования и финальная сводка
+                                    <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" /> {tr('Шаг 5: Маршрут согласования и финальная сводка', 'Step 5: Approval Workflow & Final Summary', '5-qadam: Tasdiqlash yo\'nalishi va yakuniy xulosa')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    Установите периодичность формирования и проверьте готовность шаблона
+                                    {tr('Установите периодичность формирования и проверьте готовность шаблона', 'Set recurrence schedule and verify template readiness', 'Hisobot davriyligini o\'rnating va shablon tayyorligini tekshiring')}
                                 </p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold text-slate-900 dark:text-white">Регулярное авто-создание драфта</span>
+                                        <span className="text-xs font-semibold text-slate-900 dark:text-white">{tr('Регулярное авто-создание драфта', 'Recurring Auto-Draft Generation', 'Muntazam avto-qoralama yaratish')}</span>
                                         <input
                                             type="checkbox"
                                             checked={isRecurring}
@@ -744,34 +759,34 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     </div>
                                     {isRecurring && (
                                         <div className="space-y-1">
-                                            <label className="text-xs text-slate-600 dark:text-slate-400">Периодичность формирования:</label>
+                                            <label className="text-xs text-slate-600 dark:text-slate-400">{tr('Периодичность формирования:', 'Recurrence Schedule:', 'Shakllantirish davriyligi:')}</label>
                                             <select
                                                 value={recurrencePattern}
                                                 onChange={(e) => setRecurrencePattern(e.target.value)}
                                                 className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-700 px-3 text-xs bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                                             >
-                                                <option value="monthly">Ежемесячно (к 5-му числу месяца)</option>
-                                                <option value="quarterly">Ежеквартально (по итогам квартала)</option>
-                                                <option value="yearly">Ежегодно (годовая отчетность)</option>
+                                                <option value="monthly">{tr('Ежемесячно (к 5-му числу месяца)', 'Monthly (by the 5th of each month)', 'Har oyda (oyning 5-sanasigacha)')}</option>
+                                                <option value="quarterly">{tr('Ежеквартально (по итогам квартала)', 'Quarterly (at quarter end)', 'Har chorakda (chorak yakuni bo\'yicha)')}</option>
+                                                <option value="yearly">{tr('Ежегодно (годовая отчетность)', 'Annually (annual reporting)', 'Har yili (yillik hisobot)')}</option>
                                             </select>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2">
-                                    <span className="text-xs font-semibold text-slate-900 dark:text-white block">Цепочка согласования (Workflow):</span>
+                                    <span className="text-xs font-semibold text-slate-900 dark:text-white block">{tr('Цепочка согласования (Workflow):', 'Approval Chain (Workflow):', 'Tasdiqlash zanjiri (Workflow):')}</span>
                                     <div className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
                                         <div className="flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 flex items-center justify-center font-bold text-[10px]">1</span>
-                                            <span><strong>Бухгалтер:</strong> Загрузка ОСВ / запуск трансформации</span>
+                                            <span><strong>{tr('Бухгалтер:', 'Accountant:', 'Buxgalter:')}</strong> {tr('Загрузка ОСВ / запуск трансформации', 'Trial Balance upload / transformation run', 'OSV yuklash / transformatsiyani ishga tushirish')}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 flex items-center justify-center font-bold text-[10px]">2</span>
-                                            <span><strong>Аудитор:</strong> Проверка сходимости и ИИ-заключения</span>
+                                            <span><strong>{tr('Аудитор:', 'Auditor:', 'Auditor:')}</strong> {tr('Проверка сходимости и ИИ-заключения', 'Convergence check & AI opinion review', 'Balans tengligi va AI xulosasini tekshirish')}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-center font-bold text-[10px]">3</span>
-                                            <span><strong>Директор:</strong> Финальное утверждение и экспорт</span>
+                                            <span><strong>{tr('Директор:', 'Executive:', 'Direktor:')}</strong> {tr('Финальное утверждение и экспорт', 'Final sign-off & export', 'Yakuniy tasdiqlash va eksport')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -783,30 +798,30 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     <div className="flex items-center gap-2">
                                         <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                         <span className="text-xs font-bold text-blue-950 dark:text-blue-200 uppercase tracking-wider">
-                                            Итоговый паспорт шаблона (Smart Blueprint)
+                                            {tr('Итоговый паспорт шаблона (Smart Blueprint)', 'Smart Blueprint Summary', 'Shablonning yakuniy pasporti (Smart Blueprint)')}
                                         </span>
                                     </div>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">
-                                        Готов к запуску
+                                        {tr('Готов к запуску', 'Ready to Launch', 'Ishga tushirishga tayyor')}
                                     </span>
                                 </div>
 
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                                     <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Название:</span>
-                                        <span className="font-semibold text-slate-900 dark:text-white truncate block">{name || 'Не указано'}</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Название:', 'Name:', 'Nomi:')}</span>
+                                        <span className="font-semibold text-slate-900 dark:text-white truncate block">{name || tr('Не указано', 'Not specified', 'Kiritilmagan')}</span>
                                     </div>
                                     <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Переход:</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Переход:', 'Transition:', 'O\'tish:')}</span>
                                         <span className="font-semibold text-blue-700 dark:text-blue-300">{sourceStandard} ➔ {targetStandard}</span>
                                     </div>
                                     <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Источник:</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Источник:', 'Source:', 'Manba:')}</span>
                                         <span className="font-semibold capitalize text-slate-900 dark:text-white">{dataSourceType.replace('_', ' ')}</span>
                                     </div>
                                     <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg border border-blue-100 dark:border-slate-700">
-                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Стандарты:</span>
-                                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">{activeStandards.join(', ') || 'Базовый'}</span>
+                                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">{tr('Стандарты:', 'Standards:', 'Standartlar:')}</span>
+                                        <span className="font-semibold text-indigo-700 dark:text-indigo-300">{activeStandards.join(', ') || tr('Базовый', 'Basic', 'Bazaviy')}</span>
                                     </div>
                                 </div>
 
@@ -816,11 +831,11 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     </span>
                                     {aiEnabled && (
                                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50">
-                                            ✓ ИИ-экспертиза: {aiRole}
+                                            ✓ {tr('ИИ-экспертиза', 'AI Audit', 'AI-ekspertiza')}: {aiRole}
                                         </span>
                                     )}
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50">
-                                        ✓ Счетов в ОСВ: {requiredAccounts.length}
+                                        ✓ {tr('Счетов в ОСВ', 'Accounts in TB', 'OSV dagi hisoblar')}: {requiredAccounts.length}
                                     </span>
                                 </div>
                             </div>
@@ -839,7 +854,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 onClick={() => setCurrentStep(prev => prev - 1)}
                                 className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                             >
-                                <ChevronLeft className="mr-1 h-4 w-4" /> Назад
+                                <ChevronLeft className="mr-1 h-4 w-4" /> {tr('Назад', 'Back', 'Orqaga')}
                             </Button>
                         )}
                     </div>
@@ -852,7 +867,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                             onClick={onClose}
                             className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"
                         >
-                            Отмена
+                            {tr('Отмена', 'Cancel', 'Bekor qilish')}
                         </Button>
 
                         {currentStep < 5 ? (
@@ -863,8 +878,8 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                     if (currentStep === 1 && !name.trim()) {
                                         toast({
                                             variant: 'destructive',
-                                            title: 'Ошибка',
-                                            description: 'Укажите название шаблона перед переходом дальше'
+                                            title: tr('Ошибка', 'Error', 'Xatolik'),
+                                            description: tr('Укажите название шаблона перед переходом дальше', 'Please enter a template name before proceeding', 'Keyingi qadamga o\'tishdan oldin shablon nomini kiriting')
                                         });
                                         return;
                                     }
@@ -872,7 +887,7 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 }}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
                             >
-                                Далее <ChevronRight className="ml-1 h-4 w-4" />
+                                {tr('Далее', 'Next', 'Keyingi')} <ChevronRight className="ml-1 h-4 w-4" />
                             </Button>
                         ) : (
                             <Button
@@ -883,7 +898,9 @@ export const TemplateWizardModal: React.FC<TemplateWizardModalProps> = ({
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-500/20"
                             >
                                 <Sparkles className="mr-1.5 h-4 w-4" />
-                                {initialTemplate ? 'Сохранить изменения' : 'Создать Smart-Шаблон'}
+                                {initialTemplate
+                                    ? tr('Сохранить изменения', 'Save Changes', 'O\'zgarishlarni saqlash')
+                                    : tr('Создать Smart-Шаблон', 'Create Smart Template', 'Smart-Shablon yaratish')}
                             </Button>
                         )}
                     </div>

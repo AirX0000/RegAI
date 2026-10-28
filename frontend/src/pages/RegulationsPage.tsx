@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { useForm } from 'react-hook-form';
 import api from '../lib/api';
 import { Button } from '@/components/ui/button';
@@ -499,13 +500,13 @@ export default function RegulationsPage() {
 
             toast({
                 title: t('export_successful'),
-                description: isEn ? 'Regulations exported to Excel' : 'Нормативы успешно экспортированы в Excel',
+                description: tr('Нормативы успешно экспортированы в Excel', 'Regulations exported to Excel'),
             });
         } catch (error) {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: isEn ? 'Failed to export to Excel' : 'Ошибка при экспорте в Excel',
+                description: tr('Ошибка при экспорте в Excel', 'Failed to export to Excel'),
             });
         }
     };
@@ -530,13 +531,13 @@ export default function RegulationsPage() {
 
             toast({
                 title: t('export_successful'),
-                description: isEn ? 'Regulations exported to PDF' : 'Нормативы успешно экспортированы в PDF',
+                description: tr('Нормативы успешно экспортированы в PDF', 'Regulations exported to PDF'),
             });
         } catch (error) {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: isEn ? 'Failed to export to PDF' : 'Ошибка при экспорте в PDF',
+                description: tr('Ошибка при экспорте в PDF', 'Failed to export to PDF'),
             });
         }
     };
@@ -694,12 +695,12 @@ export default function RegulationsPage() {
         setIsCrawling(true);
         const startTime = new Date().toLocaleTimeString();
         const activeSec = crawlerSections.find(s => s.id === crawlerSelectedSection);
-        const secLabel = activeSec ? (isEn ? (activeSec.name_en || activeSec.name) : activeSec.name) : (isEn ? "All Sections & Domains" : "Все разделы и сферы");
+        const secLabel = activeSec ? tr(activeSec.name, activeSec.name_en || activeSec.name) : tr("Все разделы и сферы", "All Sections & Domains");
 
         setCrawlerTelemetry([
-            `[${startTime}] 🌐 ${isEn ? 'Connecting to regulatory spider crawler pool...' : 'Подключение к пулу мониторинга официальных правовых порталов...'}`,
-            `[${startTime}] 🎯 ${isEn ? `Filtering by domain/section: [${secLabel}]` : `Целевой раздел мониторинга: [${secLabel}]`}`,
-            `[${startTime}] 🛰️ ${isEn ? 'Scouring Lex.uz, Soliq.uz, CBU, NAPP, Customs, IFRS, OECD, FATF...' : 'Отправка роботов к Lex.uz, Soliq.uz, ЦБ РУз, НАПП, ГТК, IFRS, OECD, FATF...'}`
+            `[${startTime}] 🌐 ${tr('Подключение к пулу мониторинга официальных правовых порталов...', 'Connecting to regulatory spider crawler pool...')}`,
+            `[${startTime}] 🎯 ${tr(`Целевой раздел мониторинга: [${secLabel}]`, `Filtering by domain/section: [${secLabel}]`)}`,
+            `[${startTime}] 🛰️ ${tr('Отправка роботов к Lex.uz, Soliq.uz, ЦБ РУз, НАПП, ГТК, IFRS, OECD, FATF...', 'Scouring Lex.uz, Soliq.uz, CBU, NAPP, Customs, IFRS, OECD, FATF...')}`
         ]);
         try {
             const res = await api.post('/regulations/crawler/start', {
@@ -714,10 +715,11 @@ export default function RegulationsPage() {
                 setDiscoveredRegulations(res.data.discoveries);
             }
             toast({
-                title: isEn ? "Web Crawl Completed" : "Сканирование сети завершено",
-                description: isEn 
-                    ? `Discovered ${res.data?.total_found ?? 0} legislative acts in section [${secLabel}]. ${res.data?.auto_imported ? `Auto-imported to registry: ${res.data.auto_imported}.` : ''}`
-                    : `Обнаружено ${res.data?.total_found ?? 0} нормативно-правовых актов в разделе [${secLabel}]. ${res.data?.auto_imported ? `Автоматически добавлено в базу: ${res.data.auto_imported}.` : ''}`
+                title: tr("Сканирование сети завершено", "Web Crawl Completed"),
+                description: tr(
+                    `Обнаружено ${res.data?.total_found ?? 0} нормативно-правовых актов в разделе [${secLabel}]. ${res.data?.auto_imported ? `Автоматически добавлено в базу: ${res.data.auto_imported}.` : ''}`,
+                    `Discovered ${res.data?.total_found ?? 0} legislative acts in section [${secLabel}]. ${res.data?.auto_imported ? `Auto-imported to registry: ${res.data.auto_imported}.` : ''}`
+                )
             });
             if (res.data?.auto_imported) {
                 await fetchRegulations();
@@ -726,7 +728,7 @@ export default function RegulationsPage() {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: isEn ? "Failed to complete web crawl" : "Не удалось завершить сканирование сети",
+                description: tr("Не удалось завершить сканирование сети", "Failed to complete web crawl"),
             });
         } finally {
             setIsCrawling(false);
@@ -738,8 +740,8 @@ export default function RegulationsPage() {
         if (!newSectionName.trim()) {
             toast({
                 variant: "destructive",
-                title: isEn ? "Error" : "Ошибка",
-                description: isEn ? "Section name is required" : "Введите название раздела",
+                title: tr("Ошибка", "Error"),
+                description: tr("Введите название раздела", "Section name is required"),
             });
             return;
         }
@@ -761,10 +763,8 @@ export default function RegulationsPage() {
             }
 
             toast({
-                title: isEn ? "Section Created" : "Раздел мониторинга добавлен",
-                description: isEn 
-                    ? `Section "${newSectionName}" added. Starting web spider scan...`
-                    : `Раздел "${newSectionName}" добавлен. Запускаем целевой поиск в сети...`,
+                title: tr("Раздел мониторинга добавлен", "Section Created"),
+                description: tr(`Раздел "${newSectionName}" добавлен. Запускаем целевой поиск в сети...`, `Section "${newSectionName}" added. Starting web spider scan...`),
             });
 
             setIsAddSectionOpen(false);
@@ -791,8 +791,8 @@ export default function RegulationsPage() {
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: isEn ? "Error" : "Ошибка",
-                description: isEn ? "Failed to create section" : "Не удалось добавить раздел",
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось добавить раздел", "Failed to create section"),
             });
         } finally {
             setIsSubmittingSection(false);
@@ -807,14 +807,14 @@ export default function RegulationsPage() {
                 handleSectionChange('all');
             }
             toast({
-                title: isEn ? "Deleted" : "Раздел удален",
-                description: `${secName} ${isEn ? "removed from monitoring" : "удален из системы мониторинга"}`,
+                title: tr("Раздел удален", "Deleted"),
+                description: `${secName} ${tr("удален из системы мониторинга", "removed from monitoring")}`,
             });
         } catch (error) {
             toast({
                 variant: "destructive",
-                title: isEn ? "Error" : "Ошибка",
-                description: isEn ? "Failed to delete section" : "Не удалось удалить раздел",
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось удалить раздел", "Failed to delete section"),
             });
         }
     };
@@ -825,7 +825,7 @@ export default function RegulationsPage() {
             await api.post('/regulations/crawler/import', { codes: [code] });
             toast({
                 title: t('success'),
-                description: isEn ? `Regulation ${code} added to registry!` : `Норматив ${code} успешно добавлен в официальный реестр!`,
+                description: tr(`Норматив ${code} успешно добавлен в официальный реестр!`, `Regulation ${code} added to registry!`),
             });
             setDiscoveredRegulations(prev => prev.map(d => d.code === code ? { ...d, is_imported: true } : d));
             await fetchRegulations();
@@ -833,7 +833,7 @@ export default function RegulationsPage() {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: isEn ? "Failed to import regulation" : "Ошибка при импорте норматива",
+                description: tr("Ошибка при импорте норматива", "Failed to import regulation"),
             });
         } finally {
             setIsImporting(null);
@@ -846,17 +846,15 @@ export default function RegulationsPage() {
             const pendingCodes = discoveredRegulations.filter(d => !d.is_imported).map(d => d.code);
             if (pendingCodes.length === 0) {
                 toast({
-                    title: isEn ? "Info" : "Информация",
-                    description: isEn ? "All discovered acts are already imported." : "Все найденные нормативы уже импортированы в базу.",
+                    title: tr("Информация", "Info"),
+                    description: tr("Все найденные нормативы уже импортированы в базу.", "All discovered acts are already imported."),
                 });
                 return;
             }
             const res = await api.post('/regulations/crawler/import', { codes: pendingCodes });
             toast({
                 title: t('success'),
-                description: isEn 
-                    ? `Successfully imported ${res.data?.imported ?? pendingCodes.length} regulations!` 
-                    : `Все найденные нормативы (${res.data?.imported ?? pendingCodes.length}) успешно импортированы в базу!`,
+                description: tr(`Все найденные нормативы (${res.data?.imported ?? pendingCodes.length}) успешно импортированы в базу!`, `Successfully imported ${res.data?.imported ?? pendingCodes.length} regulations!`),
             });
             setDiscoveredRegulations(prev => prev.map(d => ({ ...d, is_imported: true })));
             await fetchRegulations();
@@ -864,7 +862,7 @@ export default function RegulationsPage() {
             toast({
                 variant: "destructive",
                 title: t('error'),
-                description: isEn ? "Failed to bulk import regulations" : "Ошибка при пакетном импорте нормативов",
+                description: tr("Ошибка при пакетном импорте нормативов", "Failed to bulk import regulations"),
             });
         } finally {
             setIsImporting(null);
@@ -878,17 +876,17 @@ export default function RegulationsPage() {
                 <div>
                     <div className="flex items-center gap-3">
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            {isEn ? "Regulations Registry" : "Реестр нормативных актов"}
+                            {tr("Реестр нормативных актов", "Regulations Registry")}
                         </h1>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            {isEn ? "Live Sync 24/7" : "Авто-синхронизация 24/7"}
+                            {tr("Авто-синхронизация 24/7", "Live Sync 24/7")}
                         </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-                        <span>{isEn ? "Filtered" : "Найдено"}: <strong className="text-slate-700 dark:text-slate-200">{filteredResults.length}</strong></span>
+                        <span>{tr("Найдено", "Filtered")}: <strong className="text-slate-700 dark:text-slate-200">{filteredResults.length}</strong></span>
                         <span>•</span>
-                        <span>{isEn ? "Total in registry" : "Всего в базе"}: <strong className="text-slate-700 dark:text-slate-200">{results.length}</strong> {isEn ? "regulations" : "нормативов"}</span>
+                        <span>{tr("Всего в базе", "Total in registry")}: <strong className="text-slate-700 dark:text-slate-200">{results.length}</strong> {tr("нормативов", "regulations")}</span>
                     </p>
                 </div>
 
@@ -898,7 +896,7 @@ export default function RegulationsPage() {
                         className="gap-2 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-sm relative overflow-hidden group h-9 text-xs sm:text-sm font-medium"
                     >
                         <Globe className="h-4 w-4 text-violet-200 group-hover:rotate-45 transition-transform duration-300" />
-                        <span>{isEn ? 'Web Radar & Crawler' : 'Радар сети & Краулер'}</span>
+                        <span>{tr('Радар сети & Краулер', 'Web Radar & Crawler')}</span>
                         <span className="flex h-2 w-2 relative">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
@@ -914,7 +912,7 @@ export default function RegulationsPage() {
                         ) : (
                             <Sparkles className="h-4 w-4" />
                         )}
-                        <span>{isEn ? 'Auto-Update Catalog' : 'Авто-пополнение базы'}</span>
+                        <span>{tr('Авто-пополнение базы', 'Auto-Update Catalog')}</span>
                     </Button>
                     <Button 
                         onClick={handleRefresh} 
@@ -922,7 +920,7 @@ export default function RegulationsPage() {
                         className="gap-2 h-9 text-xs sm:text-sm border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-xs"
                     >
                         <RefreshCw className={`h-3.5 w-3.5 text-slate-500 dark:text-slate-400 ${isLoading ? 'animate-spin' : ''}`} />
-                        <span>{isEn ? 'Check Updates' : 'Проверить обновления'}</span>
+                        <span>{tr('Проверить обновления', 'Check Updates')}</span>
                     </Button>
                     <Button 
                         onClick={() => setIsAddModalOpen(true)} 
@@ -930,7 +928,7 @@ export default function RegulationsPage() {
                         className="gap-2 h-9 text-xs sm:text-sm border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-xs"
                     >
                         <Plus className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                        <span>{isEn ? 'Add Regulation' : 'Добавить норматив'}</span>
+                        <span>{tr('Добавить норматив', 'Add Regulation')}</span>
                     </Button>
                     <Button
                         variant="outline"
@@ -939,7 +937,7 @@ export default function RegulationsPage() {
                         className={`gap-1.5 h-9 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-xs ${showFilters || hasActiveFilters ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 font-semibold' : 'bg-white dark:bg-slate-800'}`}
                     >
                         <Filter className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                        <span>{isEn ? 'Filters' : 'Фильтры'}</span>
+                        <span>{tr('Фильтры', 'Filters')}</span>
                         {hasActiveFilters && (
                             <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
                         )}
@@ -954,7 +952,7 @@ export default function RegulationsPage() {
                             className="gap-1.5 h-9 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-xs"
                         >
                             <Download className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-                            <span>{isEn ? 'Export' : 'Экспорт'}</span>
+                            <span>{tr('Экспорт', 'Export')}</span>
                             <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isExportOpen ? 'rotate-180' : ''}`} />
                         </Button>
                         {isExportOpen && (
@@ -1000,15 +998,15 @@ export default function RegulationsPage() {
             <div className="flex gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 overflow-x-auto scrollbar-thin">
                 {tabs.map((tab) => {
                     let label = tab;
-                    if (tab === "All") label = isEn ? "All" : "Все";
-                    else if (tab === "Banking") label = isEn ? "Banking & FinTech" : "Банки и Финтех";
-                    else if (tab === "Finance") label = isEn ? "Finance" : "Финансы";
-                    else if (tab === "Tax") label = isEn ? "Tax" : "Налоги";
-                    else if (tab === "Audit") label = isEn ? "Audit" : "Аудит";
-                    else if (tab === "Security") label = isEn ? "Security" : "Безопасность";
-                    else if (tab === "Healthcare") label = isEn ? "Healthcare" : "Здравоохранение";
-                    else if (tab === "Labor") label = isEn ? "Labor" : "Труд и кадры";
-                    else if (tab === "Consumer") label = isEn ? "Consumer" : "Защита прав";
+                    if (tab === "All") label = tr("Все", "All");
+                    else if (tab === "Banking") label = tr("Банки и Финтех", "Banking & FinTech");
+                    else if (tab === "Finance") label = tr("Финансы", "Finance");
+                    else if (tab === "Tax") label = tr("Налоги", "Tax");
+                    else if (tab === "Audit") label = tr("Аудит", "Audit");
+                    else if (tab === "Security") label = tr("Безопасность", "Security");
+                    else if (tab === "Healthcare") label = tr("Здравоохранение", "Healthcare");
+                    else if (tab === "Labor") label = tr("Труд и кадры", "Labor");
+                    else if (tab === "Consumer") label = tr("Защита прав", "Consumer");
 
                     const isSelected = activeTab === tab;
                     return (
@@ -1103,19 +1101,19 @@ export default function RegulationsPage() {
                 <form onSubmit={handleSubmit(onSearch)} className="flex gap-3">
                     <Input 
                         {...register('query')} 
-                        placeholder={isEn ? "Search by title, code, keywords, or regulation content..." : "Поиск по названию, коду, ключевым словам или тексту норматива..."} 
+                        placeholder={tr("Поиск по названию, коду, ключевым словам или тексту норматива...", "Search by title, code, keywords, or regulation content...")} 
                         className="flex-1 bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11 text-sm focus-visible:ring-blue-500" 
                     />
                     <Button type="submit" disabled={isLoading} className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm gap-2">
                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchCheck className="h-4 w-4" />}
-                        <span>{isEn ? "Search" : "Найти"}</span>
+                        <span>{tr("Найти", "Search")}</span>
                     </Button>
                 </form>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                     <div className="flex items-center gap-2.5">
                         <label className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {isEn ? "Sort by" : "Сортировка"}:
+                            {tr("Сортировка", "Sort by")}:
                         </label>
                         <select
                             value={sortBy}
@@ -1241,7 +1239,7 @@ export default function RegulationsPage() {
                                                         <span>{t('effective')}: <strong>{meta.effective_date ? new Date(meta.effective_date).toLocaleDateString() : 'N/A'}</strong></span>
                                                         {item.updated_at && (
                                                             <span className="ml-2 text-slate-400 dark:text-slate-500">
-                                                                ({isEn ? 'Updated' : 'Обновлено'}: {new Date(item.updated_at).toLocaleDateString()})
+                                                                ({tr('Обновлено', 'Updated')}: {new Date(item.updated_at).toLocaleDateString()})
                                                             </span>
                                                         )}
                                                     </p>
@@ -1545,7 +1543,7 @@ export default function RegulationsPage() {
                             </span>
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
                                 <Radio className="h-3 w-3 text-emerald-400 animate-pulse" /> 
-                                {crawlerSections.length > 0 ? `${crawlerSections.length} ${isEn ? "Sectors & Custom Domains" : "Отраслей и разделов"}` : (isEn ? "17 Official Legal Portals Live" : "17 Официальных порталов онлайн")}
+                                {crawlerSections.length > 0 ? `${crawlerSections.length} ${tr("Отраслей и разделов", "Sectors & Custom Domains")}` : (tr("17 Официальных порталов онлайн", "17 Official Legal Portals Live"))}
                             </span>
                         </div>
                         <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
@@ -1589,7 +1587,7 @@ export default function RegulationsPage() {
                                     <option value="all">{t('crawler_sections_all', 'Все разделы и сферы')}</option>
                                     {crawlerSections.map((sec) => (
                                         <option key={sec.id} value={sec.id}>
-                                            {sec.is_custom ? '⭐ ' : ''}{isEn ? (sec.name_en || sec.name) : sec.name}
+                                            {sec.is_custom ? '⭐ ' : ''}{tr(sec.name, sec.name_en || sec.name)}
                                         </option>
                                     ))}
                                 </select>
@@ -1793,7 +1791,7 @@ export default function RegulationsPage() {
                             ) : (
                                 <div className="space-y-3">
                                     {discoveredRegulations.map((item, idx) => {
-                                        const title = isEn && item.title_en ? item.title_en : item.title;
+                                        const title = tr(item.title, item.title_en || item.title);
                                         const isHighImpact = item.impact_level === 'HIGH';
 
                                         return (
@@ -1899,7 +1897,7 @@ export default function RegulationsPage() {
                             <span>{t('total')}: <strong>{results.length}</strong> {t('regulations')}</span>
                             <span className="mx-2">•</span>
                             <span className="text-violet-600 dark:text-violet-400 font-medium">
-                                {discoveredRegulations.filter(d => !d.is_imported).length} {isEn ? "ready to import" : "готово к добавлению"}
+                                {discoveredRegulations.filter(d => !d.is_imported).length} {tr("готово к добавлению", "ready to import")}
                             </span>
                         </div>
                         <Button 

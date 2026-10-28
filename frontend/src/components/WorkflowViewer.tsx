@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { tr } from '@/lib/i18n';
 import { Check, ChevronRight, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -18,8 +19,7 @@ export const WorkflowViewer: React.FC<WorkflowViewerProps> = ({ steps, title }) 
     const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set([1]));
     const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const toggleStep = (stepNumber: number) => {
         const newExpanded = new Set(expandedSteps);
         if (newExpanded.has(stepNumber)) {
@@ -155,20 +155,16 @@ export const WorkflowViewer: React.FC<WorkflowViewerProps> = ({ steps, title }) 
                 <div className="flex items-center justify-between">
                     <div>
                         <p className="text-sm font-medium text-blue-900">
-                            {isRu 
-                                ? `Прогресс: завершено ${steps.filter(isStepComplete).length} из ${steps.length} этапов` 
-                                : `Progress: ${steps.filter(isStepComplete).length} of ${steps.length} steps completed`}
+                            {tr(`Прогресс: завершено ${steps.filter(isStepComplete).length} из ${steps.length} этапов`, `Progress: ${steps.filter(isStepComplete).length} of ${steps.length} steps completed`)}
                         </p>
                         <p className="text-xs text-blue-700 mt-1">
-                            {isRu 
-                                ? `Отмечено ${checkedItems.size} из ${steps.reduce((sum, s) => sum + s.checklist.length, 0)} пунктов` 
-                                : `${checkedItems.size} of ${steps.reduce((sum, s) => sum + s.checklist.length, 0)} items checked`}
+                            {tr(`Отмечено ${checkedItems.size} из ${steps.reduce((sum, s) => sum + s.checklist.length, 0)} пунктов`, `${checkedItems.size} of ${steps.reduce((sum, s) => sum + s.checklist.length, 0)} items checked`)}
                         </p>
                     </div>
                     {getProgress() === 100 && (
                         <div className="flex items-center gap-2 text-emerald-700">
                             <Check className="w-5 h-5" />
-                            <span className="text-sm font-semibold">{isRu ? 'Выполнено!' : 'Complete!'}</span>
+                            <span className="text-sm font-semibold">{tr('Выполнено!', 'Complete!')}</span>
                         </div>
                     )}
                 </div>

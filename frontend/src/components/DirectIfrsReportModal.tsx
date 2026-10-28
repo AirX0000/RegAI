@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import api from '../lib/api';
+import { tr } from '../lib/i18n';
 
 export interface DirectIfrsReportModalProps {
     isOpen: boolean;
@@ -29,7 +30,9 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Meta Fields
-    const [title, setTitle] = useState('Годовой финансовый отчет по МСФО 2024');
+    const [title, setTitle] = useState(
+        tr('Годовой финансовый отчет по МСФО 2024', 'Annual IFRS Financial Report 2024', '2024-yil uchun MHXS bo\'yicha yillik moliyaviy hisobot')
+    );
     const [companyId, setCompanyId] = useState(currentCompanyId || companies[0]?.id || '');
     const reportingPeriod = 'FY 2024';
     const auditorOpinion = 'clean';
@@ -94,16 +97,14 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             list.push({
                 id: 'balance-equilibrium',
                 severity: 'error',
-                title: isRu ? 'Нарушено балансовое равенство (IAS 1)' : 'Balance Sheet Equilibrium Broken (IAS 1)',
-                message: isRu 
-                    ? `Активы ($${totalAssets.toLocaleString()}) не равны сумме обязательств и капитала ($${totalLiabilitiesAndEquity.toLocaleString()}). Разрыв: $${balanceDiscrepancy.toLocaleString()}.`
-                    : `Assets ($${totalAssets.toLocaleString()}) do not match Liabilities + Equity ($${totalLiabilitiesAndEquity.toLocaleString()}). Variance: $${balanceDiscrepancy.toLocaleString()}.`,
-                fixDescription: isRu ? 'Сбалансировать нераспределенную прибыль (Retained Earnings)' : 'Auto-balance Retained Earnings',
+                title: tr('Нарушено балансовое равенство (IAS 1)', 'Balance Sheet Equilibrium Broken (IAS 1)'),
+                message: tr(`Активы ($${totalAssets.toLocaleString()}) не равны сумме обязательств и капитала ($${totalLiabilitiesAndEquity.toLocaleString()}). Разрыв: $${balanceDiscrepancy.toLocaleString()}.`, `Assets ($${totalAssets.toLocaleString()}) do not match Liabilities + Equity ($${totalLiabilitiesAndEquity.toLocaleString()}). Variance: $${balanceDiscrepancy.toLocaleString()}.`),
+                fixDescription: tr('Сбалансировать нераспределенную прибыль (Retained Earnings)', 'Auto-balance Retained Earnings'),
                 applyFix: () => {
                     setRetainedEarnings(prev => prev + balanceDiscrepancy);
                     toast({
-                        title: isRu ? 'Баланс выровнен' : 'Balanced',
-                        description: isRu ? 'Нераспределенная прибыль скорректирована. Разрыв равен 0.' : 'Retained Earnings updated to restore equilibrium.'
+                        title: tr('Баланс выровнен', 'Balanced'),
+                        description: tr('Нераспределенная прибыль скорректирована. Разрыв равен 0.', 'Retained Earnings updated to restore equilibrium.')
                     });
                 }
             });
@@ -114,18 +115,16 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             list.push({
                 id: 'ifrs16-mismatch',
                 severity: 'error',
-                title: isRu ? 'Несоответствие стандарту IFRS 16 (Аренда)' : 'IFRS 16 Lease Mismatch',
-                message: isRu
-                    ? `Отражен актив права пользования ROU ($${rouAssets.toLocaleString()}), но обязательство по аренде равно 0.`
-                    : `ROU asset ($${rouAssets.toLocaleString()}) recognized without corresponding lease liabilities.`,
-                fixDescription: isRu ? 'Начислить обязательство по аренде на сумму актива' : 'Match Lease Liability with ROU Asset',
+                title: tr('Несоответствие стандарту IFRS 16 (Аренда)', 'IFRS 16 Lease Mismatch'),
+                message: tr(`Отражен актив права пользования ROU ($${rouAssets.toLocaleString()}), но обязательство по аренде равно 0.`, `ROU asset ($${rouAssets.toLocaleString()}) recognized without corresponding lease liabilities.`),
+                fixDescription: tr('Начислить обязательство по аренде на сумму актива', 'Match Lease Liability with ROU Asset'),
                 applyFix: () => {
                     setLeaseLiabilities(rouAssets);
                     // Adjust retained earnings to keep balance if needed
                     setRetainedEarnings(prev => prev - rouAssets);
                     toast({
-                        title: isRu ? 'Аренда сбалансирована' : 'Lease Reconciled',
-                        description: isRu ? 'Обязательство IFRS 16 создано.' : 'IFRS 16 liabilities recorded.'
+                        title: tr('Аренда сбалансирована', 'Lease Reconciled'),
+                        description: tr('Обязательство IFRS 16 создано.', 'IFRS 16 liabilities recorded.')
                     });
                 }
             });
@@ -136,18 +135,16 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             list.push({
                 id: 'ifrs9-ecl',
                 severity: 'warning',
-                title: isRu ? 'Отсутствует резерв ожидаемых кредитных убытков (IFRS 9)' : 'Missing ECL Reserve (IFRS 9)',
-                message: isRu
-                    ? 'По торговой дебиторской задолженности не начислен нормативный резерв обесценения (ECL).'
-                    : 'No expected credit loss (ECL) allowance provisioned for trade receivables.',
-                fixDescription: isRu ? 'Начислить стандартный резерв ECL (2.5%)' : 'Provision 2.5% standard ECL allowance',
+                title: tr('Отсутствует резерв ожидаемых кредитных убытков (IFRS 9)', 'Missing ECL Reserve (IFRS 9)'),
+                message: tr('По торговой дебиторской задолженности не начислен нормативный резерв обесценения (ECL).', 'No expected credit loss (ECL) allowance provisioned for trade receivables.'),
+                fixDescription: tr('Начислить стандартный резерв ECL (2.5%)', 'Provision 2.5% standard ECL allowance'),
                 applyFix: () => {
                     const normEcl = Math.round(receivables * 0.025);
                     setEclReserve(normEcl);
                     setRetainedEarnings(prev => prev - normEcl);
                     toast({
-                        title: isRu ? 'Резерв ECL начислен' : 'ECL Provisioned',
-                        description: isRu ? `Начислен резерв $${normEcl.toLocaleString()} (2.5%).` : `ECL reserve of $${normEcl.toLocaleString()} applied.`
+                        title: tr('Резерв ECL начислен', 'ECL Provisioned'),
+                        description: tr(`Начислен резерв $${normEcl.toLocaleString()} (2.5%).`, `ECL reserve of $${normEcl.toLocaleString()} applied.`)
                     });
                 }
             });
@@ -158,17 +155,15 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             list.push({
                 id: 'liquidity-risk',
                 severity: 'warning',
-                title: isRu ? 'Критический дефицит ликвидности' : 'Liquidity Deficit Warning',
-                message: isRu
-                    ? `Коэффициент текущей ликвидности (${currentRatio.toFixed(2)}x) ниже 1.00x. Краткосрочные обязательства превышают оборотные активы.`
-                    : `Current ratio (${currentRatio.toFixed(2)}x) is below 1.00x. Current liabilities exceed liquid assets.`,
-                fixDescription: isRu ? 'Реструктурировать $500,000 краткосрочного долга в долгосрочный' : 'Restructure $500,000 short debt into long-term',
+                title: tr('Критический дефицит ликвидности', 'Liquidity Deficit Warning'),
+                message: tr(`Коэффициент текущей ликвидности (${currentRatio.toFixed(2)}x) ниже 1.00x. Краткосрочные обязательства превышают оборотные активы.`, `Current ratio (${currentRatio.toFixed(2)}x) is below 1.00x. Current liabilities exceed liquid assets.`),
+                fixDescription: tr('Реструктурировать $500,000 краткосрочного долга в долгосрочный', 'Restructure $500,000 short debt into long-term'),
                 applyFix: () => {
                     setShortTermDebt(prev => Math.max(0, prev - 500000));
                     setLongTermDebt(prev => prev + 500000);
                     toast({
-                        title: isRu ? 'Ликвидность улучшена' : 'Liquidity Adjusted',
-                        description: isRu ? 'Краткосрочный долг переведен в долгосрочный.' : 'Debt restructured into long-term.'
+                        title: tr('Ликвидность улучшена', 'Liquidity Adjusted'),
+                        description: tr('Краткосрочный долг переведен в долгосрочный.', 'Debt restructured into long-term.')
                     });
                 }
             });
@@ -180,7 +175,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
     // Apply Presets
     const handleApplyPreset = (presetName: 'audit' | 'q3' | 'blank') => {
         if (presetName === 'audit') {
-            setTitle(isRu ? 'Годовой аудиторский отчет МСФО 2024' : 'Annual Financial Audit IFRS 2024');
+            setTitle(tr('Годовой аудиторский отчет МСФО 2024', 'Annual Financial Audit IFRS 2024'));
             setPpe(18450000);
             setRouAssets(8200000);
             setIntangibles(4500000);
@@ -197,7 +192,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             setPaidInCapital(5000000);
             setRetainedEarnings(15100000);
         } else if (presetName === 'q3') {
-            setTitle(isRu ? 'Квартальный баланс по МСФО — Q3' : 'Q3 Interim IFRS Statement');
+            setTitle(tr('Квартальный баланс по МСФО — Q3', 'Q3 Interim IFRS Statement'));
             setPpe(12000000);
             setRouAssets(4000000);
             setIntangibles(2000000);
@@ -214,7 +209,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             setPaidInCapital(2000000);
             setRetainedEarnings(8400000);
         } else {
-            setTitle(isRu ? 'Новый отчет по МСФО' : 'New Custom IFRS Report');
+            setTitle(tr('Новый отчет по МСФО', 'New Custom IFRS Report'));
             setPpe(1000000);
             setRouAssets(0);
             setIntangibles(0);
@@ -232,8 +227,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             setRetainedEarnings(1000000);
         }
         toast({
-            title: isRu ? 'Шаблон применен' : 'Preset Applied',
-            description: isRu ? 'Форма заполнена эталонными значениями.' : 'Form populated with preset values.'
+            title: tr('Шаблон применен', 'Preset Applied'),
+            description: tr('Форма заполнена эталонными значениями.', 'Form populated with preset values.')
         });
     };
 
@@ -241,8 +236,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
     const handleFixAllIssues = () => {
         issues.forEach(issue => issue.applyFix());
         toast({
-            title: isRu ? 'Все замечания устранены' : 'All Issues Resolved',
-            description: isRu ? 'Отчет приведен в полное соответствие с МСФО.' : 'IFRS compliance rules satisfied.'
+            title: tr('Все замечания устранены', 'All Issues Resolved'),
+            description: tr('Отчет приведен в полное соответствие с МСФО.', 'IFRS compliance rules satisfied.')
         });
     };
 
@@ -250,8 +245,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
         if (!title.trim()) {
             toast({
                 variant: 'destructive',
-                title: isRu ? 'Ошибка' : 'Error',
-                description: isRu ? 'Укажите название отчета' : 'Please provide report title'
+                title: tr('Ошибка', 'Error'),
+                description: tr('Укажите название отчета', 'Please provide report title')
             });
             return;
         }
@@ -275,7 +270,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
 
             const reportPayload = {
                 title,
-                description: `${isRu ? 'Прямой регуляторный отчет по МСФО' : 'Direct IFRS Regulatory Filing'} (${reportingPeriod}) для ${compName}. Валидация баланса: A=$${(totalAssets/1e6).toFixed(2)}M, L=$${(totalLiabilities/1e6).toFixed(2)}M, E=$${(totalEquity/1e6).toFixed(2)}M.`,
+                description: `${tr('Прямой регуляторный отчет по МСФО', 'Direct IFRS Regulatory Filing')} (${reportingPeriod}) для ${compName}. Валидация баланса: A=$${(totalAssets/1e6).toFixed(2)}M, L=$${(totalLiabilities/1e6).toFixed(2)}M, E=$${(totalEquity/1e6).toFixed(2)}M.`,
                 report_type: 'audit',
                 company_id: targetCompany?.id || companyId,
                 status: 'under_review',
@@ -288,8 +283,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             const created = res.data;
 
             toast({
-                title: isRu ? 'Отчет успешно создан!' : 'Report Created Successfully!',
-                description: isRu ? 'Готовый отчет по МСФО сохранен и готов к предпросмотру.' : 'Ready-made IFRS report saved.'
+                title: tr('Отчет успешно создан!', 'Report Created Successfully!'),
+                description: tr('Готовый отчет по МСФО сохранен и готов к предпросмотру.', 'Ready-made IFRS report saved.')
             });
 
             onReportCreated(created);
@@ -298,8 +293,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
             console.error('Failed to create direct IFRS report', err);
             toast({
                 variant: 'destructive',
-                title: isRu ? 'Ошибка сохранения' : 'Creation Failed',
-                description: err.response?.data?.detail || (isRu ? 'Не удалось сохранить отчет' : 'Failed to save report')
+                title: tr('Ошибка сохранения', 'Creation Failed'),
+                description: err.response?.data?.detail || (tr('Не удалось сохранить отчет', 'Failed to save report'))
             });
         } finally {
             setIsSubmitting(false);
@@ -321,16 +316,14 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
-                                    {isRu ? 'Создание отчета напрямую по МСФО (IFRS)' : 'Direct IFRS Report Builder'}
+                                    {tr('Создание отчета напрямую по МСФО (IFRS)', 'Direct IFRS Report Builder')}
                                 </h2>
                                 <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                                    {isRu ? 'Без трансформации' : 'Direct Entry'}
+                                    {tr('Без трансформации', 'Direct Entry')}
                                 </span>
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                {isRu 
-                                    ? 'Ввод готовых финансовых показателей с мгновенной верификацией ошибок и аудиторскими подсказками'
-                                    : 'Direct entry of standard IFRS line items with real-time discrepancy detection & auto-fix'}
+                                {tr('Ввод готовых финансовых показателей с мгновенной верификацией ошибок и аудиторскими подсказками', 'Direct entry of standard IFRS line items with real-time discrepancy detection & auto-fix')}
                             </p>
                         </div>
                     </div>
@@ -338,7 +331,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                         variant="ghost"
                         size="icon"
                         onClick={onClose}
-                        aria-label={isRu ? "Закрыть модальное окно" : "Close modal"}
+                        aria-label={tr("Закрыть модальное окно", "Close modal")}
                         className="h-8 w-8 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg cursor-pointer"
                     >
                         <X className="w-4 h-4" />
@@ -348,7 +341,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                 {/* Preset bar */}
                 <div className="px-4 sm:px-5 py-2.5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-100/50 dark:bg-slate-800/20 flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="text-slate-500 dark:text-slate-400 font-medium">
-                        {isRu ? 'Готовые шаблоны стандартов:' : 'Standard Presets:'}
+                        {tr('Готовые шаблоны стандартов:', 'Standard Presets:')}
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <Button
@@ -358,7 +351,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             className="h-7 text-xs bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 cursor-pointer"
                         >
                             <Scale className="w-3 h-3 mr-1 text-purple-500" />
-                            {isRu ? 'Годовой аудит (ISA 700)' : 'Annual Audit (ISA 700)'}
+                            {tr('Годовой аудит (ISA 700)', 'Annual Audit (ISA 700)')}
                         </Button>
                         <Button
                             size="sm"
@@ -367,7 +360,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             className="h-7 text-xs bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 cursor-pointer"
                         >
                             <Calendar className="w-3 h-3 mr-1 text-blue-500" />
-                            {isRu ? 'Квартальный баланс (IAS 34)' : 'Q3 Statement (IAS 34)'}
+                            {tr('Квартальный баланс (IAS 34)', 'Q3 Statement (IAS 34)')}
                         </Button>
                         <Button
                             size="sm"
@@ -375,7 +368,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             onClick={() => handleApplyPreset('blank')}
                             className="h-7 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                         >
-                            {isRu ? 'Сбросить в чистый бланк' : 'Clear Form'}
+                            {tr('Сбросить в чистый бланк', 'Clear Form')}
                         </Button>
                     </div>
                 </div>
@@ -387,7 +380,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
                         <div className="sm:col-span-2 space-y-1">
                             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                {isRu ? 'Название отчета' : 'Report Title'}
+                                {tr('Название отчета', 'Report Title')}
                             </label>
                             <Input
                                 value={title}
@@ -398,7 +391,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                {isRu ? 'Организация' : 'Company'}
+                                {tr('Организация', 'Company')}
                             </label>
                             <select
                                 value={companyId}
@@ -433,8 +426,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                                         <span>
                                             {issues.length === 0 
-                                                ? (isRu ? '✓ Баланс МСФО верифицирован (Ошибок нет)' : '✓ IFRS Balance Verified (Zero Errors)')
-                                                : (isRu ? `Обнаружено замечаний: ${issues.length}` : `Validation Issues: ${issues.length}`)}
+                                                ? (tr('✓ Баланс МСФО верифицирован (Ошибок нет)', '✓ IFRS Balance Verified (Zero Errors)'))
+                                                : (tr(`Обнаружено замечаний: ${issues.length}`, `Validation Issues: ${issues.length}`))}
                                         </span>
                                         <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono font-bold ${
                                             Math.abs(balanceDiscrepancy) < 1 
@@ -446,8 +439,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     </div>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                                         {issues.length === 0 
-                                            ? (isRu ? 'Активы строго равны сумме обязательств и капитала. Все нормативные стандарты соблюдены.' : 'A = L + E verified. All standards pass.')
-                                            : (isRu ? 'Ниже приведены рекомендации и кнопки автоматического исправления.' : 'Follow instructions below or use auto-fix.')}
+                                            ? (tr('Активы строго равны сумме обязательств и капитала. Все нормативные стандарты соблюдены.', 'A = L + E verified. All standards pass.'))
+                                            : (tr('Ниже приведены рекомендации и кнопки автоматического исправления.', 'Follow instructions below or use auto-fix.'))}
                                     </p>
                                 </div>
                             </div>
@@ -459,7 +452,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     className="bg-amber-600 hover:bg-amber-700 text-white text-xs h-8 gap-1.5 shadow-sm cursor-pointer self-start sm:self-auto shrink-0"
                                 >
                                     <Wrench className="w-3.5 h-3.5" />
-                                    <span>{isRu ? 'Исправить все ошибки авто-сверкой' : 'Auto-Fix All Issues'}</span>
+                                    <span>{tr('Исправить все ошибки авто-сверкой', 'Auto-Fix All Issues')}</span>
                                 </Button>
                             )}
                         </div>
@@ -481,7 +474,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                                 {iss.message}
                                             </p>
                                             <div className="text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1">
-                                                <span>💡 {isRu ? 'Как исправить:' : 'How to fix:'}</span>
+                                                <span>💡 {tr('Как исправить:', 'How to fix:')}</span>
                                                 <span>{iss.fixDescription}</span>
                                             </div>
                                         </div>
@@ -492,7 +485,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                             className="text-xs h-7.5 border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 shrink-0 self-end sm:self-center cursor-pointer"
                                         >
                                             <RefreshCw className="w-3 h-3 mr-1" />
-                                            <span>{isRu ? 'Применить исправление' : 'Apply Fix'}</span>
+                                            <span>{tr('Применить исправление', 'Apply Fix')}</span>
                                         </Button>
                                     </div>
                                 ))}
@@ -503,25 +496,25 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     {/* Summary KPI Strip */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                         <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
-                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{isRu ? 'ИТОГО АКТИВЫ (A)' : 'TOTAL ASSETS'}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{tr('ИТОГО АКТИВЫ (A)', 'TOTAL ASSETS')}</div>
                             <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
                                 ${(totalAssets).toLocaleString()}
                             </div>
                         </div>
                         <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
-                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{isRu ? 'ИТОГО ОБЯЗАТЕЛЬСТВА (L)' : 'TOTAL LIABILITIES'}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{tr('ИТОГО ОБЯЗАТЕЛЬСТВА (L)', 'TOTAL LIABILITIES')}</div>
                             <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
                                 ${(totalLiabilities).toLocaleString()}
                             </div>
                         </div>
                         <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
-                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{isRu ? 'ИТОГО КАПИТАЛ (E)' : 'TOTAL EQUITY'}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{tr('ИТОГО КАПИТАЛ (E)', 'TOTAL EQUITY')}</div>
                             <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
                                 ${(totalEquity).toLocaleString()}
                             </div>
                         </div>
                         <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30">
-                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{isRu ? 'ЛИКВИДНОСТЬ (CR)' : 'CURRENT RATIO'}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-semibold">{tr('ЛИКВИДНОСТЬ (CR)', 'CURRENT RATIO')}</div>
                             <div className={`text-base sm:text-lg font-bold font-mono mt-0.5 ${currentRatio >= 1.15 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600'}`}>
                                 {currentRatio.toFixed(2)}x
                             </div>
@@ -538,7 +531,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                         >
-                            {isRu ? '1. Активы (Assets)' : '1. Assets'} (${totalAssets.toLocaleString()})
+                            {tr('1. Активы (Assets)', '1. Assets')} (${totalAssets.toLocaleString()})
                         </button>
                         <button
                             onClick={() => setActiveSection('liabilities')}
@@ -548,7 +541,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                         >
-                            {isRu ? '2. Обязательства (Liabilities)' : '2. Liabilities'} (${totalLiabilities.toLocaleString()})
+                            {tr('2. Обязательства (Liabilities)', '2. Liabilities')} (${totalLiabilities.toLocaleString()})
                         </button>
                         <button
                             onClick={() => setActiveSection('equity')}
@@ -558,7 +551,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                         >
-                            {isRu ? '3. Собственный капитал (Equity)' : '3. Equity'} (${totalEquity.toLocaleString()})
+                            {tr('3. Собственный капитал (Equity)', '3. Equity')} (${totalEquity.toLocaleString()})
                         </button>
                     </div>
 
@@ -566,11 +559,11 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     {activeSection === 'assets' && (
                         <div className="space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                {isRu ? 'Внеоборотные активы (Non-current assets)' : 'Non-current assets'}
+                                {tr('Внеоборотные активы (Non-current assets)', 'Non-current assets', 'Uzoq muddatli aktivlar (Non-current assets)')}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Основные средства / PPE (IAS 16)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Основные средства / PPE (IAS 16)', 'Property, Plant & Equipment (IAS 16)', 'Asosiy vositalar / PPE (IAS 16)')}</label>
                                     <Input
                                         type="number"
                                         value={ppe}
@@ -579,7 +572,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Активы права пользования / ROU (IFRS 16)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Активы права пользования / ROU (IFRS 16)', 'Right-of-Use Assets / ROU (IFRS 16)', 'Foydalanish huquqi aktivlari / ROU (IFRS 16)')}</label>
                                     <Input
                                         type="number"
                                         value={rouAssets}
@@ -588,7 +581,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Нематериальные активы (IAS 38)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Нематериальные активы (IAS 38)', 'Intangible Assets (IAS 38)', 'Nomoddiy aktivlar (IAS 38)')}</label>
                                     <Input
                                         type="number"
                                         value={intangibles}
@@ -599,11 +592,11 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             </div>
 
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">
-                                {isRu ? 'Оборотные активы (Current assets)' : 'Current assets'}
+                                {tr('Оборотные активы (Current assets)', 'Current assets', 'Joriy aylanma aktivlar (Current assets)')}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Запасы / Inventories (IAS 2)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Запасы / Inventories (IAS 2)', 'Inventories (IAS 2)', 'Tovar-moddiy zaxiralar / Inventories (IAS 2)')}</label>
                                     <Input
                                         type="number"
                                         value={inventories}
@@ -612,7 +605,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Дебиторская задолженность (IFRS 9)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Дебиторская задолженность (IFRS 9)', 'Trade Receivables (IFRS 9)', 'Debitorlik qarzlari (IFRS 9)')}</label>
                                     <Input
                                         type="number"
                                         value={receivables}
@@ -621,7 +614,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Резерв обесценения ECL (IFRS 9)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Резерв обесценения ECL (IFRS 9)', 'ECL Allowance (IFRS 9)', 'ECL qadrsizlanish zaxirasi (IFRS 9)')}</label>
                                     <Input
                                         type="number"
                                         value={eclReserve}
@@ -630,7 +623,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Денежные средства / Cash (IAS 7)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Денежные средства / Cash (IAS 7)', 'Cash & Equivalents (IAS 7)', 'Pul mablag\'lari / Cash (IAS 7)')}</label>
                                     <Input
                                         type="number"
                                         value={cash}
@@ -645,11 +638,11 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     {activeSection === 'liabilities' && (
                         <div className="space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                {isRu ? 'Долгосрочные обязательства' : 'Non-current liabilities'}
+                                {tr('Долгосрочные обязательства', 'Non-current liabilities', 'Uzoq muddatli majburiyatlar')}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Обязательства по аренде (IFRS 16)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Обязательства по аренде (IFRS 16)', 'Lease Liabilities (IFRS 16)', 'Ijara majburiyatlari (IFRS 16)')}</label>
                                     <Input
                                         type="number"
                                         value={leaseLiabilities}
@@ -658,7 +651,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Долгосрочные кредиты и займы</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Долгосрочные кредиты и займы', 'Long-term Loans & Borrowings', 'Uzoq muddatli kreditlar va qarzlar')}</label>
                                     <Input
                                         type="number"
                                         value={longTermDebt}
@@ -669,11 +662,11 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             </div>
 
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 pt-2">
-                                {isRu ? 'Краткосрочные обязательства' : 'Current liabilities'}
+                                {tr('Краткосрочные обязательства', 'Current liabilities', 'Qisqa muddatli majburiyatlar')}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Краткосрочные кредиты</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Краткосрочные кредиты', 'Short-term Borrowings', 'Qisqa muddatli kreditlar')}</label>
                                     <Input
                                         type="number"
                                         value={shortTermDebt}
@@ -682,7 +675,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Торговая кредиторская задолженность</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Торговая кредиторская задолженность', 'Trade & Other Payables', 'Savdo kreditorlik qarzlari')}</label>
                                     <Input
                                         type="number"
                                         value={payables}
@@ -691,7 +684,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Текущие обязательства по налогам (IAS 12)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Текущие обязательства по налогам (IAS 12)', 'Current Tax Liabilities (IAS 12)', 'Joriy soliq majburiyatlari (IAS 12)')}</label>
                                     <Input
                                         type="number"
                                         value={taxLiabilities}
@@ -706,11 +699,11 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     {activeSection === 'equity' && (
                         <div className="space-y-4">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                {isRu ? 'Собственный капитал (Equity - IAS 1)' : 'Equity (IAS 1)'}
+                                {tr('Собственный капитал (Equity - IAS 1)', 'Equity (IAS 1)', 'Xususiy kapital (Equity - IAS 1)')}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Уставный капитал (Share Capital)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Уставный капитал (Share Capital)', 'Share Capital', 'Ustav kapitali (Share Capital)')}</label>
                                     <Input
                                         type="number"
                                         value={shareCapital}
@@ -719,7 +712,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Добавочный капитал (Paid-in Capital)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Добавочный капитал (Paid-in Capital)', 'Additional Paid-in Capital', 'Qo\'shimcha kapital (Paid-in Capital)')}</label>
                                     <Input
                                         type="number"
                                         value={paidInCapital}
@@ -728,7 +721,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[11px] text-slate-500 font-medium">Нераспределенная прибыль (Retained Earnings)</label>
+                                    <label className="text-[11px] text-slate-500 font-medium">{tr('Нераспределенная прибыль (Retained Earnings)', 'Retained Earnings', 'Taqsimlanmagan foyda (Retained Earnings)')}</label>
                                     <Input
                                         type="number"
                                         value={retainedEarnings}
@@ -747,9 +740,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                         <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
                         <span>
-                            {isRu 
-                                ? 'Готовый отчет автоматически сертифицируется цифровой подписью ЭЦП' 
-                                : 'Created report is automatically signed with SHA-256 digital signature'}
+                            {tr('Готовый отчет автоматически сертифицируется цифровой подписью ЭЦП', 'Created report is automatically signed with SHA-256 digital signature')}
                         </span>
                     </div>
 
@@ -759,7 +750,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             onClick={onClose}
                             className="text-xs h-9 dark:border-slate-700 cursor-pointer"
                         >
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateReport}
@@ -769,8 +760,8 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
                             <Sparkles className="w-3.5 h-3.5" />
                             <span>
                                 {isSubmitting 
-                                    ? (isRu ? 'Создание отчета...' : 'Creating...') 
-                                    : (isRu ? 'Сформировать и открыть IFRS отчет' : 'Generate & Open IFRS Report')}
+                                    ? (tr('Создание отчета...', 'Creating...')) 
+                                    : (tr('Сформировать и открыть IFRS отчет', 'Generate & Open IFRS Report'))}
                             </span>
                         </Button>
                     </div>

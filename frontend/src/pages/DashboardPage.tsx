@@ -26,6 +26,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import api from '../lib/api';
 import { useToast } from '@/components/ui/use-toast';
 import { PERMISSIONS } from '../lib/permissions';
+import { tr } from '../lib/i18n';
 
 interface BalanceSheetItem {
     id: string;
@@ -91,10 +92,10 @@ export default function DashboardPage() {
 
     const getDisplayName = () => {
         if (user?.full_name && user.full_name !== 'User') return user.full_name;
-        if (user?.role === 'superadmin') return isEn ? 'System Administrator' : 'Главный администратор';
+        if (user?.role === 'superadmin') return tr('Главный администратор', 'System Administrator');
         if (user?.email) {
             const prefix = user.email.split('@')[0];
-            if (prefix === 'superadmin') return isEn ? 'System Administrator' : 'Главный администратор';
+            if (prefix === 'superadmin') return tr('Главный администратор', 'System Administrator');
             if (prefix === 'owner') return 'Сардор Рахимов';
             if (prefix === 'accountant') return 'Елена Васильева';
             if (prefix === 'admin') return 'Камилла Каримова';
@@ -102,12 +103,12 @@ export default function DashboardPage() {
             if (prefix === 'analyst') return 'Алишер Умаров';
             return prefix;
         }
-        return isEn ? 'Administrator' : 'Администратор';
+        return tr('Администратор', 'Administrator');
     };
 
     const getCompanyDisplay = () => {
         if (user?.role === 'superadmin' || user?.role === 'website_superadmin') {
-            return isEn ? 'All Organizations' : 'Все организации';
+            return tr('Все организации', 'All Organizations');
         }
         if (user?.company_name) return user.company_name;
         if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') return 'FinServe Holdings';
@@ -134,13 +135,13 @@ export default function DashboardPage() {
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
             toast({
-                title: isEn ? "Excel Exported" : "Excel сформирован",
-                description: isEn ? "Multi-sheet workbook with SUM formulas downloaded" : "Книга с живыми формулами суммирования успешно выгружена"
+                title: tr("Excel сформирован", "Excel Exported"),
+                description: tr("Книга с живыми формулами суммирования успешно выгружена", "Multi-sheet workbook with SUM formulas downloaded")
             });
         } catch (error) {
             toast({
-                title: isEn ? "Export Failed" : "Ошибка экспорта",
-                description: isEn ? "Could not generate Excel file" : "Не удалось сформировать Excel файл",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось сформировать Excel файл", "Could not generate Excel file"),
                 variant: "destructive"
             });
         } finally {
@@ -155,68 +156,68 @@ export default function DashboardPage() {
 
     // Monthly volume data for the transformation dynamics chart
     const chartData = [
-        { month: isEn ? "May" : "Май", volume: 48, ifrs16: 12, ifrs9: 3.5 },
-        { month: isEn ? "Jun" : "Июн", volume: 82, ifrs16: 18.5, ifrs9: 6.2 },
-        { month: isEn ? "Jul" : "Июл", volume: 115, ifrs16: 24, ifrs9: 8.1 },
-        { month: isEn ? "Aug" : "Авг", volume: 152, ifrs16: 31, ifrs9: 10.4 },
-        { month: isEn ? "Sep" : "Сен", volume: 198, ifrs16: 38, ifrs9: 12.8 },
-        { month: isEn ? "Oct" : "Окт", volume: 248.2, ifrs16: 45, ifrs9: 15.6 },
+        { month: tr("Май", "May"), volume: 48, ifrs16: 12, ifrs9: 3.5 },
+        { month: tr("Июн", "Jun"), volume: 82, ifrs16: 18.5, ifrs9: 6.2 },
+        { month: tr("Июл", "Jul"), volume: 115, ifrs16: 24, ifrs9: 8.1 },
+        { month: tr("Авг", "Aug"), volume: 152, ifrs16: 31, ifrs9: 10.4 },
+        { month: tr("Сен", "Sep"), volume: 198, ifrs16: 38, ifrs9: 12.8 },
+        { month: tr("Окт", "Oct"), volume: 248.2, ifrs16: 45, ifrs9: 15.6 },
     ];
 
     const getActionBadge = (action: string) => {
         const act = (action || '').toLowerCase();
         if (act.includes('sync')) {
             return {
-                label: isEn ? '1C Sync' : 'Синхронизация 1С',
+                label: tr('Синхронизация 1С', '1C Sync'),
                 color: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
             };
         }
         if (act.includes('transform')) {
             return {
-                label: isEn ? 'IFRS Transform' : 'Трансформация МСФО',
+                label: tr('Трансформация МСФО', 'IFRS Transform'),
                 color: 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800'
             };
         }
         if (act.includes('consolidation') || act.includes('hierarchy')) {
             return {
-                label: isEn ? 'IFRS 10 Consolidation' : 'Консолидация IFRS 10',
+                label: tr('Консолидация IFRS 10', 'IFRS 10 Consolidation'),
                 color: 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
             };
         }
         if (act.includes('compliance') || act.includes('tax')) {
             return {
-                label: isEn ? 'Tax Compliance' : 'Налоговый аудит',
+                label: tr('Налоговый аудит', 'Tax Compliance'),
                 color: 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'
             };
         }
         if (act.includes('review') || act.includes('report')) {
             return {
-                label: isEn ? 'IFRS Report' : 'Отчет МСФО',
+                label: tr('Отчет МСФО', 'IFRS Report'),
                 color: 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800'
             };
         }
         if (act.includes('login') || act.includes('auth')) {
             return {
-                label: isEn ? 'Security & 2FA' : 'Безопасность / 2FA',
+                label: tr('Безопасность / 2FA', 'Security & 2FA'),
                 color: 'bg-cyan-100 dark:bg-cyan-950/70 text-cyan-800 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800'
             };
         }
         return {
-            label: isEn ? 'Audit Review' : 'Аудит и ревью',
+            label: tr('Аудит и ревью', 'Audit Review'),
             color: 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700'
         };
     };
 
     const formatRelativeTime = (isoString?: string) => {
-        if (!isoString) return isEn ? 'recently' : 'недавно';
+        if (!isoString) return tr('недавно', 'recently');
         try {
             const date = new Date(isoString);
             const diffMs = Date.now() - date.getTime();
             const diffMins = Math.floor(diffMs / (1000 * 60));
-            if (diffMins < 1) return isEn ? 'just now' : 'только что';
-            if (diffMins < 60) return isEn ? `${diffMins} min ago` : `${diffMins} мин назад`;
+            if (diffMins < 1) return tr('только что', 'just now');
+            if (diffMins < 60) return tr(`${diffMins} мин назад`, `${diffMins} min ago`);
             const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return isEn ? `${diffHours} hr ago` : `${diffHours} ч назад`;
+            if (diffHours < 24) return tr(`${diffHours} ч назад`, `${diffHours} hr ago`);
             return date.toLocaleDateString(isEn ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'short' });
         } catch {
             return isoString;
@@ -230,7 +231,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="flex flex-wrap items-center gap-2.5">
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            {isEn ? "Executive Dashboard" : "Исполнительная панель управления"}
+                            {tr("Исполнительная панель управления", "Executive Dashboard")}
                         </h1>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
@@ -238,36 +239,36 @@ export default function DashboardPage() {
                         </span>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        {isEn ? "Welcome back" : "С возвращением"}, <span className="font-semibold text-slate-800 dark:text-slate-200">{getDisplayName()}</span>. {isSuperAdmin ? (isEn ? "IFRS transformation & holding reporting hub." : "Единый центр трансформации отчетности по МСФО и консолидации холдинга.") : (isEn ? "Corporate financial reporting & IFRS transformation center." : "Корпоративная финансовая отчетность и трансформация по МСФО.")}
+                        {tr("С возвращением", "Welcome back")}, <span className="font-semibold text-slate-800 dark:text-slate-200">{getDisplayName()}</span>. {isSuperAdmin ? (tr("Единый центр трансформации отчетности по МСФО и консолидации холдинга.", "IFRS transformation & holding reporting hub.")) : (tr("Корпоративная финансовая отчетность и трансформация по МСФО.", "Corporate financial reporting & IFRS transformation center."))}
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     {PERMISSIONS.canUploadBalanceSheet(user?.role) && (
                         <Button onClick={() => navigate('/transformation/upload')} className="gap-2 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-xs">
-                            <Upload className="h-4 w-4" /> {isEn ? "Smart 1C / Excel Import" : "Умный импорт 1С / Excel"}
+                            <Upload className="h-4 w-4" /> {tr("Умный импорт 1С / Excel", "Smart 1C / Excel Import")}
                         </Button>
                     )}
                     {isSuperAdmin ? (
                         <Button onClick={() => navigate('/hierarchy')} variant="outline" className="gap-2 text-xs sm:text-sm border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50">
-                            <Building2 className="h-4 w-4 text-blue-500" /> {isEn ? "Group Consolidation" : "Консолидация группы"}
+                            <Building2 className="h-4 w-4 text-blue-500" /> {tr("Консолидация группы", "Group Consolidation")}
                         </Button>
                     ) : PERMISSIONS.canManageCompanySettings(user?.role) ? (
                         <Button onClick={() => navigate('/company-settings')} variant="outline" className="gap-2 text-xs sm:text-sm border-blue-300 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50">
-                            <Building2 className="h-4 w-4 text-blue-500" /> {isEn ? "Company Profile" : "Профиль компании"}
+                            <Building2 className="h-4 w-4 text-blue-500" /> {tr("Профиль компании", "Company Profile")}
                         </Button>
                     ) : null}
                     {user?.role === 'auditor' && (
                         <Button onClick={() => navigate('/audit-log')} variant="outline" className="gap-2 text-xs sm:text-sm border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/50">
-                            <FileCheck className="h-4 w-4 text-purple-500" /> {isEn ? "Audit Trail" : "Журнал аудита"}
+                            <FileCheck className="h-4 w-4 text-purple-500" /> {tr("Журнал аудита", "Audit Trail")}
                         </Button>
                     )}
                     {user?.role === 'accountant' && (
                         <Button onClick={() => navigate('/tax-config')} variant="outline" className="gap-2 text-xs sm:text-sm border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50">
-                            <Receipt className="h-4 w-4 text-emerald-500" /> {isEn ? "Tax Rates" : "Налоговые ставки"}
+                            <Receipt className="h-4 w-4 text-emerald-500" /> {tr("Налоговые ставки", "Tax Rates")}
                         </Button>
                     )}
                     <Button onClick={() => navigate('/reports')} variant="outline" className="gap-2 text-xs sm:text-sm">
-                        <FileText className="h-4 w-4 text-indigo-500" /> {isEn ? "IFRS Package (4p)" : "Пакет МСФО (4 стр)"}
+                        <FileText className="h-4 w-4 text-indigo-500" /> {tr("Пакет МСФО (4 стр)", "IFRS Package (4p)")}
                     </Button>
                 </div>
             </div>
@@ -278,34 +279,34 @@ export default function DashboardPage() {
                 <Card className="border-border/60 shadow-xs">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                            {isEn ? "Balance Sheets (OSV)" : "Пробные балансы (ОСВ)"}
+                            {tr("Пробные балансы (ОСВ)", "Balance Sheets (OSV)")}
                         </CardTitle>
                         <FileSpreadsheet className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-baseline justify-between">
                             <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                {totalSheets} {isEn ? "statements" : "отчетов"}
+                                {totalSheets} {tr("отчетов", "statements")}
                             </div>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                 <CheckCircle2 className="h-3 w-3" />
-                                {transformedCount} {isEn ? "ready" : "готово"}
+                                {transformedCount} {tr("готово", "ready")}
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                             {pendingCount > 0 
-                                ? (isEn ? `${pendingCount} statements in review / draft` : `${pendingCount} отчетов на согласовании`) 
-                                : (isEn ? "All statements transformed under IFRS" : "Все отчеты трансформированы по МСФО")}
+                                ? (tr(`${pendingCount} отчетов на согласовании`, `${pendingCount} statements in review / draft`)) 
+                                : (tr("Все отчеты трансформированы по МСФО", "All statements transformed under IFRS"))}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                                {isEn ? "Source: 1C / Excel OSV" : "Источник: 1С / Excel ОСВ"}
+                                {tr("Источник: 1С / Excel ОСВ", "Source: 1C / Excel OSV")}
                             </span>
                             <button
                                 onClick={() => navigate('/transformation')}
                                 className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                             >
-                                <span>{isEn ? "View all" : "Все балансы"}</span>
+                                <span>{tr("Все балансы", "View all")}</span>
                                 <ArrowRight className="h-3 w-3" />
                             </button>
                         </div>
@@ -317,32 +318,32 @@ export default function DashboardPage() {
                     <Card className="border-blue-200/60 dark:border-blue-900/50 bg-gradient-to-br from-card via-card to-blue-50/30 dark:to-blue-950/20 shadow-xs">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                {isEn ? "Group Consolidation" : "Консолидация по IFRS 10"}
+                                {tr("Консолидация по IFRS 10", "Group Consolidation")}
                             </CardTitle>
                             <Building2 className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-baseline justify-between">
                                 <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                    4 {isEn ? "entities" : "компании"}
+                                    4 {tr("компании", "entities")}
                                 </div>
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                     <CheckCircle2 className="h-3 w-3" />
-                                    {isEn ? "Balanced (0 UZS)" : "Дельта: 0.00 UZS"}
+                                    {tr("Дельта: 0.00 UZS", "Balanced (0 UZS)")}
                                 </span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                {isEn ? "Assets: 248.2M UZS • Equity: 151.9M UZS" : "Активы: 248.2M UZS • Капитал: 151.9M UZS"}
+                                {tr("Активы: 248.2M UZS • Капитал: 151.9M UZS", "Assets: 248.2M UZS • Equity: 151.9M UZS")}
                             </p>
                             <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                    {isEn ? "5 Eliminations (99.8M UZS)" : "5 Элиминаций (99.8M UZS)"}
+                                    {tr("5 Элиминаций (99.8M UZS)", "5 Eliminations (99.8M UZS)")}
                                 </span>
                                 <button
                                     onClick={() => navigate('/hierarchy')}
                                     className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                                 >
-                                    <span>{isEn ? "Open matrix" : "К матрице"}</span>
+                                    <span>{tr("К матрице", "Open matrix")}</span>
                                     <ArrowRight className="h-3 w-3" />
                                 </button>
                             </div>
@@ -352,32 +353,32 @@ export default function DashboardPage() {
                     <Card className="border-blue-200/60 dark:border-blue-900/50 bg-gradient-to-br from-card via-card to-blue-50/30 dark:to-blue-950/20 shadow-xs">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                {isEn ? "Corporate Entity & Scope" : "Юридическое лицо и статус"}
+                                {tr("Юридическое лицо и статус", "Corporate Entity & Scope")}
                             </CardTitle>
                             <Building2 className="h-4 w-4 text-blue-500" />
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-baseline justify-between">
                                 <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                    1 {isEn ? "entity" : "организация"}
+                                    1 {tr("организация", "entity")}
                                 </div>
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                     <CheckCircle2 className="h-3 w-3" />
-                                    {isEn ? "Active • Verified" : "Резидент РУз • Активна"}
+                                    {tr("Резидент РУз • Активна", "Active • Verified")}
                                 </span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 truncate">
-                                <strong className="font-semibold text-slate-700 dark:text-slate-300">{getCompanyDisplay()}</strong> • {isEn ? "Single entity scope • IFRS reporting" : "Автономный учет • Отчетность по МСФО"}
+                                <strong className="font-semibold text-slate-700 dark:text-slate-300">{getCompanyDisplay()}</strong> • {tr("Автономный учет • Отчетность по МСФО", "Single entity scope • IFRS reporting")}
                             </p>
                             <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                                 <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                    {isEn ? "Tashkent • INN: Verified" : "ИНН: Подтвержден (ГНК РУз)"}
+                                    {tr("ИНН: Подтвержден (ГНК РУз)", "Tashkent • INN: Verified")}
                                 </span>
                                 <button
                                     onClick={() => navigate(PERMISSIONS.canManageCompanySettings(user?.role) ? '/company-settings' : '/reports')}
                                     className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                                 >
-                                    <span>{PERMISSIONS.canManageCompanySettings(user?.role) ? (isEn ? "Company profile" : "Параметры компании") : (isEn ? "Reports" : "Отчетность")}</span>
+                                    <span>{PERMISSIONS.canManageCompanySettings(user?.role) ? (tr("Параметры компании", "Company profile")) : (tr("Отчетность", "Reports"))}</span>
                                     <ArrowRight className="h-3 w-3" />
                                 </button>
                             </div>
@@ -389,32 +390,32 @@ export default function DashboardPage() {
                 <Card className="border-emerald-200/50 dark:border-emerald-900/40 shadow-xs">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                            {isEn ? "Tax Protocol (Soliq.uz)" : "Налоговый аудит (Soliq.uz)"}
+                            {tr("Налоговый аудит (Soliq.uz)", "Tax Protocol (Soliq.uz)")}
                         </CardTitle>
                         <Receipt className="h-4 w-4 text-emerald-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-baseline justify-between">
                             <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                CIT 15% • НДС 12%
+                                {tr('CIT 15% • НДС 12%', 'CIT 15% • VAT 12%', 'CIT 15% • QQS 12%')}
                             </div>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                 <CheckCircle2 className="h-3 w-3" />
-                                {isEn ? "Verified" : "Сверено"}
+                                {tr("Сверено", "Verified")}
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {isEn ? "IAS 12 Deferred Tax Asset: +1.45M UZS" : "IAS 12 Отложенный налоговый актив: +1.45M UZS"}
+                            {tr("IAS 12 Отложенный налоговый актив: +1.45M UZS", "IAS 12 Deferred Tax Asset: +1.45M UZS")}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                                {isEn ? "НК РУз ст. 258, 337" : "НК РУз ст. 258, 337"}
+                                {tr('НК РУз ст. 258, 337', 'Uzbek Tax Code Art. 258, 337', 'O\'zR SK 258, 337-m.')}
                             </span>
                             <button
                                 onClick={() => navigate('/tax-config')}
                                 className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
                             >
-                                <span>{isEn ? "Settings" : "Ставки"}</span>
+                                <span>{tr("Ставки", "Settings")}</span>
                                 <ArrowRight className="h-3 w-3" />
                             </button>
                         </div>
@@ -425,31 +426,31 @@ export default function DashboardPage() {
                 <Card className="border-border/60 shadow-xs">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                            {isEn ? "Audit Opinion (ISA 700)" : "МСА 700 Заключение аудита"}
+                            {tr("МСА 700 Заключение аудита", "Audit Opinion (ISA 700)")}
                         </CardTitle>
                         <ShieldCheck className="h-4 w-4 text-indigo-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-baseline justify-between">
                             <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                {isEn ? "Unmodified" : "Безоговорочное"}
+                                {tr("Безоговорочное", "Unmodified")}
                             </div>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                                4 {isEn ? "pages" : "стр"}
+                                4 {tr("стр", "pages")}
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {isEn ? "Full IFRS Convergence & Audit Booklet" : "Полный пакет раскрытий со всеми примечаниями"}
+                            {tr("Полный пакет раскрытий со всеми примечаниями", "Full IFRS Convergence & Audit Booklet")}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                                {isEn ? "IFRS 16, 9, IAS 36, 12" : "IFRS 16, 9, IAS 36, 12"}
+                                {tr("IFRS 16, 9, IAS 36, 12", "IFRS 16, 9, IAS 36, 12")}
                             </span>
                             <button
                                 onClick={() => navigate('/reports')}
                                 className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
                             >
-                                <span>{isEn ? "View reports" : "Отчеты"}</span>
+                                <span>{tr("Отчеты", "View reports")}</span>
                                 <ArrowRight className="h-3 w-3" />
                             </button>
                         </div>
@@ -466,18 +467,16 @@ export default function DashboardPage() {
                             <div>
                                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                                     <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                    {isEn ? "IFRS Transformation Volume Dynamics" : "Динамика объемов трансформации по периодам"}
+                                    {tr("Динамика объемов трансформации по периодам", "IFRS Transformation Volume Dynamics")}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isEn 
-                                        ? "Aggregated balance sheet volume in Million UZS across reporting cycles" 
-                                        : "Совокупный объем трансформаций балансов в миллионах сум (UZS)"}
+                                    {tr("Совокупный объем трансформаций балансов в миллионах сум (UZS)", "Aggregated balance sheet volume in Million UZS across reporting cycles")}
                                 </CardDescription>
                             </div>
                             <div className="flex items-center gap-3 text-xs">
                                 <span className="flex items-center gap-1.5 text-muted-foreground">
                                     <span className="h-2.5 w-2.5 rounded-full bg-blue-600 inline-block" />
-                                    {isEn ? "Total Volume" : "Общий объем"}
+                                    {tr("Общий объем", "Total Volume")}
                                 </span>
                                 <span className="flex items-center gap-1.5 text-muted-foreground">
                                     <span className="h-2.5 w-2.5 rounded-full bg-purple-500 inline-block" />
@@ -527,9 +526,9 @@ export default function DashboardPage() {
                                         }}
                                         formatter={(val: any, name: any) => {
                                             const label = name === 'volume' 
-                                                ? (isEn ? 'Total Volume' : 'Общий объем')
+                                                ? (tr('Общий объем', 'Total Volume'))
                                                 : name === 'ifrs16'
-                                                ? 'IFRS 16 (Аренда)'
+                                                ? tr('IFRS 16 (Аренда)', 'IFRS 16 (Leases)', 'IFRS 16 (Ijara)')
                                                 : 'IFRS 9 (ECL)';
                                             return [`${val}M UZS`, label];
                                         }}
@@ -556,15 +555,15 @@ export default function DashboardPage() {
 
                         <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50 text-center">
                             <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">IFRS 16 (Аренда)</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IFRS 16 (Аренда)', 'IFRS 16 (Leases)', 'IFRS 16 (Ijara)')}</span>
                                 <span className="text-sm font-bold text-purple-600 dark:text-purple-400">45.0M UZS</span>
                             </div>
                             <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">IFRS 9 (Резервы ECL)</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IFRS 9 (Резервы ECL)', 'IFRS 9 (ECL Reserves)', 'IFRS 9 (ECL zaxiralari)')}</span>
                                 <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">15.6M UZS</span>
                             </div>
                             <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">IAS 36 (Тест обесценения)</span>
+                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IAS 36 (Тест обесценения)', 'IAS 36 (Impairment Test)', 'IAS 36 (Qadrsizlanish testi)')}</span>
                                 <span className="text-sm font-bold text-blue-600 dark:text-blue-400">8.2M UZS</span>
                             </div>
                         </div>
@@ -577,10 +576,10 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Sparkles className="h-4 w-4 text-amber-500" />
-                                {isEn ? "Quick Operations Hub" : "Быстрые операции"}
+                                {tr("Быстрые операции", "Quick Operations Hub")}
                             </CardTitle>
                             <span className="text-xs text-muted-foreground font-medium">
-                                {isEn ? "Direct Access" : "Быстрый переход"}
+                                {tr("Быстрый переход", "Direct Access")}
                             </span>
                         </div>
                     </CardHeader>
@@ -596,14 +595,14 @@ export default function DashboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
                                         <p className="text-xs font-semibold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                            {isEn ? "Smart 1C / Excel Import" : "Умный импорт 1С / Excel"}
+                                            {tr("Умный импорт 1С / Excel", "Smart 1C / Excel Import")}
                                         </p>
                                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300">
                                             AI Mapper
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "Visual column mapper & OSV parser" : "Авторазметка счетов и остатков ОСВ"}
+                                        {tr("Авторазметка счетов и остатков ОСВ", "Visual column mapper & OSV parser")}
                                     </p>
                                 </div>
                             </button>
@@ -620,14 +619,14 @@ export default function DashboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
                                         <p className="text-xs font-semibold group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                            {isEn ? "IFRS 10 Group Consolidation" : "Консолидация группы (IFRS 10)"}
+                                            {tr("Консолидация группы (IFRS 10)", "IFRS 10 Group Consolidation")}
                                         </p>
                                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                                            {isEn ? "4 Entities" : "4 Юрлица"}
+                                            {tr("4 Юрлица", "4 Entities")}
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "Intercompany eliminations & NCI" : "Внутригрупповые элиминации и NCI"}
+                                        {tr("Внутригрупповые элиминации и NCI", "Intercompany eliminations & NCI")}
                                     </p>
                                 </div>
                             </button>
@@ -642,14 +641,14 @@ export default function DashboardPage() {
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between">
                                         <p className="text-xs font-semibold group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                            {isEn ? "Company Profile & Structure" : "Профиль и реквизиты компании"}
+                                            {tr("Профиль и реквизиты компании", "Company Profile & Structure")}
                                         </p>
                                         <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
-                                            {isEn ? "1 Entity" : "1 Юрлицо"}
+                                            {tr("1 Юрлицо", "1 Entity")}
                                         </span>
                                     </div>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "Tax details, 1C config & corporate settings" : "ИНН, синхронизация с 1С и параметры"}
+                                        {tr("ИНН, синхронизация с 1С и параметры", "Tax details, 1C config & corporate settings")}
                                     </p>
                                 </div>
                             </button>
@@ -665,14 +664,14 @@ export default function DashboardPage() {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
                                     <p className="text-xs font-semibold group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                        {isEn ? "Full IFRS Disclosure Package" : "Пакет отчетности МСФО (4 стр)"}
+                                        {tr("Пакет отчетности МСФО (4 стр)", "Full IFRS Disclosure Package")}
                                     </p>
                                     <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
-                                        МСА 700
+                                        {tr('МСА 700', 'ISA 700', 'XAS 700')}
                                     </span>
                                 </div>
                                 <p className="text-[10px] text-muted-foreground truncate">
-                                    {isEn ? "Official audit report booklet" : "Буклет с аудиторским заключением"}
+                                    {tr("Буклет с аудиторским заключением", "Official audit report booklet")}
                                 </p>
                             </div>
                         </button>
@@ -687,10 +686,10 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                                        {isEn ? "Tax Configuration & IAS 12" : "Налоговый конфигуратор (IAS 12)"}
+                                        {tr("Налоговый конфигуратор (IAS 12)", "Tax Configuration & IAS 12")}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "CIT 15%, VAT 12%, Soliq.uz protocol" : "Сверка CIT 15%, VAT 12% и ОНА"}
+                                        {tr("Сверка CIT 15%, VAT 12% и ОНА", "CIT 15%, VAT 12%, Soliq.uz protocol")}
                                     </p>
                                 </div>
                             </button>
@@ -706,10 +705,10 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                                        {isEn ? "Full Audit Trail Log" : "Журнал аудита операций"}
+                                        {tr("Журнал аудита операций", "Full Audit Trail Log")}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "Traceable compliance event history" : "История всех проводок и действий"}
+                                        {tr("История всех проводок и действий", "Traceable compliance event history")}
                                     </p>
                                 </div>
                             </button>
@@ -725,10 +724,10 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-semibold group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                                        {isEn ? "Compliance & Tax Audit" : "Комплаенс-контроль и сверка"}
+                                        {tr("Комплаенс-контроль и сверка", "Compliance & Tax Audit")}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground truncate">
-                                        {isEn ? "Automated Soliq.uz & IFRS check" : "Проверка 18 критических правил МСФО"}
+                                        {tr("Проверка 18 критических правил МСФО", "Automated Soliq.uz & IFRS check")}
                                     </p>
                                 </div>
                             </button>
@@ -745,12 +744,10 @@ export default function DashboardPage() {
                         <div>
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <FileSpreadsheet className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                {isEn ? "Recent Balance Sheets & Transformations" : "Реестр загруженных пробных балансов (ОСВ)"}
+                                {tr("Реестр загруженных пробных балансов (ОСВ)", "Recent Balance Sheets & Transformations")}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {isEn 
-                                    ? "Actual balance sheets stored in the system with direct transformation links" 
-                                    : "Реальные отчеты из базы данных с прямым переходом к трансформации"}
+                                {tr("Реальные отчеты из базы данных с прямым переходом к трансформации", "Actual balance sheets stored in the system with direct transformation links")}
                             </CardDescription>
                         </div>
                         {PERMISSIONS.canUploadBalanceSheet(user?.role) && (
@@ -761,28 +758,28 @@ export default function DashboardPage() {
                                 className="text-xs gap-1.5 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950"
                             >
                                 <Plus className="h-3.5 w-3.5" />
-                                {isEn ? "Upload Statement" : "Загрузить ОСВ"}
+                                {tr("Загрузить ОСВ", "Upload Statement")}
                             </Button>
                         )}
                     </CardHeader>
                     <CardContent>
                         {loading ? (
                             <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                                {isEn ? "Loading balance sheets..." : "Загрузка реестра балансов..."}
+                                {tr("Загрузка реестра балансов...", "Loading balance sheets...")}
                             </div>
                         ) : balanceSheets.length === 0 ? (
                             <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
-                                {isEn ? "No balance sheets found. Upload one to start." : "Нет загруженных балансов. Нажмите «Загрузить ОСВ» для начала."}
+                                {tr("Нет загруженных балансов. Нажмите «Загрузить ОСВ» для начала.", "No balance sheets found. Upload one to start.")}
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
                                         <tr className="border-b border-border/60 text-slate-500 dark:text-slate-400 font-medium">
-                                            <th className="text-left pb-2.5 font-semibold">{isEn ? "Reporting Period" : "Отчетный период"}</th>
-                                            <th className="text-left pb-2.5 font-semibold">{isEn ? "Status" : "Статус"}</th>
-                                            <th className="text-left pb-2.5 font-semibold">{isEn ? "Created Date" : "Дата загрузки"}</th>
-                                            <th className="text-right pb-2.5 font-semibold">{isEn ? "Actions" : "Действия"}</th>
+                                            <th className="text-left pb-2.5 font-semibold">{tr("Отчетный период", "Reporting Period")}</th>
+                                            <th className="text-left pb-2.5 font-semibold">{tr("Статус", "Status")}</th>
+                                            <th className="text-left pb-2.5 font-semibold">{tr("Дата загрузки", "Created Date")}</th>
+                                            <th className="text-right pb-2.5 font-semibold">{tr("Действия", "Actions")}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border/40">
@@ -808,11 +805,11 @@ export default function DashboardPage() {
                                                                 : 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
                                                         }`}>
                                                             {isTransformed && <CheckCircle2 className="h-3 w-3" />}
-                                                            {isTransformed ? (isEn ? "TRANSFORMED" : "ТРАНСФОРМИРОВАНО") : (isEn ? "DRAFT" : "В ОБРАБОТКЕ")}
+                                                            {isTransformed ? (tr("ТРАНСФОРМИРОВАНО", "TRANSFORMED")) : (tr("В ОБРАБОТКЕ", "DRAFT"))}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 text-slate-500 dark:text-slate-400">
-                                                        {sheet.created_at ? sheet.created_at.split(' ')[0] : (isEn ? "Recent" : "Недавно")}
+                                                        {sheet.created_at ? sheet.created_at.split(' ')[0] : (tr("Недавно", "Recent"))}
                                                     </td>
                                                     <td className="py-3 text-right">
                                                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -822,7 +819,7 @@ export default function DashboardPage() {
                                                                 onClick={(e) => handleDownloadExcel(sheet.id, cleanPeriod, e)}
                                                                 disabled={isDownloading}
                                                                 className="h-7 px-2 text-[11px] gap-1 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400"
-                                                                title={isEn ? "Export Excel" : "Скачать Excel"}
+                                                                title={tr("Скачать Excel", "Export Excel")}
                                                             >
                                                                 <Download className="h-3 w-3" />
                                                                 <span>Excel</span>
@@ -832,7 +829,7 @@ export default function DashboardPage() {
                                                                 onClick={() => navigate(`/transformation/${sheet.id}`)}
                                                                 className="h-7 px-2.5 text-[11px] gap-1 bg-blue-600 hover:bg-blue-700 text-white"
                                                             >
-                                                                <span>{user?.role === 'auditor' ? (isEn ? "Audit IFRS" : "Аудит МСФО") : (isEn ? "Open IFRS" : "Открыть МСФО")}</span>
+                                                                <span>{user?.role === 'auditor' ? (tr("Аудит МСФО", "Audit IFRS")) : (tr("Открыть МСФО", "Open IFRS"))}</span>
                                                                 <ArrowRight className="h-3 w-3" />
                                                             </Button>
                                                         </div>
@@ -847,13 +844,13 @@ export default function DashboardPage() {
 
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                                {isEn ? `Showing up to 5 of ${totalSheets} balance sheets` : `Показано до 5 из ${totalSheets} балансов`}
+                                {tr(`Показано до 5 из ${totalSheets} балансов`, `Showing up to 5 of ${totalSheets} balance sheets`)}
                             </span>
                             <button
                                 onClick={() => navigate('/transformation')}
                                 className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                             >
-                                <span>{isEn ? "View all balance sheets" : "Перейти ко всем балансам"}</span>
+                                <span>{tr("Перейти ко всем балансам", "View all balance sheets")}</span>
                                 <ArrowRight className="h-3 w-3" />
                             </button>
                         </div>
@@ -866,24 +863,24 @@ export default function DashboardPage() {
                         <div>
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Activity className="h-4 w-4 text-blue-500" />
-                                {isEn ? "Live Audit Trail" : "Живой журнал аудита"}
+                                {tr("Живой журнал аудита", "Live Audit Trail")}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {isEn ? "Real operational event log" : "Реальный реестр системных действий"}
+                                {tr("Реальный реестр системных действий", "Real operational event log")}
                             </CardDescription>
                         </div>
                         <button
                             onClick={() => navigate('/audit-log')}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
                         >
-                            {isEn ? "Full log →" : "Весь журнал →"}
+                            {tr("Весь журнал →", "Full log →")}
                         </button>
                     </CardHeader>
                     <CardContent className="pt-1 flex-1">
                         <div className="space-y-2.5">
                             {auditLogs.length === 0 ? (
                                 <div className="text-xs text-muted-foreground text-center py-8">
-                                    {isEn ? "No audit events logged yet" : "Событий аудита пока нет"}
+                                    {tr("Событий аудита пока нет", "No audit events logged yet")}
                                 </div>
                             ) : (
                                 auditLogs.slice(0, 5).map((log) => {

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { tr } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetProps } from '../types';
 import { RefreshCw, Database, Settings, Loader2, AlertTriangle } from 'lucide-react';
@@ -24,20 +25,18 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
             const isBalanced = res.data?.is_balanced;
             
             const detailMsg = totalAccounts !== undefined
-                ? (isEn 
-                    ? `Synchronized ${totalAccounts} accounts. ${isBalanced ? 'Trial balance verified (Δ=0).' : ''}` 
-                    : `Синхронизировано ${totalAccounts} счетов. ${isBalanced ? 'ОСВ сбалансирована (Δ=0).' : ''}`)
-                : (res.data?.message || (isEn ? "1C data synchronized successfully" : "Данные из 1С успешно получены"));
+                ? (tr(`Синхронизировано ${totalAccounts} счетов. ${isBalanced ? 'ОСВ сбалансирована (Δ=0).' : ''}`, `Synchronized ${totalAccounts} accounts. ${isBalanced ? 'Trial balance verified (Δ=0).' : ''}`))
+                : (res.data?.message || (tr("Данные из 1С успешно получены", "1C data synchronized successfully")));
 
             toast({
-                title: isEn ? "1C:Enterprise Sync Completed" : "Синхронизация 1С:Предприятие завершена",
+                title: tr("Синхронизация 1С:Предприятие завершена", "1C:Enterprise Sync Completed"),
                 description: detailMsg,
             });
             window.dispatchEvent(new Event('refresh-dashboard'));
         } catch (error: any) {
             toast({
-                title: isEn ? "Sync Failed" : "Ошибка синхронизации 1С",
-                description: error.response?.data?.detail || (isEn ? "Failed to trigger 1C sync" : "Не удалось выполнить синхронизацию с 1С"),
+                title: tr("Ошибка синхронизации 1С", "Sync Failed"),
+                description: error.response?.data?.detail || (tr("Не удалось выполнить синхронизацию с 1С", "Failed to trigger 1C sync")),
                 variant: "destructive"
             });
         } finally {
@@ -46,15 +45,19 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
     };
 
     const formatSyncTime = (text?: string | null) => {
-        if (!text) return isEn ? 'Never' : 'Никогда';
-        if (!isEn) {
-            return text
-                .replace(/(\d+)\s+minutes?\s+ago/i, '$1 мин. назад')
-                .replace(/(\d+)\s+hours?\s+ago/i, '$1 ч. назад')
-                .replace(/just now/i, 'только что')
-                .replace(/Never/i, 'Никогда');
-        }
-        return text;
+        if (!text) return tr('Никогда', 'Never', 'Hech qachon');
+        if (isEn) return text;
+        const ruText = text
+            .replace(/(\d+)\s+minutes?\s+ago/i, '$1 мин. назад')
+            .replace(/(\d+)\s+hours?\s+ago/i, '$1 ч. назад')
+            .replace(/just now/i, 'только что')
+            .replace(/Never/i, 'Никогда');
+        const uzText = text
+            .replace(/(\d+)\s+minutes?\s+ago/i, '$1 daqiqa oldin')
+            .replace(/(\d+)\s+hours?\s+ago/i, '$1 soat oldin')
+            .replace(/just now/i, 'hozirgina')
+            .replace(/Never/i, 'Hech qachon');
+        return tr(ruText, text, uzText);
     };
 
     return (
@@ -63,14 +66,14 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-1.5">
                         <Database className="h-4 w-4 text-amber-500" />
-                        <span>{isEn ? "1C:Enterprise Sync" : "Интеграция 1С:Предприятие"}</span>
+                        <span>{tr("Интеграция 1С:Предприятие", "1C:Enterprise Sync")}</span>
                     </CardTitle>
                     <Button 
                         size="icon" 
                         variant="ghost" 
                         className="h-7 w-7 text-muted-foreground hover:text-foreground"
                         onClick={() => setIsConfigOpen(true)}
-                        title={isEn ? "1C Connection Settings" : "Параметры подключения 1С"}
+                        title={tr("Параметры подключения 1С", "1C Connection Settings")}
                     >
                         <Settings className="h-4 w-4" />
                     </Button>
@@ -81,8 +84,8 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
                             <div className={`h-2.5 w-2.5 rounded-full ${status?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
                             <span className="text-sm font-medium">
                                 {status?.connected 
-                                    ? (isEn ? 'Connected' : 'Подключено к OData') 
-                                    : (isEn ? 'Disconnected' : 'Отключено')}
+                                    ? (tr('Подключено к OData', 'Connected')) 
+                                    : (tr('Отключено', 'Disconnected'))}
                             </span>
                         </div>
                         {status?.connected && (
@@ -93,7 +96,7 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
                     </div>
 
                     <div className="text-xs text-muted-foreground flex items-center justify-between pt-1">
-                        <span>{isEn ? "Last sync:" : "Последняя синхр.:"}</span>
+                        <span>{tr("Последняя синхр.:", "Last sync:")}</span>
                         <span className="font-medium text-slate-700 dark:text-slate-300">
                             {formatSyncTime(status?.last_sync)}
                         </span>
@@ -102,7 +105,7 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
                     {status?.errors && (
                         <div className="mt-1 text-xs text-rose-500 font-medium flex items-center gap-1">
                             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                            <span>{isEn ? "Sync warning detected" : "Обнаружено предупреждение синхронизации"}</span>
+                            <span>{tr("Обнаружено предупреждение синхронизации", "Sync warning detected")}</span>
                         </div>
                     )}
                 </CardContent>
@@ -117,12 +120,12 @@ export const OneCSyncWidget: React.FC<WidgetProps> = ({ data }) => {
                     {syncing ? (
                         <>
                             <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            <span>{isEn ? 'Syncing with 1C...' : 'Синхронизация с 1С...'}</span>
+                            <span>{tr('Синхронизация с 1С...', 'Syncing with 1C...')}</span>
                         </>
                     ) : (
                         <>
                             <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
-                            <span>{isEn ? 'Sync Trial Balance Now' : 'Синхронизировать ОСВ'}</span>
+                            <span>{tr('Синхронизировать ОСВ', 'Sync Trial Balance Now')}</span>
                         </>
                     )}
                 </Button>

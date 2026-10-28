@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
@@ -44,15 +45,15 @@ export default function CommentsSection({ reportId }: CommentsProps) {
             });
             setNewComment('');
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Комментарий добавлен" : "Comment added",
+                title: tr("Успешно", "Success"),
+                description: tr("Комментарий добавлен", "Comment added"),
             });
             fetchComments();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось добавить комментарий" : "Failed to add comment"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось добавить комментарий", "Failed to add comment")),
             });
         } finally {
             setLoading(false);
@@ -60,20 +61,20 @@ export default function CommentsSection({ reportId }: CommentsProps) {
     };
 
     const handleDeleteComment = async (commentId: string) => {
-        if (!confirm(isRu ? 'Удалить этот комментарий?' : 'Delete this comment?')) return;
+        if (!confirm(tr('Удалить этот комментарий?', 'Delete this comment?'))) return;
 
         try {
             await api.delete(`/reports/${reportId}/comments/${commentId}`);
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Комментарий удален" : "Comment deleted",
+                title: tr("Успешно", "Success"),
+                description: tr("Комментарий удален", "Comment deleted"),
             });
             fetchComments();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось удалить комментарий" : "Failed to delete comment",
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось удалить комментарий", "Failed to delete comment"),
             });
         }
     };
@@ -86,14 +87,14 @@ export default function CommentsSection({ reportId }: CommentsProps) {
     return (
         <div className="space-y-4">
             <h3 className="font-semibold text-lg text-gray-900">
-                {isRu ? 'Комментарии и обсуждение' : 'Comments'}
+                {tr('Комментарии и обсуждение', 'Comments')}
             </h3>
 
             {/* Comments List */}
             <div className="space-y-3 max-h-96 overflow-y-auto">
                 {!Array.isArray(comments) || comments.length === 0 ? (
                     <p className="text-gray-500 text-sm">
-                        {isRu ? 'Комментариев пока нет. Оставьте первый комментарий!' : 'No comments yet. Be the first to comment!'}
+                        {tr('Комментариев пока нет. Оставьте первый комментарий!', 'No comments yet. Be the first to comment!')}
                     </p>
                 ) : (
                     (Array.isArray(comments) ? comments : []).map((comment) => (
@@ -127,7 +128,7 @@ export default function CommentsSection({ reportId }: CommentsProps) {
                     rows={2}
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder={isRu ? "Напишите комментарий..." : "Add a comment..."}
+                    placeholder={tr("Напишите комментарий...", "Add a comment...")}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' && e.ctrlKey) {
                             handleAddComment();
@@ -144,7 +145,7 @@ export default function CommentsSection({ reportId }: CommentsProps) {
                 </Button>
             </div>
             <p className="text-xs text-gray-400">
-                {isRu ? 'Нажмите Ctrl+Enter для быстрой отправки' : 'Press Ctrl+Enter to send'}
+                {tr('Нажмите Ctrl+Enter для быстрой отправки', 'Press Ctrl+Enter to send')}
             </p>
         </div>
     );

@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, ChevronDown, ChevronUp } from 'lucide-react';
+import { tr } from '../lib/i18n';
 
 interface Props {
     children: ReactNode;
@@ -67,10 +68,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
                         {/* Title & Description */}
                         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
-                            Произошла непредвиденная ошибка
+                            {tr('Произошла непредвиденная ошибка', 'An unexpected error occurred', 'Kutilmagan xatolik yuz berdi')}
                         </h1>
                         <p className="text-slate-500 text-sm mt-2 leading-relaxed">
-                            Приложение столкнулось с внутренней ошибкой рендеринга интерфейса. Данные сессии сохранены.
+                            {tr(
+                                'Приложение столкнулось с внутренней ошибкой рендеринга интерфейса. Данные сессии сохранены.',
+                                'The application encountered an internal UI rendering error. Your session data has been preserved.',
+                                'Ilova interfeysni aks ettirishda ichki xatolikka duch keldi. Sessiya ma\'lumotlari saqlanib qoldi.'
+                            )}
                         </p>
 
                         {/* Action Buttons */}
@@ -80,14 +85,14 @@ export class ErrorBoundary extends Component<Props, State> {
                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium transition-all shadow-sm hover:shadow"
                             >
                                 <RefreshCw className="w-4 h-4" />
-                                Перезагрузить страницу
+                                {tr('Перезагрузить страницу', 'Reload Page', 'Sahifani qayta yuklash')}
                             </button>
                             <button
                                 onClick={this.handleGoHome}
                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 text-sm font-medium transition-all"
                             >
                                 <Home className="w-4 h-4" />
-                                На главную
+                                {tr('На главную', 'Go Home', 'Bosh sahifaga')}
                             </button>
                         </div>
 
@@ -98,7 +103,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                     onClick={this.toggleDetails}
                                     className="flex items-center justify-between w-full text-xs text-slate-400 hover:text-slate-600 py-1 transition-colors"
                                 >
-                                    <span>Техническая информация об ошибке</span>
+                                    <span>{tr('Техническая информация об ошибке', 'Technical Error Details', 'Xatolik haqida texnik ma\'lumot')}</span>
                                     {this.state.showDetails ? (
                                         <ChevronUp className="w-4 h-4" />
                                     ) : (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { tr } from '@/lib/i18n';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -18,20 +19,20 @@ import {
 
 export default function GuidePage() {
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+    void i18n.language;
     const [activeSection, setActiveSection] = useState('introduction');
 
     const sections = [
-        { id: 'introduction', title: isRu ? '1. Введение' : '1. Introduction', icon: Home },
-        { id: 'login', title: isRu ? '2. Вход в систему' : '2. System Login', icon: LogIn },
-        { id: 'dashboard', title: isRu ? '3. Главная панель' : '3. Main Dashboard', icon: BarChart3 },
-        { id: 'regulations', title: isRu ? '4. Нормативы' : '4. Regulations', icon: Shield },
-        { id: 'compliance', title: isRu ? '5. Проверки соответствия' : '5. Compliance Checks', icon: AlertTriangle },
-        { id: 'reports', title: isRu ? '6. Финансовые отчеты' : '6. Financial Reports', icon: FileText },
-        { id: 'tax-analysis', title: isRu ? '7. AI Анализ налогов' : '7. AI Tax Analysis', icon: Calculator },
-        { id: 'transformation', title: isRu ? '8. Трансформация балансов' : '8. Balance Transformation', icon: Upload },
-        { id: 'documents', title: isRu ? '9. Документы' : '9. Documents', icon: FileText },
-        { id: 'admin', title: isRu ? '10. Администрирование' : '10. Administration', icon: Settings },
+        { id: 'introduction', title: tr('1. Введение', '1. Introduction'), icon: Home },
+        { id: 'login', title: tr('2. Вход в систему', '2. System Login'), icon: LogIn },
+        { id: 'dashboard', title: tr('3. Главная панель', '3. Main Dashboard'), icon: BarChart3 },
+        { id: 'regulations', title: tr('4. Нормативы', '4. Regulations'), icon: Shield },
+        { id: 'compliance', title: tr('5. Проверки соответствия', '5. Compliance Checks'), icon: AlertTriangle },
+        { id: 'reports', title: tr('6. Финансовые отчеты', '6. Financial Reports'), icon: FileText },
+        { id: 'tax-analysis', title: tr('7. AI Анализ налогов', '7. AI Tax Analysis'), icon: Calculator },
+        { id: 'transformation', title: tr('8. Трансформация балансов', '8. Balance Transformation'), icon: Upload },
+        { id: 'documents', title: tr('9. Документы', '9. Documents'), icon: FileText },
+        { id: 'admin', title: tr('10. Администрирование', '10. Administration'), icon: Settings },
     ];
 
     return (
@@ -40,10 +41,10 @@ export default function GuidePage() {
             <div className="w-full md:w-72 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shrink-0 shadow-xs">
                 <div className="mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                        {isRu ? 'Руководство пользователя' : 'User Guide'}
+                        {tr('Руководство пользователя', 'User Guide')}
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {isRu ? 'Инструкции и справка по платформе' : 'Platform documentation and manuals'}
+                        {tr('Инструкции и справка по платформе', 'Platform documentation and manuals')}
                     </p>
                 </div>
                 <nav className="space-y-1">
@@ -87,10 +88,10 @@ export default function GuidePage() {
                                 </div>
                                 <div>
                                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                        {isRu ? 'Axiaris Platform — Руководство пользователя' : 'Axiaris Platform — User Guide'}
+                                        {tr('Axiaris Platform — Руководство пользователя', 'Axiaris Platform — User Guide')}
                                     </h1>
                                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                        {isRu ? 'Версия: 2.6 Enterprise • Автоматизация МСФО и НСБУ' : 'Version: 2.6 Enterprise • IFRS & NAS Automation'}
+                                        {tr('Версия: 2.6 Enterprise • Автоматизация МСФО и НСБУ', 'Version: 2.6 Enterprise • IFRS & NAS Automation')}
                                     </p>
                                 </div>
                             </div>
@@ -99,38 +100,36 @@ export default function GuidePage() {
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-4">
                                     <CardTitle className="text-lg flex items-center gap-2 text-slate-900 dark:text-white">
                                         <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                        {isRu ? 'Что такое Axiaris?' : 'What is Axiaris?'}
+                                        {tr('Что такое Axiaris?', 'What is Axiaris?')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-4 pt-5 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                                     <p>
-                                        <strong>Axiaris</strong> — {isRu 
-                                            ? 'интеллектуальная FinTech-платформа корпоративного уровня для автоматизации финансовой отчетности, трансформации МСФО (IFRS) и контроля нормативного комплаенса.'
-                                            : 'an enterprise-grade FinTech intelligence platform for financial reporting automation, IFRS transformation, and regulatory compliance monitoring.'
+                                        <strong>Axiaris</strong> — {tr('интеллектуальная FinTech-платформа корпоративного уровня для автоматизации финансовой отчетности, трансформации МСФО (IFRS) и контроля нормативного комплаенса.', 'an enterprise-grade FinTech intelligence platform for financial reporting automation, IFRS transformation, and regulatory compliance monitoring.')
                                         }
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                                         <div className="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
                                             <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                                            <span>{isRu ? 'Трансформация балансов из НСБУ в МСФО (IFRS 9, 16, IAS 36)' : 'Balance transformation from NAS into IFRS (9, 16, IAS 36)'}</span>
+                                            <span>{tr('Трансформация балансов из НСБУ в МСФО (IFRS 9, 16, IAS 36)', 'Balance transformation from NAS into IFRS (9, 16, IAS 36)')}</span>
                                         </div>
                                         <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
                                             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
-                                            <span>{isRu ? 'Синхронизация с 1С:Предприятие через двусторонний OData API' : 'Two-way synchronization with 1C:Enterprise via OData API'}</span>
+                                            <span>{tr('Синхронизация с 1С:Предприятие через двусторонний OData API', 'Two-way synchronization with 1C:Enterprise via OData API')}</span>
                                         </div>
                                         <div className="p-3 rounded-xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/50 text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
                                             <CheckCircle2 className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
-                                            <span>{isRu ? 'База из 120+ нормативов (МСФО, НСБУ, Базель III, Налоговый кодекс)' : '120+ normatives library (IFRS, NAS, Basel III, Tax Code)'}</span>
+                                            <span>{tr('База из 120+ нормативов (МСФО, НСБУ, Базель III, Налоговый кодекс)', '120+ normatives library (IFRS, NAS, Basel III, Tax Code)')}</span>
                                         </div>
                                         <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50 text-slate-700 dark:text-slate-300 flex items-start gap-2.5">
                                             <CheckCircle2 className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
-                                            <span>{isRu ? 'AI Аудитор с формированием меморандума и КВА (ISA 701)' : 'AI Auditor with audit memorandum and KAM generation (ISA 701)'}</span>
+                                            <span>{tr('AI Аудитор с формированием меморандума и КВА (ISA 701)', 'AI Auditor with audit memorandum and KAM generation (ISA 701)')}</span>
                                         </div>
                                     </div>
 
                                     <div className="pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
                                         <h3 className="font-bold text-slate-900 dark:text-white mb-3">
-                                            {isRu ? 'Роли пользователей и права доступа' : 'User Roles & Access Levels'}
+                                            {tr('Роли пользователей и права доступа', 'User Roles & Access Levels')}
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 bg-white dark:bg-slate-800/60 shadow-xs">
@@ -139,7 +138,7 @@ export default function GuidePage() {
                                                     <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 font-mono">Global</span>
                                                 </div>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {isRu ? 'Полный системный доступ ко всем тенантам, компаниям и журналам аудита' : 'Full platform access across all tenants, companies and audit logs'}
+                                                    {tr('Полный системный доступ ко всем тенантам, компаниям и журналам аудита', 'Full platform access across all tenants, companies and audit logs')}
                                                 </p>
                                             </div>
                                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 bg-white dark:bg-slate-800/60 shadow-xs">
@@ -148,7 +147,7 @@ export default function GuidePage() {
                                                     <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-mono">Executive</span>
                                                 </div>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {isRu ? 'Управление компанией, добавление сотрудников и настройка интеграции с 1С' : 'Company management, employee invitation and 1C connection configuration'}
+                                                    {tr('Управление компанией, добавление сотрудников и настройка интеграции с 1С', 'Company management, employee invitation and 1C connection configuration')}
                                                 </p>
                                             </div>
                                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 bg-white dark:bg-slate-800/60 shadow-xs">
@@ -157,7 +156,7 @@ export default function GuidePage() {
                                                     <span className="text-[10px] px-2 py-0.5 rounded bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-mono">Ledger</span>
                                                 </div>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {isRu ? 'Загрузка ОСВ, проведение корректировок МСФО, экспорт 3-стороннего Excel' : 'Trial balance upload, IFRS adjustments, and 3-way Excel export'}
+                                                    {tr('Загрузка ОСВ, проведение корректировок МСФО, экспорт 3-стороннего Excel', 'Trial balance upload, IFRS adjustments, and 3-way Excel export')}
                                                 </p>
                                             </div>
                                             <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 bg-white dark:bg-slate-800/60 shadow-xs">
@@ -166,7 +165,7 @@ export default function GuidePage() {
                                                     <span className="text-[10px] px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 font-mono">Audit</span>
                                                 </div>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {isRu ? 'Проверка отчетов, анализ сходимости баланса и генерация меморандума аудита' : 'Report verification, balance convergence review, and audit memo generation'}
+                                                    {tr('Проверка отчетов, анализ сходимости баланса и генерация меморандума аудита', 'Report verification, balance convergence review, and audit memo generation')}
                                                 </p>
                                             </div>
                                         </div>
@@ -180,20 +179,18 @@ export default function GuidePage() {
                     {activeSection === 'login' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '2. Вход в систему и авторизация' : '2. System Authentication & Login'}
+                                {tr('2. Вход в систему и авторизация', '2. System Authentication & Login')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Быстрый вход через готовые демо-профили (1 клик)' : '1-Click Quick Demo Profiles'}
+                                        {tr('Быстрый вход через готовые демо-профили (1 клик)', '1-Click Quick Demo Profiles')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <p>
-                                        {isRu 
-                                            ? 'Для тестирования платформы на странице входа доступны предустановленные демо-профили всех ролей.'
-                                            : 'Pre-configured demo profiles for all roles are available directly on the login page for rapid onboarding.'
+                                        {tr('Для тестирования платформы на странице входа доступны предустановленные демо-профили всех ролей.', 'Pre-configured demo profiles for all roles are available directly on the login page for rapid onboarding.')
                                         }
                                     </p>
                                     <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs font-mono">
@@ -215,9 +212,7 @@ export default function GuidePage() {
                                         </div>
                                     </div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        {isRu 
-                                            ? 'Нажмите на любую карточку — поля заполнятся автоматически, затем нажмите «Войти».'
-                                            : 'Click on any profile card to automatically populate fields, then click "Sign In".'
+                                        {tr('Нажмите на любую карточку — поля заполнятся автоматически, затем нажмите «Войти».', 'Click on any profile card to automatically populate fields, then click "Sign In".')
                                         }
                                     </p>
                                 </CardContent>
@@ -229,43 +224,43 @@ export default function GuidePage() {
                     {activeSection === 'dashboard' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '3. Главная панель (Dashboard)' : '3. Executive Dashboard'}
+                                {tr('3. Главная панель (Dashboard)', '3. Executive Dashboard')}
                             </h1>
 
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <Card className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Оценка соответствия' : 'Compliance Score'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Оценка соответствия', 'Compliance Score')}</div>
                                     <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">94%</div>
-                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'МСФО и НСБУ' : 'IFRS & NAS'}</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{tr('МСФО и НСБУ', 'IFRS & NAS')}</div>
                                 </Card>
                                 <Card className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Активные предупреждения' : 'Active Alerts'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Активные предупреждения', 'Active Alerts')}</div>
                                     <div className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">3</div>
-                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'Требуют внимания' : 'Require review'}</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{tr('Требуют внимания', 'Require review')}</div>
                                 </Card>
                                 <Card className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Трансформировано отчетов' : 'Transformed Reports'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Трансформировано отчетов', 'Transformed Reports')}</div>
                                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">12</div>
-                                    <div className="text-[11px] text-slate-400 mt-1">{isRu ? 'За текущий квартал' : 'This quarter'}</div>
+                                    <div className="text-[11px] text-slate-400 mt-1">{tr('За текущий квартал', 'This quarter')}</div>
                                 </Card>
                             </div>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Ключевые блоки главной панели' : 'Dashboard Core Components'}
+                                        {tr('Ключевые блоки главной панели', 'Dashboard Core Components')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <ul className="list-disc ml-6 space-y-2">
                                         <li>
-                                            <strong>{isRu ? 'Телеметрия сходимости:' : 'Convergence Telemetry:'}</strong> {isRu ? 'контроль формулы Баланс = Активы − (Обязательства + Капитал) в реальном времени с нулевой дельтой.' : 'Real-time validation of Assets = Liabilities + Equity formula with zero delta guard.'}
+                                            <strong>{tr('Телеметрия сходимости:', 'Convergence Telemetry:')}</strong> {tr('контроль формулы Баланс = Активы − (Обязательства + Капитал) в реальном времени с нулевой дельтой.', 'Real-time validation of Assets = Liabilities + Equity formula with zero delta guard.')}
                                         </li>
                                         <li>
-                                            <strong>{isRu ? 'Категории рисков:' : 'Risk Categories:'}</strong> {isRu ? 'быстрая фильтрация по стандартам IFRS 9 (кредитный риск), IFRS 16 (аренда), IAS 36 (обесценение).' : 'Fast filtering across IFRS 9 (credit risk), IFRS 16 (leases), IAS 36 (impairment).'}
+                                            <strong>{tr('Категории рисков:', 'Risk Categories:')}</strong> {tr('быстрая фильтрация по стандартам IFRS 9 (кредитный риск), IFRS 16 (аренда), IAS 36 (обесценение).', 'Fast filtering across IFRS 9 (credit risk), IFRS 16 (leases), IAS 36 (impairment).')}
                                         </li>
                                         <li>
-                                            <strong>{isRu ? 'Прямой переход в разделы:' : 'Direct Deep-links:'}</strong> {isRu ? 'клик по любой метрике сразу открывает детальный реестр с преднастроенными фильтрами.' : 'Clicking any KPI widget instantly routes to the detailed view with applied filters.'}
+                                            <strong>{tr('Прямой переход в разделы:', 'Direct Deep-links:')}</strong> {tr('клик по любой метрике сразу открывает детальный реестр с преднастроенными фильтрами.', 'Clicking any KPI widget instantly routes to the detailed view with applied filters.')}
                                         </li>
                                     </ul>
                                 </CardContent>
@@ -277,30 +272,26 @@ export default function GuidePage() {
                     {activeSection === 'regulations' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '4. Реестр нормативов и авто-синхронизация' : '4. Regulations Library & Auto-Sync'}
+                                {tr('4. Реестр нормативов и авто-синхронизация', '4. Regulations Library & Auto-Sync')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'База знаний нормативных актов (120+ стандартов)' : 'Regulatory Knowledge Base (120+ Standards)'}
+                                        {tr('База знаний нормативных актов (120+ стандартов)', 'Regulatory Knowledge Base (120+ Standards)')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <p>
-                                        {isRu 
-                                            ? 'Платформа содержит полную коллекцию стандартов МСФО (IFRS 1–17, IAS 1–37), национальных стандартов Узбекистана (НСБУ 1–22), Базель III (CAR, LCR), Налогового кодекса РУз и стандартов аудита МСА.'
-                                            : 'The platform houses a complete corpus of IFRS (1–17, IAS 1–37), Uzbekistan National Standards (NAS 1–22), Basel III (CAR, LCR), Tax Code, and ISA audit standards.'
+                                        {tr('Платформа содержит полную коллекцию стандартов МСФО (IFRS 1–17, IAS 1–37), национальных стандартов Узбекистана (НСБУ 1–22), Базель III (CAR, LCR), Налогового кодекса РУз и стандартов аудита МСА.', 'The platform houses a complete corpus of IFRS (1–17, IAS 1–37), Uzbekistan National Standards (NAS 1–22), Basel III (CAR, LCR), Tax Code, and ISA audit standards.')
                                         }
                                     </p>
                                     <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-xl space-y-2">
                                         <div className="font-bold text-blue-900 dark:text-blue-300 text-xs uppercase tracking-wide">
-                                            {isRu ? 'Автоматическое пополнение 24/7:' : 'Automated 24/7 Seeding:'}
+                                            {tr('Автоматическое пополнение 24/7:', 'Automated 24/7 Seeding:')}
                                         </div>
                                         <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
-                                            {isRu 
-                                                ? 'Каждые 6 часов и при каждом запуске система автоматически сверяет реестр нормативов и загружает новые акты без участия пользователя. Кнопка «Авто-пополнение базы» в шапке страницы позволяет запустить процесс вручную в 1 клик.'
-                                                : 'Every 6 hours and upon system boot, the platform automatically reconciles the regulation catalog and loads missing standards. The "Auto-Sync Library" button in the header triggers manual sync on demand.'
+                                            {tr('Каждые 6 часов и при каждом запуске система автоматически сверяет реестр нормативов и загружает новые акты без участия пользователя. Кнопка «Авто-пополнение базы» в шапке страницы позволяет запустить процесс вручную в 1 клик.', 'Every 6 hours and upon system boot, the platform automatically reconciles the regulation catalog and loads missing standards. The "Auto-Sync Library" button in the header triggers manual sync on demand.')
                                             }
                                         </p>
                                     </div>
@@ -313,21 +304,21 @@ export default function GuidePage() {
                     {activeSection === 'compliance' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '5. Проверки соответствия и риск-контроль' : '5. Compliance Checks & Risk Control'}
+                                {tr('5. Проверки соответствия и риск-контроль', '5. Compliance Checks & Risk Control')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Запуск и анализ аудиторских проверок' : 'Executing Compliance Audits'}
+                                        {tr('Запуск и анализ аудиторских проверок', 'Executing Compliance Audits')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <ol className="list-decimal ml-6 space-y-2">
-                                        <li>{isRu ? 'Перейдите в раздел «Соблюдение норм» → «Проверки соответствия».' : 'Navigate to "Compliance" → "Compliance Checks".'}</li>
-                                        <li>{isRu ? 'Нажмите кнопку «Запустить проверку» (Run Compliance Check).' : 'Click "Run Compliance Check".'}</li>
-                                        <li>{isRu ? 'Система проанализирует данные компании и сформирует перечень несоответствий с градацией Critical / High / Medium / Low.' : 'The engine will analyze company filings and generate classified discrepancies (Critical, High, Medium, Low).'}</li>
-                                        <li>{isRu ? 'Каждое предупреждение содержит пошаговые рекомендации по устранению (Action Items).' : 'Each alert is paired with actionable remediation guidance (Action Items).'}</li>
+                                        <li>{tr('Перейдите в раздел «Соблюдение норм» → «Проверки соответствия».', 'Navigate to "Compliance" → "Compliance Checks".')}</li>
+                                        <li>{tr('Нажмите кнопку «Запустить проверку» (Run Compliance Check).', 'Click "Run Compliance Check".')}</li>
+                                        <li>{tr('Система проанализирует данные компании и сформирует перечень несоответствий с градацией Critical / High / Medium / Low.', 'The engine will analyze company filings and generate classified discrepancies (Critical, High, Medium, Low).')}</li>
+                                        <li>{tr('Каждое предупреждение содержит пошаговые рекомендации по устранению (Action Items).', 'Each alert is paired with actionable remediation guidance (Action Items).')}</li>
                                     </ol>
                                 </CardContent>
                             </Card>
@@ -338,34 +329,32 @@ export default function GuidePage() {
                     {activeSection === 'reports' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '6. Финансовые отчеты и выгрузка' : '6. Financial Reports & Exports'}
+                                {tr('6. Финансовые отчеты и выгрузка', '6. Financial Reports & Exports')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Генерация 3-сторонней отчетности (НСБУ / Корректировки / МСФО)' : '3-Way Financial Statement Generation'}
+                                        {tr('Генерация 3-сторонней отчетности (НСБУ / Корректировки / МСФО)', '3-Way Financial Statement Generation')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <p>
-                                        {isRu 
-                                            ? 'Платформа формирует аудированный отчет в трёх параллельных столбцах: баланс НСБУ, суммы корректировок МСФО и итоговый трансформированный баланс МСФО.'
-                                            : 'The engine renders an audited 3-column statement: original NAS balance, IFRS adjustment journal, and the resulting IFRS converted balance.'
+                                        {tr('Платформа формирует аудированный отчет в трёх параллельных столбцах: баланс НСБУ, суммы корректировок МСФО и итоговый трансформированный баланс МСФО.', 'The engine renders an audited 3-column statement: original NAS balance, IFRS adjustment journal, and the resulting IFRS converted balance.')
                                         }
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2">
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-center">
                                             <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">Excel (.xlsx)</div>
-                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{isRu ? 'Формулы SUM/SUMIF' : 'Formulas SUM/SUMIF'}</div>
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{tr('Формулы SUM/SUMIF', 'Formulas SUM/SUMIF')}</div>
                                         </div>
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-center">
                                             <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">PDF Report</div>
-                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{isRu ? 'Для совета директоров' : 'Board-ready export'}</div>
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{tr('Для совета директоров', 'Board-ready export')}</div>
                                         </div>
                                         <div className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg text-center">
                                             <div className="font-bold text-slate-800 dark:text-slate-200 text-xs">JSON API</div>
-                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{isRu ? 'Интеграция с ERP / 1C' : 'ERP / 1C Integration'}</div>
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">{tr('Интеграция с ERP / 1C', 'ERP / 1C Integration')}</div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -377,20 +366,20 @@ export default function GuidePage() {
                     {activeSection === 'tax-analysis' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '7. AI Анализ налогов и налоговая оптимизация' : '7. AI Tax Analysis & Optimization'}
+                                {tr('7. AI Анализ налогов и налоговая оптимизация', '7. AI Tax Analysis & Optimization')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Интеллектуальная налоговая аналитика' : 'Intelligent Tax Health Check'}
+                                        {tr('Интеллектуальная налоговая аналитика', 'Intelligent Tax Health Check')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <ul className="list-disc ml-6 space-y-2">
-                                        <li>{isRu ? 'Проверка корректности ставок налога на прибыль (15%) и НДС (12%) по НК РУз.' : 'Validation of corporate income tax (15%) and VAT (12%) rates against Tax Code.'}</li>
-                                        <li>{isRu ? 'Выявление неиспользованных налоговых льгот и оптимизационных резервов.' : 'Detection of unapplied tax credits and optimization allowances.'}</li>
-                                        <li>{isRu ? 'Автоматическая сверка сумм ЭСФ через систему e-INVOICE.' : 'Automatic cross-matching of e-INVOICE amounts.'}</li>
+                                        <li>{tr('Проверка корректности ставок налога на прибыль (15%) и НДС (12%) по НК РУз.', 'Validation of corporate income tax (15%) and VAT (12%) rates against Tax Code.')}</li>
+                                        <li>{tr('Выявление неиспользованных налоговых льгот и оптимизационных резервов.', 'Detection of unapplied tax credits and optimization allowances.')}</li>
+                                        <li>{tr('Автоматическая сверка сумм ЭСФ через систему e-INVOICE.', 'Automatic cross-matching of e-INVOICE amounts.')}</li>
                                     </ul>
                                 </CardContent>
                             </Card>
@@ -401,20 +390,18 @@ export default function GuidePage() {
                     {activeSection === 'transformation' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '8. Трансформация балансов (НСБУ → МСФО)' : '8. Balance Transformation (NAS → IFRS)'}
+                                {tr('8. Трансформация балансов (НСБУ → МСФО)', '8. Balance Transformation (NAS → IFRS)')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Движок трансформации с защитой равенства баланса (Zero-Delta Guard)' : 'Transformation Engine with Zero-Delta Capital Guard'}
+                                        {tr('Движок трансформации с защитой равенства баланса (Zero-Delta Guard)', 'Transformation Engine with Zero-Delta Capital Guard')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <p>
-                                        {isRu 
-                                            ? 'При проведении трансформационных проводок движок автоматически соблюдает парность отражения в капитале (счет 84 «Нераспределенная прибыль»), гарантируя 100% сходимость баланса:'
-                                            : 'During transformation adjustments, the engine strictly maintains dual-entry impact on retained earnings, guaranteeing 100% balance convergence:'
+                                        {tr('При проведении трансформационных проводок движок автоматически соблюдает парность отражения в капитале (счет 84 «Нераспределенная прибыль»), гарантируя 100% сходимость баланса:', 'During transformation adjustments, the engine strictly maintains dual-entry impact on retained earnings, guaranteeing 100% balance convergence:')
                                         }
                                     </p>
                                     <div className="p-3.5 bg-slate-900 dark:bg-slate-950 border border-slate-800 text-slate-100 rounded-xl font-mono text-xs space-y-1">
@@ -434,20 +421,18 @@ export default function GuidePage() {
                     {activeSection === 'documents' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '9. Электронный документооборот и OCR' : '9. Documents & OCR Extraction'}
+                                {tr('9. Электронный документооборот и OCR', '9. Documents & OCR Extraction')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Распознавание первичных документов (PDF / Excel / Сканы)' : 'Primary Document Extraction (PDF / Excel / Scans)'}
+                                        {tr('Распознавание первичных документов (PDF / Excel / Сканы)', 'Primary Document Extraction (PDF / Excel / Scans)')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <p>
-                                        {isRu 
-                                            ? 'Модуль OCR автоматически извлекает табличные данные, реквизиты договоров, акты сверок и оборотно-сальдовые ведомости из файлов любого формата с привязкой к счетам учета.'
-                                            : 'The OCR subsystem extracts tabular data, contract terms, reconciliation statements, and trial balances from arbitrary file formats directly into ledger mappings.'
+                                        {tr('Модуль OCR автоматически извлекает табличные данные, реквизиты договоров, акты сверок и оборотно-сальдовые ведомости из файлов любого формата с привязкой к счетам учета.', 'The OCR subsystem extracts tabular data, contract terms, reconciliation statements, and trial balances from arbitrary file formats directly into ledger mappings.')
                                         }
                                     </p>
                                 </CardContent>
@@ -459,20 +444,20 @@ export default function GuidePage() {
                     {activeSection === 'admin' && (
                         <div className="space-y-6 animate-in fade-in duration-200">
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                {isRu ? '10. Администрирование и безопасность' : '10. Administration & Governance'}
+                                {tr('10. Администрирование и безопасность', '10. Administration & Governance')}
                             </h1>
 
                             <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
                                 <CardHeader className="bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-200 dark:border-slate-800 pb-3">
                                     <CardTitle className="text-base text-slate-900 dark:text-white">
-                                        {isRu ? 'Управление доступом (RBAC) и аудит операций' : 'Role-Based Access Control (RBAC) & Audit Logs'}
+                                        {tr('Управление доступом (RBAC) и аудит операций', 'Role-Based Access Control (RBAC) & Audit Logs')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm space-y-3 text-slate-700 dark:text-slate-300 pt-4">
                                     <ul className="list-disc ml-6 space-y-2">
-                                        <li>{isRu ? 'Изоляция данных на уровне тенанта (Tenant ID) исключает доступ к данным других организаций.' : 'Strict tenant data isolation (Tenant ID) eliminates cross-organizational data leakage.'}</li>
-                                        <li>{isRu ? 'Журнал аудита фиксирует каждое действие: вход, изменения проводок, генерацию отчетов с временными метками UTC.' : 'Tamper-proof audit logging records every event: logins, entry updates, report generation with UTC timestamps.'}</li>
-                                        <li>{isRu ? 'Шифрование данных AES-256 в состоянии покоя и TLS 1.3 при передаче.' : 'AES-256 encryption at rest and TLS 1.3 in transit.'}</li>
+                                        <li>{tr('Изоляция данных на уровне тенанта (Tenant ID) исключает доступ к данным других организаций.', 'Strict tenant data isolation (Tenant ID) eliminates cross-organizational data leakage.')}</li>
+                                        <li>{tr('Журнал аудита фиксирует каждое действие: вход, изменения проводок, генерацию отчетов с временными метками UTC.', 'Tamper-proof audit logging records every event: logins, entry updates, report generation with UTC timestamps.')}</li>
+                                        <li>{tr('Шифрование данных AES-256 в состоянии покоя и TLS 1.3 при передаче.', 'AES-256 encryption at rest and TLS 1.3 in transit.')}</li>
                                     </ul>
                                 </CardContent>
                             </Card>

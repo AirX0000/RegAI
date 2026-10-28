@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
@@ -63,7 +64,7 @@ export default function InteractiveColumnMapper({
         const headerRow = rawData[headerRowIndex] || [];
         return headerRow.map((colVal, idx) => ({
             index: idx,
-            name: String(colVal || '').trim() || (isRu ? `Колонка ${idx + 1}` : `Col ${idx + 1}`)
+            name: String(colVal || '').trim() || (tr(`Колонка ${idx + 1}`, `Col ${idx + 1}`))
         }));
     }, [rawData, headerRowIndex, isRu]);
 
@@ -225,21 +226,19 @@ export default function InteractiveColumnMapper({
                         </div>
                         <div>
                             <CardTitle className="text-base sm:text-lg font-bold flex items-center gap-2 text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Интерактивный маппинг колонок (1С / Excel)' : 'Interactive Column Mapper (1C / Excel)'}
+                                {tr('Интерактивный маппинг колонок (1С / Excel)', 'Interactive Column Mapper (1C / Excel)')}
                                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                     {fileName}
                                 </span>
                             </CardTitle>
                             <CardDescription className="text-xs text-slate-500 mt-0.5">
-                                {isRu 
-                                    ? 'Сопоставьте столбцы вашей оборотно-сальдовой ведомости (ОСВ) со стандартными полями трансформации.'
-                                    : 'Match the columns of your statutory trial balance (OSV) with standardized transformation attributes.'}
+                                {tr('Сопоставьте столбцы вашей оборотно-сальдовой ведомости (ОСВ) со стандартными полями трансформации.', 'Match the columns of your statutory trial balance (OSV) with standardized transformation attributes.')}
                             </CardDescription>
                         </div>
                     </div>
                     <Button variant="ghost" size="sm" onClick={onCancel} className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 self-start sm:self-auto">
                         <X className="w-4 h-4 mr-1" />
-                        {isRu ? 'Отмена' : 'Cancel'}
+                        {tr('Отмена', 'Cancel')}
                     </Button>
                 </div>
             </CardHeader>
@@ -251,7 +250,7 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <TableProperties className="w-3.5 h-3.5 text-blue-500" />
-                            {isRu ? 'Строка заголовков таблицы:' : 'Table Header Row:'}
+                            {tr('Строка заголовков таблицы:', 'Table Header Row:')}
                         </label>
                         <select 
                             value={headerRowIndex}
@@ -260,12 +259,12 @@ export default function InteractiveColumnMapper({
                         >
                             {rawData.slice(0, Math.min(12, rawData.length)).map((row, idx) => (
                                 <option key={idx} value={idx}>
-                                    {isRu ? `Строка ${idx + 1}` : `Row ${idx + 1}`} ({row.filter(Boolean).slice(0, 3).join(', ').slice(0, 30) || '...'})
+                                    {tr(`Строка ${idx + 1}`, `Row ${idx + 1}`)} ({row.filter(Boolean).slice(0, 3).join(', ').slice(0, 30) || '...'})
                                 </option>
                             ))}
                         </select>
                         <span className="text-[10px] text-slate-400 block mt-1 truncate">
-                            {isRu ? 'Строка с названиями колонок в 1С' : 'Header row in table'}
+                            {tr('Строка с названиями колонок в 1С', 'Header row in table')}
                         </span>
                     </div>
 
@@ -273,14 +272,14 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            {isRu ? 'Код счета (Account Code):' : 'Account Code Column:'}
+                            {tr('Код счета (Account Code):', 'Account Code Column:')}
                         </label>
                         <select 
                             value={mappedCode}
                             onChange={(e) => setMappedCode(Number(e.target.value))}
                             className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-background font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                         >
-                            <option value={-1}>{isRu ? '-- Не выбрано --' : '-- None --'}</option>
+                            <option value={-1}>{tr('-- Не выбрано --', '-- None --')}</option>
                             {columns.map(c => (
                                 <option key={c.index} value={c.index}>
                                     [{c.index + 1}] {c.name}
@@ -296,14 +295,14 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-slate-500" />
-                            {isRu ? 'Наименование (Account Name):' : 'Account Name Column:'}
+                            {tr('Наименование (Account Name):', 'Account Name Column:')}
                         </label>
                         <select 
                             value={mappedName}
                             onChange={(e) => setMappedName(Number(e.target.value))}
                             className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-background text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                         >
-                            <option value={-1}>{isRu ? '-- Авто-наименование --' : '-- Auto Generate --'}</option>
+                            <option value={-1}>{tr('-- Авто-наименование --', '-- Auto Generate --')}</option>
                             {columns.map(c => (
                                 <option key={c.index} value={c.index}>
                                     [{c.index + 1}] {c.name}
@@ -319,7 +318,7 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            {isRu ? 'Сальдо Дт / Сумма (Debit / Amount):' : 'Debit / Amount Column:'}
+                            {tr('Сальдо Дт / Сумма (Debit / Amount):', 'Debit / Amount Column:')}
                         </label>
                         <select 
                             value={mappedDebit !== -1 ? mappedDebit : mappedAmount}
@@ -330,7 +329,7 @@ export default function InteractiveColumnMapper({
                             }}
                             className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-background font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                         >
-                            <option value={-1}>{isRu ? '-- Не выбрано --' : '-- None --'}</option>
+                            <option value={-1}>{tr('-- Не выбрано --', '-- None --')}</option>
                             {columns.map(c => (
                                 <option key={c.index} value={c.index}>
                                     [{c.index + 1}] {c.name}
@@ -346,14 +345,14 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-amber-500" />
-                            {isRu ? 'Сальдо Кт (Credit - опционально):' : 'Credit Column (Optional):'}
+                            {tr('Сальдо Кт (Credit - опционально):', 'Credit Column (Optional):')}
                         </label>
                         <select 
                             value={mappedCredit}
                             onChange={(e) => setMappedCredit(Number(e.target.value))}
                             className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-background font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                         >
-                            <option value={-1}>{isRu ? '-- Нет (одна колонка) --' : '-- None (single column) --'}</option>
+                            <option value={-1}>{tr('-- Нет (одна колонка) --', '-- None (single column) --')}</option>
                             {columns.map(c => (
                                 <option key={c.index} value={c.index}>
                                     [{c.index + 1}] {c.name}
@@ -369,14 +368,14 @@ export default function InteractiveColumnMapper({
                     <div>
                         <label className="font-semibold text-slate-700 dark:text-slate-300 block mb-1.5 flex items-center gap-1.5">
                             <span className="w-2 h-2 rounded-full bg-purple-500" />
-                            {isRu ? 'Категория (Category - опционально):' : 'Category Column (Optional):'}
+                            {tr('Категория (Category - опционально):', 'Category Column (Optional):')}
                         </label>
                         <select 
                             value={mappedCategory}
                             onChange={(e) => setMappedCategory(Number(e.target.value))}
                             className="w-full h-8 px-2.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-background font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none"
                         >
-                            <option value={-1}>{isRu ? '-- Авто по НСБУ 21 --' : '-- Auto by NAS 21 --'}</option>
+                            <option value={-1}>{tr('-- Авто по НСБУ 21 --', '-- Auto by NAS 21 --')}</option>
                             {columns.map(c => (
                                 <option key={c.index} value={c.index}>
                                     [{c.index + 1}] {c.name}
@@ -401,7 +400,7 @@ export default function InteractiveColumnMapper({
                             />
                             <span className="flex items-center gap-1">
                                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                {isRu ? 'Авто-классификация по плану счетов (НСБУ 21)' : 'Auto-classify by Plan of Accounts (NAS 21)'}
+                                {tr('Авто-классификация по плану счетов (НСБУ 21)', 'Auto-classify by Plan of Accounts (NAS 21)')}
                             </span>
                         </label>
 
@@ -412,13 +411,13 @@ export default function InteractiveColumnMapper({
                                 onChange={(e) => setSkipZeroBalances(e.target.checked)}
                                 className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
                             />
-                            <span>{isRu ? 'Пропускать нулевые остатки' : 'Skip zero balance items'}</span>
+                            <span>{tr('Пропускать нулевые остатки', 'Skip zero balance items')}</span>
                         </label>
                     </div>
 
                     <div className="flex items-center gap-2">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-slate-600 dark:text-slate-400 text-[11px]">{isRu ? 'Период:' : 'Period:'}</span>
+                        <span className="text-slate-600 dark:text-slate-400 text-[11px]">{tr('Период:', 'Period:')}</span>
                         <input 
                             type="date"
                             value={period}
@@ -433,12 +432,10 @@ export default function InteractiveColumnMapper({
                     <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
                         <span className="flex items-center gap-1.5">
                             <FileSpreadsheet className="w-4 h-4 text-blue-600" />
-                            {isRu ? 'Предпросмотр распознанных проводок (первые 8 строк):' : 'Recognized Records Preview (First 8 Rows):'}
+                            {tr('Предпросмотр распознанных проводок (первые 8 строк):', 'Recognized Records Preview (First 8 Rows):')}
                         </span>
                         <span className="text-[11px] font-normal text-slate-500">
-                            {isRu 
-                                ? `Всего валидных строк: ${parsedData.items.length}` 
-                                : `Total valid rows: ${parsedData.items.length}`}
+                            {tr(`Всего валидных строк: ${parsedData.items.length}`, `Total valid rows: ${parsedData.items.length}`)}
                         </span>
                     </div>
 
@@ -446,10 +443,10 @@ export default function InteractiveColumnMapper({
                         <table className="w-full text-xs text-left">
                             <thead className="bg-slate-100/80 dark:bg-slate-800/80 text-[11px] text-slate-600 dark:text-slate-400 uppercase font-semibold border-b border-border">
                                 <tr>
-                                    <th className="p-2.5 pl-4 w-24">{isRu ? 'Счет' : 'Code'}</th>
-                                    <th className="p-2.5">{isRu ? 'Наименование статьи' : 'Account Description'}</th>
-                                    <th className="p-2.5 w-32">{isRu ? 'Категория МСФО' : 'Category'}</th>
-                                    <th className="p-2.5 pr-4 text-right w-36">{isRu ? 'Сумма (Баланс)' : 'Amount'}</th>
+                                    <th className="p-2.5 pl-4 w-24">{tr('Счет', 'Code')}</th>
+                                    <th className="p-2.5">{tr('Наименование статьи', 'Account Description')}</th>
+                                    <th className="p-2.5 w-32">{tr('Категория МСФО', 'Category')}</th>
+                                    <th className="p-2.5 pr-4 text-right w-36">{tr('Сумма (Баланс)', 'Amount')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60">
@@ -469,9 +466,9 @@ export default function InteractiveColumnMapper({
                                                     ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30' 
                                                     : 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30'
                                             }`}>
-                                                {item.category === 'assets' ? (isRu ? 'Активы' : 'Assets') :
-                                                 item.category === 'liabilities' ? (isRu ? 'Обязательства' : 'Liabilities') :
-                                                 (isRu ? 'Капитал' : 'Equity')}
+                                                {item.category === 'assets' ? (tr('Активы', 'Assets')) :
+                                                 item.category === 'liabilities' ? (tr('Обязательства', 'Liabilities')) :
+                                                 (tr('Капитал', 'Equity'))}
                                             </span>
                                         </td>
                                         <td className="p-2.5 pr-4 text-right font-mono font-bold text-slate-900 dark:text-slate-100">
@@ -488,19 +485,19 @@ export default function InteractiveColumnMapper({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
                     <div className="grid grid-cols-3 gap-4 text-xs font-mono">
                         <div>
-                            <span className="text-[10px] font-sans text-slate-400 block">{isRu ? 'Активы (Assets):' : 'Total Assets:'}</span>
+                            <span className="text-[10px] font-sans text-slate-400 block">{tr('Активы (Assets):', 'Total Assets:')}</span>
                             <span className="font-bold text-emerald-600 dark:text-emerald-400">
                                 ${parsedData.totalAssets.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </span>
                         </div>
                         <div>
-                            <span className="text-[10px] font-sans text-slate-400 block">{isRu ? 'Пассивы (L + E):' : 'Liab + Equity:'}</span>
+                            <span className="text-[10px] font-sans text-slate-400 block">{tr('Пассивы (L + E):', 'Liab + Equity:')}</span>
                             <span className="font-bold text-blue-600 dark:text-blue-400">
                                 ${(parsedData.totalLiab + parsedData.totalEquity).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                             </span>
                         </div>
                         <div>
-                            <span className="text-[10px] font-sans text-slate-400 block">{isRu ? 'Сходимость:' : 'Equilibrium:'}</span>
+                            <span className="text-[10px] font-sans text-slate-400 block">{tr('Сходимость:', 'Equilibrium:')}</span>
                             <span className={`font-bold flex items-center gap-1 ${isBalanced ? 'text-emerald-600' : 'text-amber-500'}`}>
                                 {isBalanced ? (
                                     <>
@@ -519,7 +516,7 @@ export default function InteractiveColumnMapper({
 
                     <div className="flex items-center gap-2 self-end sm:self-center">
                         <Button variant="outline" size="sm" onClick={onCancel} disabled={submitting}>
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button 
                             onClick={handleImportSubmit} 
@@ -530,12 +527,12 @@ export default function InteractiveColumnMapper({
                             {submitting ? (
                                 <>
                                     <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                                    {isRu ? 'Импорт...' : 'Importing...'}
+                                    {tr('Импорт...', 'Importing...')}
                                 </>
                             ) : (
                                 <>
                                     <CheckCircle2 className="w-3.5 h-3.5" />
-                                    {isRu ? `Импортировать (${parsedData.items.length} строк)` : `Import (${parsedData.items.length} items)`}
+                                    {tr(`Импортировать (${parsedData.items.length} строк)`, `Import (${parsedData.items.length} items)`)}
                                     <ArrowRight className="w-3.5 h-3.5 ml-1" />
                                 </>
                             )}

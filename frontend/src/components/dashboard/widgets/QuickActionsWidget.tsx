@@ -1,4 +1,5 @@
 import React from 'react';
+import { tr } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WidgetProps } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -19,51 +20,50 @@ export const QuickActionsWidget: React.FC<WidgetProps> = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { i18n } = useTranslation();
-    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
-
+    void i18n.language;
     const actions = [
         {
-            label: isEn ? 'Smart 1C Import' : 'Умный импорт 1С',
+            label: tr('Умный импорт 1С', 'Smart 1C Import'),
             icon: <FileSpreadsheet className="h-4 w-4 text-purple-500" />,
             onClick: () => navigate('/transformation/upload'),
-            description: isEn ? 'Auto-map trial balance' : 'Автомаппинг ОСВ и счетов',
+            description: tr('Автомаппинг ОСВ и счетов', 'Auto-map trial balance'),
             show: PERMISSIONS.canUploadBalanceSheet(user?.role),
-            badge: isEn ? 'Smart' : 'AI'
+            badge: tr('AI', 'Smart')
         },
         {
-            label: isEn ? 'Group Consolidation' : 'Консолидация группы',
+            label: tr('Консолидация группы', 'Group Consolidation'),
             icon: <Building2 className="h-4 w-4 text-blue-500" />,
             onClick: () => navigate('/hierarchy'),
-            description: isEn ? 'IFRS 10 holding matrix' : 'Матрица холдинга по МСФО 10',
+            description: tr('Матрица холдинга по МСФО 10', 'IFRS 10 holding matrix'),
             show: PERMISSIONS.canViewHierarchy(user?.role),
             badge: 'IFRS 10'
         },
         {
-            label: isEn ? 'IFRS Package (4p)' : 'Пакет МСФО (4 стр)',
+            label: tr('Пакет МСФО (4 стр)', 'IFRS Package (4p)'),
             icon: <FileText className="h-4 w-4 text-indigo-500" />,
             onClick: () => navigate('/reports'),
-            description: isEn ? 'Full disclosure booklet' : 'Буклет с заключением МСА 700',
+            description: tr('Буклет с заключением МСА 700', 'Full disclosure booklet'),
             show: PERMISSIONS.canCreateReports(user?.role)
         },
         {
-            label: isEn ? 'Tax Protocol' : 'Налоговый протокол',
+            label: tr('Налоговый протокол', 'Tax Protocol'),
             icon: <Receipt className="h-4 w-4 text-emerald-500" />,
             onClick: () => navigate('/tax-config'),
-            description: isEn ? 'Soliq.uz CIT & VAT rates' : 'Сверка CIT 15%, VAT 12%',
+            description: tr('Сверка CIT 15%, VAT 12%', 'Soliq.uz CIT & VAT rates'),
             show: PERMISSIONS.canManageCompanySettings(user?.role)
         },
         {
-            label: isEn ? 'Audit Log' : 'Журнал аудита',
+            label: tr('Журнал аудита', 'Audit Log'),
             icon: <Activity className="h-4 w-4 text-orange-500" />,
             onClick: () => navigate('/audit-log'),
-            description: isEn ? 'Operation history' : 'История изменений и проводок',
+            description: tr('История изменений и проводок', 'Operation history'),
             show: PERMISSIONS.canViewAuditLogs(user?.role)
         },
         {
-            label: isEn ? 'Manage Users' : 'Пользователи',
+            label: tr('Пользователи', 'Manage Users'),
             icon: <Users className="h-4 w-4 text-rose-500" />,
             onClick: () => navigate('/users'),
-            description: isEn ? '5-level access roles' : '5 уровней ролей и прав',
+            description: tr('5 уровней ролей и прав', '5-level access roles'),
             show: PERMISSIONS.canManageUsers(user?.role)
         }
     ];
@@ -76,10 +76,10 @@ export const QuickActionsWidget: React.FC<WidgetProps> = () => {
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-amber-500" />
-                        {isEn ? "Quick Actions Hub" : "Быстрые действия"}
+                        {tr("Быстрые действия", "Quick Actions Hub")}
                     </CardTitle>
                     <span className="text-[11px] text-muted-foreground font-medium">
-                        {visibleActions.length} {isEn ? "actions" : "действий"}
+                        {visibleActions.length} {tr("действий", "actions")}
                     </span>
                 </div>
             </CardHeader>

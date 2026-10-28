@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +35,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
     const [taxBase, setTaxBase] = useState<string>('10000000');
     const [taxRate, setTaxRate] = useState<string>('15');
     const [itemDescription, setItemDescription] = useState<string>(
-        isRu ? 'Основные средства (переоценка / капитализация IFRS 16)' : 'Fixed Assets / IFRS 16 lease capitalization'
+        tr('Основные средства (переоценка / капитализация IFRS 16)', 'Fixed Assets / IFRS 16 lease capitalization')
     );
 
     // Instant real-time calculation
@@ -78,15 +79,15 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
         }
 
         const journalDebit = dtType === 'DTL'
-            ? (isRu ? 'Дт 99/91 Расход по налогу на прибыль (P&L Income Tax Expense)' : 'Dr Profit & Loss (Income Tax Expense)')
+            ? (tr('Дт 99/91 Расход по налогу на прибыль (P&L Income Tax Expense)', 'Dr Profit & Loss (Income Tax Expense)'))
             : dtType === 'DTA'
-                ? (isRu ? 'Дт 09 Отложенный налоговый актив (DTA)' : 'Dr Deferred Tax Asset (Account 09)')
+                ? (tr('Дт 09 Отложенный налоговый актив (DTA)', 'Dr Deferred Tax Asset (Account 09)'))
                 : '—';
 
         const journalCredit = dtType === 'DTL'
-            ? (isRu ? 'Кт 77 Отложенное налоговое обязательство (DTL)' : 'Cr Deferred Tax Liability (Account 77)')
+            ? (tr('Кт 77 Отложенное налоговое обязательство (DTL)', 'Cr Deferred Tax Liability (Account 77)'))
             : dtType === 'DTA'
-                ? (isRu ? 'Кт 99/91 Доход по налогу на прибыль (P&L Income Tax Benefit)' : 'Cr Profit & Loss (Income Tax Benefit)')
+                ? (tr('Кт 99/91 Доход по налогу на прибыль (P&L Income Tax Benefit)', 'Cr Profit & Loss (Income Tax Benefit)'))
                 : '—';
 
         return {
@@ -102,8 +103,8 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
     const handleApply = async () => {
         if (!result || result.dtType === 'NONE' || result.dtAmount <= 0) {
             toast({
-                title: isRu ? 'Временные разницы отсутствуют' : 'No Temporary Differences',
-                description: isRu ? 'Балансовая стоимость равна налоговой базе.' : 'Carrying amount equals tax base.'
+                title: tr('Временные разницы отсутствуют', 'No Temporary Differences'),
+                description: tr('Балансовая стоимость равна налоговой базе.', 'Carrying amount equals tax base.')
             });
             return;
         }
@@ -131,10 +132,8 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
         setOpen(false);
 
         toast({
-            title: isRu ? 'Проводка по МСФО (IAS) 12 создана' : 'IAS 12 Adjustment Created',
-            description: isRu
-                ? `Признано ${result.dtType === 'DTL' ? 'ОНО' : 'ОНА'}: ${result.dtAmount.toLocaleString()} (разница: ${result.diff.toLocaleString()})`
-                : `Recognized ${result.dtType}: ${result.dtAmount.toLocaleString()}`
+            title: tr('Проводка по МСФО (IAS) 12 создана', 'IAS 12 Adjustment Created'),
+            description: tr(`Признано ${result.dtType === 'DTL' ? 'ОНО' : 'ОНА'}: ${result.dtAmount.toLocaleString()} (разница: ${result.diff.toLocaleString()})`, `Recognized ${result.dtType}: ${result.dtAmount.toLocaleString()}`)
         });
     };
 
@@ -144,7 +143,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                 {trigger || (
                     <Button variant="outline" className="text-xs flex items-center gap-1.5 border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300">
                         <Percent className="w-3.5 h-3.5 text-indigo-500" />
-                        {isRu ? 'Калькулятор IAS 12' : 'IAS 12 Calculator'}
+                        {tr('Калькулятор IAS 12', 'IAS 12 Calculator')}
                     </Button>
                 )}
             </DialogTrigger>
@@ -156,15 +155,13 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                         </div>
                         <div>
                             <DialogTitle className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                                {isRu ? 'МСФО (IAS) 12: Отложенные налоги на прибыль' : 'IAS 12: Income Taxes & Deferred Taxes'}
+                                {tr('МСФО (IAS) 12: Отложенные налоги на прибыль', 'IAS 12: Income Taxes & Deferred Taxes')}
                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
                                     DTA / DTL
                                 </span>
                             </DialogTitle>
                             <DialogDescription className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                {isRu 
-                                    ? 'Автоматический расчёт временных разниц между бухгалтерской оценкой МСФО и налоговой базой.' 
-                                    : 'Compute taxable and deductible temporary differences and generate balance sheet tax entries.'}
+                                {tr('Автоматический расчёт временных разниц между бухгалтерской оценкой МСФО и налоговой базой.', 'Compute taxable and deductible temporary differences and generate balance sheet tax entries.')}
                             </DialogDescription>
                         </div>
                     </div>
@@ -175,7 +172,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                     <div className="space-y-3.5">
                         <div>
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                                {isRu ? 'Тип балансовой статьи' : 'Balance Sheet Category'}
+                                {tr('Тип балансовой статьи', 'Balance Sheet Category')}
                             </Label>
                             <div className="grid grid-cols-2 gap-2">
                                 <Button
@@ -184,7 +181,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                                     className={`text-xs h-8 ${category === 'asset' ? 'bg-indigo-600 text-white' : ''}`}
                                     onClick={() => setCategory('asset')}
                                 >
-                                    {isRu ? 'Актив (Asset)' : 'Asset'}
+                                    {tr('Актив (Asset)', 'Asset')}
                                 </Button>
                                 <Button
                                     type="button"
@@ -192,14 +189,14 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                                     className={`text-xs h-8 ${category === 'liability' ? 'bg-indigo-600 text-white' : ''}`}
                                     onClick={() => setCategory('liability')}
                                 >
-                                    {isRu ? 'Обязательство (Liability)' : 'Liability'}
+                                    {tr('Обязательство (Liability)', 'Liability')}
                                 </Button>
                             </div>
                         </div>
 
                         <div>
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                                {isRu ? 'Бухгалтерская стоимость по МСФО' : 'IFRS Carrying Amount'}
+                                {tr('Бухгалтерская стоимость по МСФО', 'IFRS Carrying Amount')}
                             </Label>
                             <Input
                                 type="number"
@@ -212,7 +209,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
 
                         <div>
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                                {isRu ? 'Налоговая база по НК' : 'Tax Base'}
+                                {tr('Налоговая база по НК', 'Tax Base')}
                             </Label>
                             <Input
                                 type="number"
@@ -225,7 +222,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
 
                         <div>
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                                {isRu ? 'Ставка налога на прибыль (%)' : 'Corporate Tax Rate (%)'}
+                                {tr('Ставка налога на прибыль (%)', 'Corporate Tax Rate (%)')}
                             </Label>
                             <div className="flex gap-1.5 items-center">
                                 <Input
@@ -256,7 +253,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
 
                         <div>
                             <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1 block">
-                                {isRu ? 'Описание статьи' : 'Description'}
+                                {tr('Описание статьи', 'Description')}
                             </Label>
                             <Input
                                 type="text"
@@ -273,7 +270,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                         <div>
                             <div className="flex items-center justify-between mb-3">
                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
-                                    {isRu ? 'Результат расчёта' : 'Calculation Result'}
+                                    {tr('Результат расчёта', 'Calculation Result')}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
                                     result.dtType === 'DTL'
@@ -282,19 +279,19 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                                             ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                                             : 'bg-slate-200 text-slate-600'
                                 }`}>
-                                    {result.dtType === 'DTL' ? (isRu ? 'ОНО (Пассив)' : 'DTL (Liability)') : result.dtType === 'DTA' ? (isRu ? 'ОНА (Актив)' : 'DTA (Asset)') : '0.00'}
+                                    {result.dtType === 'DTL' ? (tr('ОНО (Пассив)', 'DTL (Liability)')) : result.dtType === 'DTA' ? (tr('ОНА (Актив)', 'DTA (Asset)')) : '0.00'}
                                 </span>
                             </div>
 
                             <div className="space-y-2.5">
                                 <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                                     <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                                        {isRu ? 'Временная разница:' : 'Temporary Difference:'}
+                                        {tr('Временная разница:', 'Temporary Difference:')}
                                     </div>
                                     <div className="text-base font-bold font-mono text-slate-900 dark:text-white">
-                                        {result.diff.toLocaleString()} {isRu ? 'сум / $' : 'USD'}
+                                        {result.diff.toLocaleString()} {tr('сум / $', 'USD')}
                                         <span className="text-[11px] font-normal text-slate-500 ml-1.5">
-                                            ({result.diffType === 'taxable' ? (isRu ? 'налогооблагаемая' : 'taxable') : (isRu ? 'вычитаемая' : 'deductible')})
+                                            ({result.diffType === 'taxable' ? (tr('налогооблагаемая', 'taxable')) : (tr('вычитаемая', 'deductible'))})
                                         </span>
                                     </div>
                                 </div>
@@ -306,11 +303,11 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                                 }`}>
                                     <div className="text-[11px] font-semibold opacity-80">
                                         {result.dtType === 'DTL' 
-                                            ? (isRu ? 'Отложенное налоговое обязательство (ОНО):' : 'Deferred Tax Liability (DTL):')
-                                            : (isRu ? 'Отложенный налоговый актив (ОНА):' : 'Deferred Tax Asset (DTA):')}
+                                            ? (tr('Отложенное налоговое обязательство (ОНО):', 'Deferred Tax Liability (DTL):'))
+                                            : (tr('Отложенный налоговый актив (ОНА):', 'Deferred Tax Asset (DTA):'))}
                                     </div>
                                     <div className="text-xl font-black font-mono mt-0.5">
-                                        {result.dtAmount.toLocaleString()} {isRu ? 'сум / $' : 'USD'}
+                                        {result.dtAmount.toLocaleString()} {tr('сум / $', 'USD')}
                                     </div>
                                 </div>
 
@@ -318,7 +315,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                                 <div className="p-2.5 rounded-lg bg-indigo-50/40 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50">
                                     <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300 mb-1">
                                         <ArrowRightLeft className="w-3.5 h-3.5" />
-                                        {isRu ? 'Бухгалтерская проводка МСФО:' : 'Journal Entry:'}
+                                        {tr('Бухгалтерская проводка МСФО:', 'Journal Entry:')}
                                     </div>
                                     <div className="text-[10px] font-mono space-y-0.5 text-slate-700 dark:text-slate-300">
                                         <div><span className="font-bold text-indigo-600">Дт:</span> {result.journalDebit}</div>
@@ -329,9 +326,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                         </div>
 
                         <div className="mt-3 text-[11px] text-slate-500 dark:text-slate-400 italic">
-                            💡 {isRu 
-                                ? 'Временные разницы от IFRS 16 и IAS 36 автоматически устраняются по мере начисления амортизации.' 
-                                : 'Temporary differences from IFRS 16 / IAS 36 reverse through ongoing amortization.'}
+                            💡 {tr('Временные разницы от IFRS 16 и IAS 36 автоматически устраняются по мере начисления амортизации.', 'Temporary differences from IFRS 16 / IAS 36 reverse through ongoing amortization.')}
                         </div>
                     </div>
                 </div>
@@ -344,7 +339,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                         onClick={() => setOpen(false)}
                         className="text-xs"
                     >
-                        {isRu ? 'Отмена' : 'Cancel'}
+                        {tr('Отмена', 'Cancel')}
                     </Button>
                     <Button
                         type="button"
@@ -354,7 +349,7 @@ export default function IAS12Calculator({ onCalculate, trigger }: IAS12Calculato
                         className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4"
                     >
                         <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                        {isRu ? 'Применить проводку в баланс' : 'Apply Tax Adjustment'}
+                        {tr('Применить проводку в баланс', 'Apply Tax Adjustment')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

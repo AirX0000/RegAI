@@ -29,6 +29,7 @@ import { PERMISSIONS } from '../lib/permissions';
 import LanguageSwitcher from './LanguageSwitcher';
 import ThemeToggle from './ThemeToggle';
 import ProfileModal from './ProfileModal';
+import { tr } from '../lib/i18n';
 
 export function Topbar() {
     const { user, logout } = useAuth();
@@ -40,47 +41,52 @@ export function Topbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navRef = useRef<HTMLDivElement>(null);
 
-    const isEn = (i18n.language || 'ru').toLowerCase().startsWith('en');
-
+    void i18n.language;
     const getRoleLabel = (role?: string) => {
-        if (!role) return isEn ? 'User' : 'Пользователь';
+        if (!role) return tr('Пользователь', 'User', 'Foydalanuvchi');
         switch (role) {
             case 'superadmin':
-                return isEn ? 'SuperAdmin' : 'Администратор';
+                return tr('Администратор', 'SuperAdmin', 'SuperAdmin');
             case 'company_owner':
-                return isEn ? 'Company Owner' : 'Владелец компании';
+                return tr('Владелец компании', 'Company Owner', 'Biznes egasi');
             case 'accountant':
-                return isEn ? 'Chief Accountant' : 'Главбух (МСФО)';
+                return tr('Главбух (МСФО)', 'Chief Accountant', 'Bosh buxgalter (MHXS)');
             case 'admin':
-                return isEn ? 'Admin' : 'Администратор';
+                return tr('Администратор', 'Admin', 'Administrator');
             case 'auditor':
-                return isEn ? 'Auditor' : 'Аудитор';
+                return tr('Аудитор', 'Auditor', 'Auditor');
             case 'user':
-                return isEn ? 'Financial Analyst' : 'Финансовый аналитик';
+                return tr('Финансовый аналитик', 'Financial Analyst', 'Moliyaviy tahlilchi');
             default:
                 return role;
         }
     };
 
     const getDisplayName = () => {
-        if (user?.full_name && user.full_name !== 'User') return user.full_name;
-        if (user?.role === 'superadmin') return isEn ? 'System Administrator' : 'Главный администратор';
+        if (user?.full_name && user.full_name !== 'User') {
+            if (user.full_name === 'Сардор Рахимов') return tr('Сардор Рахимов', 'Sardor Raximov', 'Sardor Raximov');
+            if (user.full_name === 'Елена Васильева') return tr('Елена Васильева', 'Elena Vasilyeva', 'Elena Vasilyeva');
+            if (user.full_name === 'Камилла Каримова') return tr('Камилла Каримова', 'Kamilla Karimova', 'Kamilla Karimova');
+            if (user.full_name === 'Дмитрий Ким') return tr('Дмитрий Ким', 'Dmitriy Kim', 'Dmitriy Kim');
+            return user.full_name;
+        }
+        if (user?.role === 'superadmin') return tr('Главный администратор', 'System Administrator', 'Tizim administratori');
         if (user?.email) {
             const prefix = user.email.split('@')[0];
-            if (prefix === 'superadmin') return isEn ? 'System Administrator' : 'Главный администратор';
-            if (prefix === 'owner') return 'Сардор Рахимов';
-            if (prefix === 'accountant') return 'Елена Васильева';
-            if (prefix === 'admin') return 'Камилла Каримова';
-            if (prefix === 'auditor') return 'Дмитрий Ким';
-            if (prefix === 'analyst') return 'Алишер Умаров';
+            if (prefix === 'superadmin') return tr('Главный администратор', 'System Administrator', 'Tizim administratori');
+            if (prefix === 'owner') return tr('Сардор Рахимов', 'Sardor Raximov', 'Sardor Raximov');
+            if (prefix === 'accountant') return tr('Елена Васильева', 'Elena Vasilyeva', 'Elena Vasilyeva');
+            if (prefix === 'admin') return tr('Камилла Каримова', 'Kamilla Karimova', 'Kamilla Karimova');
+            if (prefix === 'auditor') return tr('Дмитрий Ким', 'Dmitriy Kim', 'Dmitriy Kim');
+            if (prefix === 'analyst') return tr('Алишер Умаров', 'Alisher Umarov', 'Alisher Umarov');
             return prefix;
         }
-        return isEn ? 'Administrator' : 'Администратор';
+        return tr('Администратор', 'Administrator', 'Administrator');
     };
 
     const getCompanyDisplay = () => {
         if (user?.role === 'superadmin' || user?.role === 'website_superadmin') {
-            return isEn ? 'All Organizations' : 'Все организации';
+            return tr('Все организации', 'All Organizations', 'Barcha tashkilotlar');
         }
         if (user?.company_name) return user.company_name;
         if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') return 'FinServe Holdings';
@@ -163,13 +169,13 @@ export function Topbar() {
                         {/* Beta Testing Badge */}
                         <div 
                             className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 dark:border-amber-400/30 shadow-[0_0_12px_rgba(245,158,11,0.15)] select-none shrink-0"
-                            title={isEn ? "Platform is in active Beta Testing mode" : "Платформа в режиме активного бета-тестирования"}
+                            title={tr("Платформа в режиме активного бета-тестирования", "Platform is in active Beta Testing mode")}
                         >
                             <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
                             </span>
-                            <span className="font-semibold">{isEn ? 'Beta Testing' : 'Бета-тест'}</span>
+                            <span className="font-semibold">{tr('Бета-тест', 'Beta Testing')}</span>
                         </div>
                     </div>
 
@@ -303,7 +309,7 @@ export function Topbar() {
                                             : 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30 font-medium'
                                     }`}
                                 >
-                                    {isEn ? 'Holding & Company' : 'Холдинг и компания'}
+                                    {tr('Холдинг и компания', 'Holding & Company')}
                                     <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${openDropdown === 'owner' ? 'rotate-180' : ''}`} />
                                 </button>
                                 {openDropdown === 'owner' && (
@@ -314,7 +320,7 @@ export function Topbar() {
                                             onClick={() => setOpenDropdown(null)}
                                         >
                                             <GitBranch className="h-3.5 w-3.5 text-amber-500" />
-                                            <span>{isEn ? 'Organizational Structure' : 'Организационная структура'}</span>
+                                            <span>{tr('Организационная структура', 'Organizational Structure')}</span>
                                         </Link>
                                         <Link
                                             to="/company-settings"
@@ -385,7 +391,7 @@ export function Topbar() {
                                                 onClick={() => setOpenDropdown(null)}
                                             >
                                                 <GitBranch className="h-3.5 w-3.5 text-indigo-500" />
-                                                <span>{user?.role === 'superadmin' ? t('nav_hierarchy') : (isEn ? 'Organizational Structure' : 'Организационная структура')}</span>
+                                                <span>{user?.role === 'superadmin' ? t('nav_hierarchy') : (tr('Организационная структура', 'Organizational Structure'))}</span>
                                             </Link>
                                         )}
                                         {PERMISSIONS.canManageCompanySettings(user?.role) && (
@@ -553,7 +559,7 @@ export function Topbar() {
                                     Axiaris AI
                                 </span>
                                 <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                                    {isEn ? 'Beta' : 'Бета'}
+                                    {tr('Бета', 'Beta')}
                                 </span>
                             </div>
                             <button
@@ -608,7 +614,7 @@ export function Topbar() {
                             {/* Section: Main */}
                             <div>
                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
-                                    {isEn ? 'Main' : 'Основное'}
+                                    {tr('Основное', 'Main')}
                                 </div>
                                 <div className="space-y-0.5">
                                     <Link
@@ -722,7 +728,7 @@ export function Topbar() {
                                             }`}
                                         >
                                             <RefreshCw className="h-4 w-4 text-cyan-500" />
-                                            <span>{isEn ? 'Transformation Dashboard' : 'Панель трансформации'}</span>
+                                            <span>{tr('Панель трансформации', 'Transformation Dashboard')}</span>
                                         </Link>
                                         {PERMISSIONS.canUploadBalanceSheet(user?.role) && (
                                             <Link
@@ -730,7 +736,7 @@ export function Topbar() {
                                                 className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#0f1838] transition-colors"
                                             >
                                                 <span className="text-emerald-500 font-bold ml-0.5">+</span>
-                                                <span>{isEn ? 'New Balance Sheet' : 'Создать баланс'}</span>
+                                                <span>{tr('Создать баланс', 'New Balance Sheet')}</span>
                                             </Link>
                                         )}
                                     </div>
@@ -741,7 +747,7 @@ export function Topbar() {
                             {PERMISSIONS.canAccessOwnerMenu(user?.role) && (
                                 <div>
                                     <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-2 mb-1.5">
-                                        {isEn ? 'Holding & Company' : 'Холдинг и компания'}
+                                        {tr('Холдинг и компания', 'Holding & Company')}
                                     </div>
                                     <div className="space-y-0.5">
                                         <Link
@@ -753,7 +759,7 @@ export function Topbar() {
                                             }`}
                                         >
                                             <GitBranch className="h-4 w-4 text-amber-500" />
-                                            <span>{isEn ? 'Organizational Structure' : 'Организационная структура'}</span>
+                                            <span>{tr('Организационная структура', 'Organizational Structure')}</span>
                                         </Link>
                                         <Link
                                             to="/company-settings"
@@ -826,7 +832,7 @@ export function Topbar() {
                                                 }`}
                                             >
                                                 <GitBranch className="h-4 w-4 text-indigo-500" />
-                                                <span>{user?.role === 'superadmin' ? t('nav_hierarchy') : (isEn ? 'Organizational Structure' : 'Организационная структура')}</span>
+                                                <span>{user?.role === 'superadmin' ? t('nav_hierarchy') : (tr('Организационная структура', 'Organizational Structure'))}</span>
                                             </Link>
                                         )}
                                         {PERMISSIONS.canManageCompanySettings(user?.role) && (
@@ -875,7 +881,7 @@ export function Topbar() {
                             {/* Section: Help & Docs */}
                             <div>
                                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-2 mb-1.5">
-                                    {isEn ? 'Help & Resources' : 'Справка и ресурсы'}
+                                    {tr('Справка и ресурсы', 'Help & Resources')}
                                 </div>
                                 <div className="space-y-0.5">
                                     <Link

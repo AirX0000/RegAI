@@ -20,6 +20,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import api from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { tr } from '../../lib/i18n';
 import {
     Dialog,
     DialogContent,
@@ -235,6 +236,51 @@ export default function GroupConsolidationView() {
         standard: 'IFRS 10.B86',
     });
 
+    const getLocalizedText = (val: string) => {
+        const map: Record<string, [string, string]> = {
+            'Головная холдинговая компания': ['Parent Holding Company', 'Bosh xolding kompaniyasi'],
+            'Промышленное производство': ['Industrial Manufacturing', 'Sanoat ishlab chiqarishi'],
+            'Оптово-розничная дистрибуция': ['Wholesale & Retail Distribution', 'Ulgurji va chakana distribyutsiya'],
+            'Транспортная и складская логистика': ['Transport & Warehouse Logistics', 'Transport va ombor logistikasi'],
+            'Элиминация взаимной торговой задолженности за отгруженную продукцию (ManufacturePro ➔ RetailMax)': [
+                'Elimination of intercompany trade receivables/payables for shipped goods (ManufacturePro ➔ RetailMax)',
+                'Jo\'natilgan mahsulotlar bo\'yicha o\'zaro savdo qarzdorligini eliminatsiya qilish (ManufacturePro ➔ RetailMax)'
+            ],
+            'Взаимозачет внутригруппового долгосрочного займа и финансовых вложений (Axiaris Holding ➔ LogiTrans)': [
+                'Offset of intercompany long-term loan and financial investments (Axiaris Holding ➔ LogiTrans)',
+                'Guruh ichidagi uzoq muddatli qarz va moliyaviy qo\'yilmalarni o\'zaro hisobga olish (Axiaris Holding ➔ LogiTrans)'
+            ],
+            'Элиминация расчетов за оказанные логистические и экспедиторские услуги (LogiTrans ➔ Axiaris Holding)': [
+                'Elimination of intercompany logistics and freight forwarding service balances (LogiTrans ➔ Axiaris Holding)',
+                'Ko\'rsatilgan logistika va ekspeditorlik xizmatlari bo\'yicha hisob-kitoblarni eliminatsiya qilish (LogiTrans ➔ Axiaris Holding)'
+            ],
+            'Исключение нереализованной внутригрупповой торговой наценки в складских остатках готовой продукции': [
+                'Elimination of unrealized intercompany profit margin in closing inventory',
+                'Tayyor mahsulot ombor qoldiqlaridagi amalga oshirilmagan guruh ichidagi savdo ustamasini chiqarib tashlash'
+            ],
+            'Элиминация инвестиций материнской компании против уставного капитала дочерних предприятий': [
+                'Elimination of parent company investments against share capital of subsidiaries',
+                'Bosh kompaniya investitsiyalarini sho\'\'ba korxonalar ustav kapitaliga qarshi eliminatsiya qilish'
+            ],
+            'Кредиторская задолженность поставщикам': ['Trade Payables to Suppliers', 'Yetkazib beruvchilarga kreditorlik qarzdorligi'],
+            'Дебиторская задолженность покупателей': ['Trade Receivables from Customers', 'Xaridorlardan debitorlik qarzdorligi'],
+            'Обязательства по долгосрочным займам': ['Long-term Loan Liabilities', 'Uzoq muddatli qarz majburiyatlari'],
+            'Долгосрочные инвестиции / займы выданные': ['Long-term Investments / Loans Given', 'Uzoq muddatli investitsiyalar / berilgan qarzlar'],
+            'Кредиторская задолженность по услугам': ['Service Payables', 'Xizmatlar bo\'yicha kreditorlik qarzdorligi'],
+            'Дебиторская задолженность за услуги': ['Service Receivables', 'Xizmatlar bo\'yicha debitorlik qarzdorligi'],
+            'Нераспределенная прибыль группы (капитал)': ['Group Retained Earnings (Equity)', 'Guruhning taqsimlanmagan foydasi (kapital)'],
+            'Запасы товаров на складе': ['Inventory on Hand', 'Ombordagi tovar zaxiralari'],
+            'Уставный капитал дочерних обществ': ['Subsidiaries Share Capital', 'Sho\'\'ba jamiyatlar ustav kapitali'],
+            'Инвестиции в дочерние общества': ['Investments in Subsidiaries', 'Sho\'\'ba jamiyatlarga investitsiyalar'],
+            'Axiaris Holding (Группа)': ['Axiaris Holding (Group)', 'Axiaris Holding (Guruh)'],
+            'Дочерние предприятия': ['Subsidiaries', 'Sho\'\'ba korxonalar'],
+        };
+        if (map[val]) {
+            return tr(val, map[val][0], map[val][1]);
+        }
+        return tr(val, val);
+    };
+
     // Toggle elimination active state
     const toggleElimination = (id: string) => {
         setEliminations(prev => prev.map(e => e.id === id ? { ...e, is_active: !e.is_active } : e));
@@ -281,7 +327,7 @@ export default function GroupConsolidationView() {
             // ASSETS
             {
                 account_code: '0100-0300',
-                account_name: isRu ? 'Основные средства и НМА (Property, Plant & Equipment)' : 'Property, Plant & Equipment',
+                account_name: tr('Основные средства и НМА (Property, Plant & Equipment)', 'Property, Plant & Equipment'),
                 category: 'assets',
                 parent_amount: 35000000,
                 sub1_amount: 42000000,
@@ -296,7 +342,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '0610-0620',
-                account_name: isRu ? 'Финансовые вложения и инвестиции в группу' : 'Intercompany Investments & Loans Given',
+                account_name: tr('Финансовые вложения и инвестиции в группу', 'Intercompany Investments & Loans Given'),
                 category: 'assets',
                 parent_amount: 75000000, // 45M capital + 30M loan
                 sub1_amount: 0,
@@ -311,7 +357,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '2810',
-                account_name: isRu ? 'Запасы и готовая продукция (Inventories)' : 'Inventories & Finished Goods',
+                account_name: tr('Запасы и готовая продукция (Inventories)', 'Inventories & Finished Goods'),
                 category: 'assets',
                 parent_amount: 0,
                 sub1_amount: 16000000,
@@ -326,7 +372,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '4010',
-                account_name: isRu ? 'Дебиторская задолженность (Trade & Other Receivables)' : 'Trade Receivables',
+                account_name: tr('Дебиторская задолженность (Trade & Other Receivables)', 'Trade Receivables'),
                 category: 'assets',
                 parent_amount: 15000000,
                 sub1_amount: 22000000,
@@ -341,7 +387,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '5110',
-                account_name: isRu ? 'Денежные средства и эквиваленты (Cash & Equivalents)' : 'Cash and Cash Equivalents',
+                account_name: tr('Денежные средства и эквиваленты (Cash & Equivalents)', 'Cash and Cash Equivalents'),
                 category: 'assets',
                 parent_amount: 20000000,
                 sub1_amount: 5000000,
@@ -358,7 +404,7 @@ export default function GroupConsolidationView() {
             // LIABILITIES
             {
                 account_code: '7810',
-                account_name: isRu ? 'Долгосрочные займы и кредиты (Long-term Borrowings)' : 'Long-term Borrowings & Loans',
+                account_name: tr('Долгосрочные займы и кредиты (Long-term Borrowings)', 'Long-term Borrowings & Loans'),
                 category: 'liabilities',
                 parent_amount: 15000000,
                 sub1_amount: 15000000,
@@ -373,7 +419,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '6010',
-                account_name: isRu ? 'Кредиторская задолженность (Trade & Intercompany Payables)' : 'Trade & Other Payables',
+                account_name: tr('Кредиторская задолженность (Trade & Intercompany Payables)', 'Trade & Other Payables'),
                 category: 'liabilities',
                 parent_amount: 25000000,
                 sub1_amount: 20000000,
@@ -390,7 +436,7 @@ export default function GroupConsolidationView() {
             // EQUITY
             {
                 account_code: '8330',
-                account_name: isRu ? 'Уставный капитал (Share Capital)' : 'Share Capital',
+                account_name: tr('Уставный капитал (Share Capital)', 'Share Capital'),
                 category: 'equity',
                 parent_amount: 60000000,
                 sub1_amount: 25000000,
@@ -405,7 +451,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: '8710',
-                account_name: isRu ? 'Нераспределенная прибыль группы (Retained Earnings)' : 'Retained Earnings',
+                account_name: tr('Нераспределенная прибыль группы (Retained Earnings)', 'Retained Earnings'),
                 category: 'equity',
                 parent_amount: 45000000,
                 sub1_amount: 25000000,
@@ -420,7 +466,7 @@ export default function GroupConsolidationView() {
             },
             {
                 account_code: 'NCI-IFRS10',
-                account_name: isRu ? 'Доля неконтролирующих акционеров (Non-Controlling Interests / NCI)' : 'Non-Controlling Interests (NCI)',
+                account_name: tr('Доля неконтролирующих акционеров (Non-Controlling Interests / NCI)', 'Non-Controlling Interests (NCI)'),
                 category: 'equity',
                 parent_amount: 0,
                 sub1_amount: 0,
@@ -482,14 +528,14 @@ export default function GroupConsolidationView() {
             link.remove();
             window.URL.revokeObjectURL(url);
             toast({
-                title: isRu ? "Экспорт завершен" : "Export Complete",
-                description: isRu ? "Консолидированная книга Excel с формулами элиминации успешно скачана." : "Consolidated workbook downloaded successfully.",
+                title: tr("Экспорт завершен", "Export Complete"),
+                description: tr("Консолидированная книга Excel с формулами элиминации успешно скачана.", "Consolidated workbook downloaded successfully."),
             });
         } catch (error) {
             console.error('Failed to export consolidation Excel', error);
             toast({
-                title: isRu ? "Ошибка экспорта" : "Export Failed",
-                description: isRu ? "Не удалось сгенерировать файл Excel." : "Could not export Excel file.",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось сгенерировать файл Excel.", "Could not export Excel file."),
                 variant: 'destructive'
             });
         } finally {
@@ -502,8 +548,8 @@ export default function GroupConsolidationView() {
         const amt = parseFloat(newElim.amount.replace(/[^0-9.]/g, ''));
         if (!amt || isNaN(amt)) {
             toast({
-                title: isRu ? "Неверная сумма" : "Invalid amount",
-                description: isRu ? "Укажите положительную сумму элиминации" : "Enter a valid amount",
+                title: tr("Неверная сумма", "Invalid amount"),
+                description: tr("Укажите положительную сумму элиминации", "Enter a valid amount"),
                 variant: 'destructive'
             });
             return;
@@ -512,15 +558,15 @@ export default function GroupConsolidationView() {
         const entry: EliminationEntry = {
             id: `elim-custom-${Date.now()}`,
             code: `ELIM-0${eliminations.length + 1}`,
-            description: newElim.description || (isRu ? 'Ручная внутригрупповая корректировка' : 'Manual intercompany elimination'),
+            description: newElim.description || (tr('Ручная внутригрупповая корректировка', 'Manual intercompany elimination')),
             standard: newElim.standard || 'IFRS 10.B86',
             category: 'trade',
             entity_debit: newElim.entity_debit,
             account_debit: newElim.account_debit,
-            account_debit_name: isRu ? 'Кредиторская задолженность' : 'Payables',
+            account_debit_name: tr('Кредиторская задолженность', 'Payables'),
             entity_credit: newElim.entity_credit,
             account_credit: newElim.account_credit,
-            account_credit_name: isRu ? 'Дебиторская задолженность' : 'Receivables',
+            account_credit_name: tr('Дебиторская задолженность', 'Receivables'),
             amount: amt,
             is_active: true,
         };
@@ -537,8 +583,8 @@ export default function GroupConsolidationView() {
             standard: 'IFRS 10.B86',
         });
         toast({
-            title: isRu ? "Проводка добавлена" : "Elimination added",
-            description: isRu ? `Элиминация на сумму ${amt.toLocaleString()} UZS применена.` : `Elimination applied.`,
+            title: tr("Проводка добавлена", "Elimination added"),
+            description: tr(`Элиминация на сумму ${amt.toLocaleString()} UZS применена.`, `Elimination applied.`),
         });
     };
 
@@ -549,7 +595,7 @@ export default function GroupConsolidationView() {
                 <Card className="border-border/80 shadow-xs bg-card/60 backdrop-blur-xs">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {isRu ? 'Консолидированные активы' : 'Consolidated Assets'}
+                            {tr('Консолидированные активы', 'Consolidated Assets')}
                         </CardTitle>
                         <Building2 className="w-4 h-4 text-blue-600" />
                     </CardHeader>
@@ -558,7 +604,7 @@ export default function GroupConsolidationView() {
                             {totals.totalAssets.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">UZS</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                            <span>{isRu ? 'Без ВГО сальдо' : 'Net of eliminations'}</span>
+                            <span>{tr('Без ВГО сальдо', 'Net of eliminations')}</span>
                             <span className="text-emerald-600 font-medium">(-{activeElimStats.totalAssetsElim.toLocaleString()} UZS)</span>
                         </p>
                     </CardContent>
@@ -567,7 +613,7 @@ export default function GroupConsolidationView() {
                 <Card className="border-border/80 shadow-xs bg-card/60 backdrop-blur-xs">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {isRu ? 'Внутригрупповой оборот (ВГО)' : 'Intercompany Eliminations'}
+                            {tr('Внутригрупповой оборот (ВГО)', 'Intercompany Eliminations')}
                         </CardTitle>
                         <TrendingDown className="w-4 h-4 text-purple-600" />
                     </CardHeader>
@@ -576,7 +622,7 @@ export default function GroupConsolidationView() {
                             {activeElimStats.totalElimTurnover.toLocaleString()} <span className="text-xs font-normal text-muted-foreground">UZS</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1">
-                            {isRu ? `Активно проводок: ${activeEliminations.length} из ${eliminations.length}` : `${activeEliminations.length} of ${eliminations.length} entries active`}
+                            {tr(`Активно проводок: ${activeEliminations.length} из ${eliminations.length}`, `${activeEliminations.length} of ${eliminations.length} entries active`)}
                         </p>
                     </CardContent>
                 </Card>
@@ -584,7 +630,7 @@ export default function GroupConsolidationView() {
                 <Card className="border-border/80 shadow-xs bg-card/60 backdrop-blur-xs">
                     <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {isRu ? 'Доля неконтролирующих (NCI)' : 'Non-Controlling Interests'}
+                            {tr('Доля неконтролирующих (NCI)', 'Non-Controlling Interests')}
                         </CardTitle>
                         <PieChart className="w-4 h-4 text-amber-600" />
                     </CardHeader>
@@ -593,7 +639,7 @@ export default function GroupConsolidationView() {
                             14,580,000 <span className="text-xs font-normal text-muted-foreground">UZS</span>
                         </div>
                         <p className="text-[11px] text-muted-foreground mt-1">
-                            {isRu ? '20% MFG + 25% LOGI по IFRS 10' : '20% MFG + 25% LOGI under IFRS 10'}
+                            {tr('20% MFG + 25% LOGI по IFRS 10', '20% MFG + 25% LOGI under IFRS 10')}
                         </p>
                     </CardContent>
                 </Card>
@@ -601,7 +647,7 @@ export default function GroupConsolidationView() {
                 <Card className={`border shadow-xs ${totals.isBalanced ? 'border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-950/20' : 'border-amber-500/30 bg-amber-50/40 dark:bg-amber-950/20'}`}>
                     <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                            {isRu ? 'Контроль сходимости баланса' : 'Equilibrium Guard'}
+                            {tr('Контроль сходимости баланса', 'Equilibrium Guard')}
                         </CardTitle>
                         <Scale className={`w-4 h-4 ${totals.isBalanced ? 'text-emerald-600' : 'text-amber-600'}`} />
                     </CardHeader>
@@ -616,7 +662,7 @@ export default function GroupConsolidationView() {
                         </div>
                         <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium mt-1 flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            {isRu ? 'Активы = Обязательства + Капитал' : 'Assets = Liabilities + Equity'}
+                            {tr('Активы = Обязательства + Капитал', 'Assets = Liabilities + Equity')}
                         </p>
                     </CardContent>
                 </Card>
@@ -628,15 +674,15 @@ export default function GroupConsolidationView() {
                     <TabsList className="grid grid-cols-3 w-full sm:w-auto h-9">
                         <TabsTrigger value="matrix" className="text-xs gap-1.5">
                             <FileSpreadsheet className="w-3.5 h-3.5" />
-                            {isRu ? 'Сводный баланс' : 'Consolidated Matrix'}
+                            {tr('Сводный баланс', 'Consolidated Matrix')}
                         </TabsTrigger>
                         <TabsTrigger value="eliminations" className="text-xs gap-1.5">
                             <Network className="w-3.5 h-3.5" />
-                            {isRu ? 'Внутригрупповые элиминации' : 'Eliminations'}
+                            {tr('Внутригрупповые элиминации', 'Eliminations')}
                         </TabsTrigger>
                         <TabsTrigger value="nci" className="text-xs gap-1.5">
                             <PieChart className="w-3.5 h-3.5" />
-                            {isRu ? 'Структура и NCI' : 'Ownership & NCI'}
+                            {tr('Структура и NCI', 'Ownership & NCI')}
                         </TabsTrigger>
                     </TabsList>
                 </Tabs>
@@ -649,7 +695,7 @@ export default function GroupConsolidationView() {
                         className="text-xs gap-1.5 border-dashed border-primary/50 text-primary hover:bg-primary/5"
                     >
                         <Plus className="w-3.5 h-3.5" />
-                        {isRu ? 'Добавить проводку ВГО' : 'Add Elimination'}
+                        {tr('Добавить проводку ВГО', 'Add Elimination')}
                     </Button>
                     <Button 
                         onClick={handleExportExcel} 
@@ -658,7 +704,7 @@ export default function GroupConsolidationView() {
                         className="text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-xs"
                     >
                         <Download className="w-3.5 h-3.5" />
-                        {isExporting ? (isRu ? 'Формирование Excel...' : 'Exporting...') : (isRu ? 'Экспорт в Excel (.xlsx)' : 'Export Excel (.xlsx)')}
+                        {isExporting ? (tr('Формирование Excel...', 'Exporting...')) : (tr('Экспорт в Excel (.xlsx)', 'Export Excel (.xlsx)'))}
                     </Button>
                 </div>
             </div>
@@ -671,16 +717,14 @@ export default function GroupConsolidationView() {
                             <div>
                                 <CardTitle className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Scale className="w-4 h-4 text-blue-600" />
-                                    {isRu ? 'Рабочая таблица консолидации группы компаний (IFRS 10)' : 'Group Consolidation Worksheet (IFRS 10)'}
+                                    {tr('Рабочая таблица консолидации группы компаний (IFRS 10)', 'Group Consolidation Worksheet (IFRS 10)')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isRu 
-                                        ? 'Агрегация отчетности материнской и 3 дочерних компаний с исключением внутригрупповых оборотов.' 
-                                        : 'Aggregation of Parent and 3 Subsidiaries with intercompany eliminations.'}
+                                    {tr('Агрегация отчетности материнской и 3 дочерних компаний с исключением внутригрупповых оборотов.', 'Aggregation of Parent and 3 Subsidiaries with intercompany eliminations.')}
                                 </CardDescription>
                             </div>
                             <span className="text-xs font-mono px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-semibold self-start sm:self-auto">
-                                4 Компании • Период: 2026 • UZS
+                                {tr('4 Компании • Период: 2026 • UZS', '4 Entities • Period: 2026 • UZS', '4 Kompaniya • Davr: 2026 • UZS')}
                             </span>
                         </div>
                     </CardHeader>
@@ -688,16 +732,16 @@ export default function GroupConsolidationView() {
                         <table className="w-full text-xs text-left border-collapse">
                             <thead className="bg-muted/40 text-muted-foreground font-semibold border-b border-border/80">
                                 <tr>
-                                    <th className="px-3.5 py-2.5 w-16">Код</th>
-                                    <th className="px-3.5 py-2.5 min-w-[200px]">Статья отчетности</th>
-                                    <th className="px-3 py-2.5 text-right font-mono">Holding (Головная)</th>
+                                    <th className="px-3.5 py-2.5 w-16">{tr('Код', 'Code', 'Kod')}</th>
+                                    <th className="px-3.5 py-2.5 min-w-[200px]">{tr('Статья отчетности', 'Line Item', 'Hisobot moddasi')}</th>
+                                    <th className="px-3 py-2.5 text-right font-mono">{tr('Holding (Головная)', 'Holding (Parent)', 'Holding (Bosh)')}</th>
                                     <th className="px-3 py-2.5 text-right font-mono">MFG (80%)</th>
                                     <th className="px-3 py-2.5 text-right font-mono">Retail (100%)</th>
                                     <th className="px-3 py-2.5 text-right font-mono">Logi (75%)</th>
-                                    <th className="px-3 py-2.5 text-right font-mono bg-slate-50 dark:bg-slate-900/60 font-bold">Сводно</th>
-                                    <th className="px-3 py-2.5 text-right font-mono text-purple-600 dark:text-purple-400">Элиминации Дт/Кт</th>
+                                    <th className="px-3 py-2.5 text-right font-mono bg-slate-50 dark:bg-slate-900/60 font-bold">{tr('Сводно', 'Combined', 'Jamlanma')}</th>
+                                    <th className="px-3 py-2.5 text-right font-mono text-purple-600 dark:text-purple-400">{tr('Элиминации Дт/Кт', 'Eliminations Dr/Cr', 'Eliminatsiyalar Dt/Kt')}</th>
                                     <th className="px-3.5 py-2.5 text-right font-mono font-bold bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200">
-                                        МСФО Группа
+                                        {tr('МСФО Группа', 'IFRS Group', 'MHXS Guruh')}
                                     </th>
                                 </tr>
                             </thead>
@@ -705,7 +749,7 @@ export default function GroupConsolidationView() {
                                 {/* SECTION: ASSETS */}
                                 <tr className="bg-blue-50/30 dark:bg-blue-950/20 font-semibold text-slate-800 dark:text-slate-200">
                                     <td colSpan={9} className="px-3.5 py-2 text-[11px] tracking-wider uppercase text-blue-700 dark:text-blue-400">
-                                        РАЗДЕЛ I: АКТИВЫ (ASSETS)
+                                        {tr('РАЗДЕЛ I: АКТИВЫ (ASSETS)', 'SECTION I: ASSETS', 'I BO\'LIM: AKTIVLAR (ASSETS)')}
                                     </td>
                                 </tr>
                                 {consolidatedMatrix.filter(r => r.category === 'assets').map((row, idx) => (
@@ -727,7 +771,7 @@ export default function GroupConsolidationView() {
                                 ))}
                                 <tr className="bg-blue-100/50 dark:bg-blue-900/30 font-bold border-t-2 border-blue-300 dark:border-blue-800">
                                     <td colSpan={2} className="px-3.5 py-2.5 text-blue-950 dark:text-blue-100 uppercase tracking-wide">
-                                        ИТОГО АКТИВЫ ГРУППЫ (TOTAL CONSOLIDATED ASSETS)
+                                        {tr('ИТОГО АКТИВЫ ГРУППЫ (TOTAL CONSOLIDATED ASSETS)', 'TOTAL CONSOLIDATED ASSETS', 'GURUH JAMI AKTIVLARI (TOTAL CONSOLIDATED ASSETS)')}
                                     </td>
                                     <td className="px-3 py-2.5 text-right font-mono">145,000,000</td>
                                     <td className="px-3 py-2.5 text-right font-mono">85,000,000</td>
@@ -743,7 +787,7 @@ export default function GroupConsolidationView() {
                                 {/* SECTION: LIABILITIES */}
                                 <tr className="bg-amber-50/30 dark:bg-amber-950/20 font-semibold text-slate-800 dark:text-slate-200">
                                     <td colSpan={9} className="px-3.5 py-2 text-[11px] tracking-wider uppercase text-amber-700 dark:text-amber-400">
-                                        РАЗДЕЛ II: ОБЯЗАТЕЛЬСТВА (LIABILITIES)
+                                        {tr('РАЗДЕЛ II: ОБЯЗАТЕЛЬСТВА (LIABILITIES)', 'SECTION II: LIABILITIES', 'II BO\'LIM: MAJBURIYATLAR (LIABILITIES)')}
                                     </td>
                                 </tr>
                                 {consolidatedMatrix.filter(r => r.category === 'liabilities').map((row, idx) => (
@@ -765,7 +809,7 @@ export default function GroupConsolidationView() {
                                 ))}
                                 <tr className="bg-amber-100/50 dark:bg-amber-900/30 font-bold border-t-2 border-amber-300 dark:border-amber-800">
                                     <td colSpan={2} className="px-3.5 py-2.5 text-amber-950 dark:text-amber-100 uppercase tracking-wide">
-                                        ИТОГО ОБЯЗАТЕЛЬСТВА ГРУППЫ (TOTAL LIABILITIES)
+                                        {tr('ИТОГО ОБЯЗАТЕЛЬСТВА ГРУППЫ (TOTAL LIABILITIES)', 'TOTAL CONSOLIDATED LIABILITIES', 'GURUH JAMI MAJBURIYATLARI (TOTAL LIABILITIES)')}
                                     </td>
                                     <td className="px-3 py-2.5 text-right font-mono">40,000,000</td>
                                     <td className="px-3 py-2.5 text-right font-mono">35,000,000</td>
@@ -781,7 +825,7 @@ export default function GroupConsolidationView() {
                                 {/* SECTION: EQUITY */}
                                 <tr className="bg-emerald-50/30 dark:bg-emerald-950/20 font-semibold text-slate-800 dark:text-slate-200">
                                     <td colSpan={9} className="px-3.5 py-2 text-[11px] tracking-wider uppercase text-emerald-700 dark:text-emerald-400">
-                                        РАЗДЕЛ III: КАПИТАЛ ГРУППЫ И NCI (EQUITY & NCI)
+                                        {tr('РАЗДЕЛ III: КАПИТАЛ ГРУППЫ И NCI (EQUITY & NCI)', 'SECTION III: GROUP EQUITY & NCI', 'III BO\'LIM: GURUH KAPITALI VA NCI (EQUITY & NCI)')}
                                     </td>
                                 </tr>
                                 {consolidatedMatrix.filter(r => r.category === 'equity').map((row, idx) => (
@@ -812,7 +856,7 @@ export default function GroupConsolidationView() {
                                 ))}
                                 <tr className="bg-emerald-100/50 dark:bg-emerald-900/30 font-bold border-t-2 border-emerald-300 dark:border-emerald-800">
                                     <td colSpan={2} className="px-3.5 py-2.5 text-emerald-950 dark:text-emerald-100 uppercase tracking-wide">
-                                        ИТОГО КАПИТАЛ ГРУППЫ С NCI (TOTAL CONSOLIDATED EQUITY)
+                                        {tr('ИТОГО КАПИТАЛ ГРУППЫ С NCI (TOTAL CONSOLIDATED EQUITY)', 'TOTAL CONSOLIDATED EQUITY (INCLUDING NCI)', 'NCI BILAN GURUH JAMI KAPITALI (TOTAL CONSOLIDATED EQUITY)')}
                                     </td>
                                     <td className="px-3 py-2.5 text-right font-mono">105,000,000</td>
                                     <td className="px-3 py-2.5 text-right font-mono">50,000,000</td>
@@ -828,7 +872,7 @@ export default function GroupConsolidationView() {
                                 {/* EQUILIBRIUM GRAND TOTALS */}
                                 <tr className="bg-slate-900 text-white dark:bg-slate-950 font-bold border-t-2 border-black">
                                     <td colSpan={2} className="px-3.5 py-3 tracking-wide text-xs">
-                                        ВСЕГО ПАССИВЫ (ОБЯЗАТЕЛЬСТВА + КАПИТАЛ)
+                                        {tr('ВСЕГО ПАССИВЫ (ОБЯЗАТЕЛЬСТВА + КАПИТАЛ)', 'TOTAL LIABILITIES & EQUITY', 'JAMI PASSIVLAR (MAJBURIYATLAR + KAPITAL)')}
                                     </td>
                                     <td className="px-3 py-3 text-right font-mono">145,000,000</td>
                                     <td className="px-3 py-3 text-right font-mono">85,000,000</td>
@@ -842,10 +886,10 @@ export default function GroupConsolidationView() {
                                 </tr>
                                 <tr className="bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 font-semibold text-xs border-t border-emerald-500/20">
                                     <td colSpan={8} className="px-3.5 py-2">
-                                        КОНТРОЛЬНОЕ РАВНОВЕСИЕ (ДЕЛЬТА: АКТИВЫ - ПАССИВЫ)
+                                        {tr('КОНТРОЛЬНОЕ РАВНОВЕСИЕ (ДЕЛЬТА: АКТИВЫ - ПАССИВЫ)', 'CONTROL EQUILIBRIUM (DELTA: ASSETS - LIABILITIES & EQUITY)', 'NAZORAT MUVOZANATI (DELTA: AKTIVLAR - PASSIVLAR)')}
                                     </td>
                                     <td className="px-3.5 py-2 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                                        {totals.delta.toFixed(2)} UZS (СХОДИТСЯ 100%)
+                                        {totals.delta.toFixed(2)} UZS ({tr('СХОДИТСЯ 100%', 'BALANCED 100%', '100% MOS KELADI')})
                                     </td>
                                 </tr>
                             </tbody>
@@ -862,16 +906,14 @@ export default function GroupConsolidationView() {
                             <div>
                                 <CardTitle className="text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                                     <Network className="w-4 h-4 text-purple-600" />
-                                    {isRu ? 'Реестр внутригрупповых элиминационных проводок (ВГО)' : 'Intercompany Eliminations Journal'}
+                                    {tr('Реестр внутригрупповых элиминационных проводок (ВГО)', 'Intercompany Eliminations Journal')}
                                 </CardTitle>
                                 <CardDescription className="text-xs">
-                                    {isRu 
-                                        ? 'Исключение взаимной задолженности, торговых операций, займов и нереализованной маржи по стандарту IFRS 10.' 
-                                        : 'Elimination of mutual balances, loans, and inventory profit under IFRS 10.'}
+                                    {tr('Исключение взаимной задолженности, торговых операций, займов и нереализованной маржи по стандарту IFRS 10.', 'Elimination of mutual balances, loans, and inventory profit under IFRS 10.')}
                                 </CardDescription>
                             </div>
                             <Badge variant="outline" className="border-purple-300 text-purple-700 dark:text-purple-300 text-xs font-mono self-start sm:self-auto">
-                                Итого элиминировано: {activeElimStats.totalElimTurnover.toLocaleString()} UZS
+                                {tr('Итого элиминировано:', 'Total Eliminated:', 'Jami eliminatsiya qilingan:')} {activeElimStats.totalElimTurnover.toLocaleString()} UZS
                             </Badge>
                         </div>
                     </CardHeader>
@@ -890,25 +932,25 @@ export default function GroupConsolidationView() {
                                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                                                 elim.is_active ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
                                             }`}>
-                                                {elim.is_active ? (isRu ? 'Активно' : 'Applied') : (isRu ? 'Отключено' : 'Disabled')}
+                                                {elim.is_active ? (tr('Активно', 'Applied')) : (tr('Отключено', 'Disabled'))}
                                             </span>
                                         </div>
                                         <p className="text-sm font-medium text-slate-900 dark:text-white">
-                                            {elim.description}
+                                            {getLocalizedText(elim.description)}
                                         </p>
                                         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground pt-1">
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300">Дт:</span>
+                                                <span className="font-semibold text-slate-700 dark:text-slate-300">{tr('Дт:', 'Dr:', 'Dt:')}</span>
                                                 <span className="font-mono text-purple-600 dark:text-purple-400">{elim.account_debit}</span>
-                                                <span>({elim.account_debit_name})</span>
-                                                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{elim.entity_debit}</span>
+                                                <span>({getLocalizedText(elim.account_debit_name)})</span>
+                                                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{getLocalizedText(elim.entity_debit)}</span>
                                             </div>
                                             <ArrowRight className="w-3 h-3 text-slate-400" />
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-semibold text-slate-700 dark:text-slate-300">Кт:</span>
+                                                <span className="font-semibold text-slate-700 dark:text-slate-300">{tr('Кт:', 'Cr:', 'Kt:')}</span>
                                                 <span className="font-mono text-purple-600 dark:text-purple-400">{elim.account_credit}</span>
-                                                <span>({elim.account_credit_name})</span>
-                                                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{elim.entity_credit}</span>
+                                                <span>({getLocalizedText(elim.account_credit_name)})</span>
+                                                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{getLocalizedText(elim.entity_credit)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -918,7 +960,7 @@ export default function GroupConsolidationView() {
                                             <div className="text-base font-bold font-mono text-slate-900 dark:text-white">
                                                 {elim.amount.toLocaleString()} UZS
                                             </div>
-                                            <span className="text-[10px] text-muted-foreground">{isRu ? 'Сумма элиминации' : 'Elimination Amount'}</span>
+                                            <span className="text-[10px] text-muted-foreground">{tr('Сумма элиминации', 'Elimination Amount')}</span>
                                         </div>
                                         <Button
                                             size="sm"
@@ -926,7 +968,7 @@ export default function GroupConsolidationView() {
                                             onClick={() => toggleElimination(elim.id)}
                                             className={`text-xs h-8 ${elim.is_active ? 'border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
                                         >
-                                            {elim.is_active ? (isRu ? 'Отключить' : 'Disable') : (isRu ? 'Включить' : 'Enable')}
+                                            {elim.is_active ? (tr('Отключить', 'Disable')) : (tr('Включить', 'Enable'))}
                                         </Button>
                                     </div>
                                 </div>
@@ -946,36 +988,36 @@ export default function GroupConsolidationView() {
                                 <CardHeader className="pb-3">
                                     <div className="flex items-center justify-between">
                                         <Badge variant={ent.role === 'parent' ? 'default' : 'outline'} className={ent.role === 'parent' ? 'bg-blue-600 text-[10px]' : 'text-[10px]'}>
-                                            {ent.role === 'parent' ? (isRu ? 'Материнская компания' : 'Parent Entity') : (isRu ? 'Дочернее общество' : 'Subsidiary')}
+                                            {ent.role === 'parent' ? (tr('Материнская компания', 'Parent Entity')) : (tr('Дочернее общество', 'Subsidiary'))}
                                         </Badge>
                                         <span className="text-xs font-mono font-bold text-slate-900 dark:text-white">
-                                            {ent.ownership_percentage}% {isRu ? 'владение' : 'owned'}
+                                            {ent.ownership_percentage}% {tr('владение', 'owned')}
                                         </span>
                                     </div>
                                     <CardTitle className="text-sm font-bold text-slate-900 dark:text-white pt-1">
                                         {ent.name}
                                     </CardTitle>
                                     <CardDescription className="text-[11px] truncate">
-                                        {ent.industry}
+                                        {getLocalizedText(ent.industry)}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-2 text-xs pt-0">
                                     <div className="flex justify-between py-1 border-b border-border/40">
-                                        <span className="text-muted-foreground">{isRu ? 'Активы:' : 'Assets:'}</span>
+                                        <span className="text-muted-foreground">{tr('Активы:', 'Assets:')}</span>
                                         <span className="font-mono font-semibold">{ent.assets.toLocaleString()} UZS</span>
                                     </div>
                                     <div className="flex justify-between py-1 border-b border-border/40">
-                                        <span className="text-muted-foreground">{isRu ? 'Обязательства:' : 'Liabilities:'}</span>
+                                        <span className="text-muted-foreground">{tr('Обязательства:', 'Liabilities:')}</span>
                                         <span className="font-mono">{ent.liabilities.toLocaleString()} UZS</span>
                                     </div>
                                     <div className="flex justify-between py-1 border-b border-border/40">
-                                        <span className="text-muted-foreground">{isRu ? 'Чистые активы (Капитал):' : 'Net Assets (Equity):'}</span>
+                                        <span className="text-muted-foreground">{tr('Чистые активы (Капитал):', 'Net Assets (Equity):')}</span>
                                         <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{ent.equity.toLocaleString()} UZS</span>
                                     </div>
                                     <div className="flex justify-between py-1 pt-2 font-medium">
                                         <span className="text-amber-700 dark:text-amber-400 flex items-center gap-1">
                                             <PieChart className="w-3 h-3" />
-                                            {isRu ? 'Доля NCI:' : 'NCI Share:'}
+                                            {tr('Доля NCI:', 'NCI Share:')}
                                         </span>
                                         <span className="font-mono font-bold text-amber-700 dark:text-amber-400">
                                             {ent.nci_percentage > 0 ? `${ent.nci_percentage}% (${((ent.equity * ent.nci_percentage) / 100).toLocaleString()} UZS)` : '0% (N/A)'}
@@ -991,12 +1033,10 @@ export default function GroupConsolidationView() {
                         <CardHeader className="pb-3 border-b border-border/60 bg-muted/20">
                             <CardTitle className="text-base font-semibold flex items-center gap-2">
                                 <Calculator className="w-4 h-4 text-amber-600" />
-                                {isRu ? 'Математический расчет доли неконтролирующих акционеров (IFRS 10)' : 'Non-Controlling Interests (NCI) Calculation Worksheet'}
+                                {tr('Математический расчет доли неконтролирующих акционеров (IFRS 10)', 'Non-Controlling Interests (NCI) Calculation Worksheet')}
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {isRu 
-                                    ? 'Определение справедливой доли миноритарных инвесторов в чистых активах дочерних обществ с учетом внутригрупповых элиминаций.' 
-                                    : 'Determination of non-controlling interest in net assets of subsidiaries.'}
+                                {tr('Определение справедливой доли миноритарных инвесторов в чистых активах дочерних обществ с учетом внутригрупповых элиминаций.', 'Determination of non-controlling interest in net assets of subsidiaries.')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-5 space-y-4">
@@ -1004,7 +1044,7 @@ export default function GroupConsolidationView() {
                                 <div className="p-4 rounded-xl border border-amber-300/40 bg-amber-50/30 dark:bg-amber-950/20 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <h4 className="font-semibold text-xs text-amber-900 dark:text-amber-300">
-                                            1. ManufacturePro LLC (Доля миноритариев 20%)
+                                            {tr('1. ManufacturePro LLC (Доля миноритариев 20%)', '1. ManufacturePro LLC (Minority Share 20%)', '1. ManufacturePro LLC (Minoritar ulushi 20%)')}
                                         </h4>
                                         <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">
                                             NCI: 20%
@@ -1012,19 +1052,19 @@ export default function GroupConsolidationView() {
                                     </div>
                                     <div className="text-xs space-y-1 text-slate-700 dark:text-slate-300 font-mono">
                                         <div className="flex justify-between">
-                                            <span>Базовый капитал (Чистые активы):</span>
+                                            <span>{tr('Базовый капитал (Чистые активы):', 'Base Equity (Net Assets):', 'Bazaviy kapital (Sof aktivlar):')}</span>
                                             <span>50,000,000 UZS</span>
                                         </div>
                                         <div className="flex justify-between text-purple-600">
-                                            <span>Корректировка на нереализованную маржу:</span>
+                                            <span>{tr('Корректировка на нереализованную маржу:', 'Unrealized Margin Adjustment:', 'Amalga oshirilmagan marja tuzatmasi:')}</span>
                                             <span>-2,100,000 UZS</span>
                                         </div>
                                         <div className="flex justify-between font-semibold border-t pt-1">
-                                            <span>Скорректированные чистые активы:</span>
+                                            <span>{tr('Скорректированные чистые активы:', 'Adjusted Net Assets:', 'Tuzatilgan sof aktivlar:')}</span>
                                             <span>47,900,000 UZS</span>
                                         </div>
                                         <div className="flex justify-between font-bold text-amber-700 dark:text-amber-400 pt-1 text-sm">
-                                            <span>Доля NCI (20%):</span>
+                                            <span>{tr('Доля NCI (20%):', 'NCI Share (20%):', 'NCI ulushi (20%):')}</span>
                                             <span>9,580,000 UZS</span>
                                         </div>
                                     </div>
@@ -1033,7 +1073,7 @@ export default function GroupConsolidationView() {
                                 <div className="p-4 rounded-xl border border-amber-300/40 bg-amber-50/30 dark:bg-amber-950/20 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <h4 className="font-semibold text-xs text-amber-900 dark:text-amber-300">
-                                            2. LogiTrans Logistics LLC (Доля миноритариев 25%)
+                                            {tr('2. LogiTrans Logistics LLC (Доля миноритариев 25%)', '2. LogiTrans Logistics LLC (Minority Share 25%)', '2. LogiTrans Logistics LLC (Minoritar ulushi 25%)')}
                                         </h4>
                                         <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">
                                             NCI: 25%
@@ -1041,19 +1081,19 @@ export default function GroupConsolidationView() {
                                     </div>
                                     <div className="text-xs space-y-1 text-slate-700 dark:text-slate-300 font-mono">
                                         <div className="flex justify-between">
-                                            <span>Базовый капитал (Чистые активы):</span>
+                                            <span>{tr('Базовый капитал (Чистые активы):', 'Base Equity (Net Assets):', 'Bazaviy kapital (Sof aktivlar):')}</span>
                                             <span>20,000,000 UZS</span>
                                         </div>
                                         <div className="flex justify-between text-slate-500">
-                                            <span>Внутригрупповые элиминации капитала:</span>
+                                            <span>{tr('Внутригрупповые элиминации капитала:', 'Intercompany Equity Eliminations:', 'Guruh ichidagi kapital eliminatsiyalari:')}</span>
                                             <span>0.00 UZS</span>
                                         </div>
                                         <div className="flex justify-between font-semibold border-t pt-1">
-                                            <span>Скорректированные чистые активы:</span>
+                                            <span>{tr('Скорректированные чистые активы:', 'Adjusted Net Assets:', 'Tuzatilgan sof aktivlar:')}</span>
                                             <span>20,000,000 UZS</span>
                                         </div>
                                         <div className="flex justify-between font-bold text-amber-700 dark:text-amber-400 pt-1 text-sm">
-                                            <span>Доля NCI (25%):</span>
+                                            <span>{tr('Доля NCI (25%):', 'NCI Share (25%):', 'NCI ulushi (25%):')}</span>
                                             <span>5,000,000 UZS</span>
                                         </div>
                                     </div>
@@ -1064,10 +1104,14 @@ export default function GroupConsolidationView() {
                                 <div>
                                     <h4 className="font-bold text-sm text-emerald-400 flex items-center gap-1.5">
                                         <ShieldCheck className="w-4 h-4" />
-                                        ИТОГО ДОЛЯ НЕКОНТРОЛИРУЮЩИХ АКЦИОНЕРОВ (NCI ПО IFRS 10)
+                                        {tr('ИТОГО ДОЛЯ НЕКОНТРОЛИРУЮЩИХ АКЦИОНЕРОВ (NCI ПО IFRS 10)', 'TOTAL NON-CONTROLLING INTERESTS (NCI UNDER IFRS 10)', 'NAZORAT QILMAYDIGAN AKSIYADORLAR JAMI ULUSHI (IFRS 10 BO\'YICHA NCI)')}
                                     </h4>
                                     <p className="text-xs text-slate-300 mt-0.5">
-                                        Сумма NCI выделена в капитале консолидированного отчета о финансовом положении отдельной строкой.
+                                        {tr(
+                                            'Сумма NCI выделена в капитале консолидированного отчета о финансовом положении отдельной строкой.',
+                                            'Total NCI is presented separately within equity in the consolidated statement of financial position.',
+                                            'NCI summasi konsolidatsiyalashgan moliyaviy holat to\'g\'risidagi hisobot kapitalida alohida satrda ko\'rsatilgan.'
+                                        )}
                                     </p>
                                 </div>
                                 <div className="text-right">
@@ -1088,23 +1132,21 @@ export default function GroupConsolidationView() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <Plus className="w-5 h-5 text-primary" />
-                            {isRu ? 'Новая внутригрупповая элиминация' : 'Add Intercompany Elimination'}
+                            {tr('Новая внутригрупповая элиминация', 'Add Intercompany Elimination')}
                         </DialogTitle>
                         <DialogDescription className="text-xs">
-                            {isRu 
-                                ? 'Внесите параметры операции для взаимного исключения из консолидированной отчетности.' 
-                                : 'Enter details to eliminate intercompany transactions.'}
+                            {tr('Внесите параметры операции для взаимного исключения из консолидированной отчетности.', 'Enter details to eliminate intercompany transactions.')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-3 text-xs">
                         <div>
                             <label className="font-semibold block mb-1">
-                                {isRu ? 'Описание операции:' : 'Description:'}
+                                {tr('Описание операции:', 'Description:')}
                             </label>
                             <input
                                 type="text"
-                                placeholder={isRu ? 'например, Взаимозачет по договору поставки №42' : 'e.g. Mutual trade offset'}
+                                placeholder={tr('например, Взаимозачет по договору поставки №42', 'e.g. Mutual trade offset')}
                                 value={newElim.description}
                                 onChange={(e) => setNewElim({ ...newElim, description: e.target.value })}
                                 className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs outline-none focus:ring-2 focus:ring-primary"
@@ -1113,7 +1155,7 @@ export default function GroupConsolidationView() {
 
                         <div>
                             <label className="font-semibold block mb-1">
-                                {isRu ? 'Сумма элиминации (UZS):' : 'Amount (UZS):'}
+                                {tr('Сумма элиминации (UZS):', 'Amount (UZS):')}
                             </label>
                             <input
                                 type="text"
@@ -1127,7 +1169,7 @@ export default function GroupConsolidationView() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="font-semibold block mb-1">
-                                    {isRu ? 'Дебет счет (Дт):' : 'Debit Account:'}
+                                    {tr('Дебет счет (Дт):', 'Debit Account:')}
                                 </label>
                                 <input
                                     type="text"
@@ -1138,7 +1180,7 @@ export default function GroupConsolidationView() {
                             </div>
                             <div>
                                 <label className="font-semibold block mb-1">
-                                    {isRu ? 'Кредит счет (Кт):' : 'Credit Account:'}
+                                    {tr('Кредит счет (Кт):', 'Credit Account:')}
                                 </label>
                                 <input
                                     type="text"
@@ -1152,7 +1194,7 @@ export default function GroupConsolidationView() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className="font-semibold block mb-1">
-                                    {isRu ? 'Предприятие (Дт):' : 'Entity (Debit):'}
+                                    {tr('Предприятие (Дт):', 'Entity (Debit):')}
                                 </label>
                                 <select
                                     value={newElim.entity_debit}
@@ -1166,7 +1208,7 @@ export default function GroupConsolidationView() {
                             </div>
                             <div>
                                 <label className="font-semibold block mb-1">
-                                    {isRu ? 'Предприятие (Кт):' : 'Entity (Credit):'}
+                                    {tr('Предприятие (Кт):', 'Entity (Credit):')}
                                 </label>
                                 <select
                                     value={newElim.entity_credit}
@@ -1183,10 +1225,10 @@ export default function GroupConsolidationView() {
 
                     <DialogFooter className="pt-2">
                         <Button variant="outline" size="sm" onClick={() => setAddDialogOpen(false)} className="text-xs">
-                            {isRu ? 'Отмена' : 'Cancel'}
+                            {tr('Отмена', 'Cancel')}
                         </Button>
                         <Button size="sm" onClick={handleAddElimination} className="text-xs bg-primary hover:bg-primary/90">
-                            {isRu ? 'Применить элиминацию' : 'Apply Elimination'}
+                            {tr('Применить элиминацию', 'Apply Elimination')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,8 +25,7 @@ interface IFRS16CalculatorProps {
 export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16CalculatorProps) {
     const { toast } = useToast();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     
@@ -74,17 +74,13 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                 initial_direct_costs: parseFloat(initialCosts) || 0
             });
             toast({
-                title: isRu ? "Расчет обновлен" : "Calculation Updated",
-                description: isRu 
-                    ? `ROU актив: $${result?.rou.toLocaleString() || '0'}, Обязательство: $${result?.liability.toLocaleString() || '0'}`
-                    : `ROU Asset: $${result?.rou.toLocaleString() || '0'}, Liability: $${result?.liability.toLocaleString() || '0'}`
+                title: tr("Расчет обновлен", "Calculation Updated"),
+                description: tr(`ROU актив: $${result?.rou.toLocaleString() || '0'}, Обязательство: $${result?.liability.toLocaleString() || '0'}`, `ROU Asset: $${result?.rou.toLocaleString() || '0'}, Liability: $${result?.liability.toLocaleString() || '0'}`)
             });
         } catch (error) {
             toast({
-                title: isRu ? "Расчет обновлен" : "Calculation Updated",
-                description: isRu 
-                    ? `Рассчитано локальным движком МСФО 16: ROU $${result?.rou.toLocaleString() || '0'}`
-                    : `Calculated locally: ROU $${result?.rou.toLocaleString() || '0'}`
+                title: tr("Расчет обновлен", "Calculation Updated"),
+                description: tr(`Рассчитано локальным движком МСФО 16: ROU $${result?.rou.toLocaleString() || '0'}`, `Calculated locally: ROU $${result?.rou.toLocaleString() || '0'}`)
             });
         } finally {
             setLoading(false);
@@ -96,10 +92,8 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
             onCalculate(result.rou, result.liability);
             setOpen(false);
             toast({
-                title: isRu ? "Аренда МСФО 16 капитализирована" : "IFRS 16 Lease Capitalized",
-                description: isRu 
-                    ? `Признан актив ROU ($${result.rou.toLocaleString()}) и обязательство ($${result.liability.toLocaleString()})`
-                    : `Recognized ROU Asset ($${result.rou.toLocaleString()}) & Liability ($${result.liability.toLocaleString()})`
+                title: tr("Аренда МСФО 16 капитализирована", "IFRS 16 Lease Capitalized"),
+                description: tr(`Признан актив ROU ($${result.rou.toLocaleString()}) и обязательство ($${result.liability.toLocaleString()})`, `Recognized ROU Asset ($${result.rou.toLocaleString()}) & Liability ($${result.liability.toLocaleString()})`)
             });
         }
     };
@@ -110,7 +104,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                 {trigger || (
                     <Button variant="outline" className="border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 font-medium">
                         <Building2 className="w-3.5 h-3.5 mr-1.5" />
-                        {isRu ? 'Калькулятор аренды (IFRS 16)' : 'IFRS 16 (Leases) Calculator'}
+                        {tr('Калькулятор аренды (IFRS 16)', 'IFRS 16 (Leases) Calculator')}
                     </Button>
                 )}
             </DialogTrigger>
@@ -121,23 +115,21 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                             <Building2 className="w-4 h-4" />
                         </div>
                         <div>
-                            <span>{isRu ? 'Калькулятор аренды (МСФО 16)' : 'IFRS 16 Lease Capitalization'}</span>
+                            <span>{tr('Калькулятор аренды (МСФО 16)', 'IFRS 16 Lease Capitalization')}</span>
                             <span className="block text-[11px] font-normal text-slate-500 dark:text-slate-400">
-                                {isRu ? 'Дисконтирование аннуитета (NPV) арендных платежей' : 'Present Value (NPV) capitalization for Right-of-Use assets'}
+                                {tr('Дисконтирование аннуитета (NPV) арендных платежей', 'Present Value (NPV) capitalization for Right-of-Use assets')}
                             </span>
                         </div>
                     </DialogTitle>
                     <DialogDescription className="text-xs text-slate-500">
-                        {isRu 
-                            ? 'Капитализация прав пользования активом (ROU) и признание финансового обязательства по дисконтированной ставке.'
-                            : 'Calculate Present Value of lease payments and recognize ROU asset and lease liability.'}
+                        {tr('Капитализация прав пользования активом (ROU) и признание финансового обязательства по дисконтированной ставке.', 'Calculate Present Value of lease payments and recognize ROU asset and lease liability.')}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-3 py-2 text-xs">
                     <div className="grid grid-cols-4 items-center gap-3">
                         <Label htmlFor="lease_term" className="text-right text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {isRu ? 'Срок (месяцы):' : 'Term (Months):'}
+                            {tr('Срок (месяцы):', 'Term (Months):')}
                         </Label>
                         <Input 
                             id="lease_term" 
@@ -150,7 +142,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                     </div>
                     <div className="grid grid-cols-4 items-center gap-3">
                         <Label htmlFor="discount_rate" className="text-right text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {isRu ? 'Ставка (% год):' : 'Discount Rate (%):'}
+                            {tr('Ставка (% год):', 'Discount Rate (%):')}
                         </Label>
                         <Input 
                             id="discount_rate" 
@@ -164,7 +156,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                     </div>
                     <div className="grid grid-cols-4 items-center gap-3">
                         <Label htmlFor="monthly_payment" className="text-right text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {isRu ? 'Платеж в месяц:' : 'Monthly Payment:'}
+                            {tr('Платеж в месяц:', 'Monthly Payment:')}
                         </Label>
                         <div className="col-span-3 relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
@@ -180,7 +172,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                     </div>
                     <div className="grid grid-cols-4 items-center gap-3">
                         <Label htmlFor="initial_costs" className="text-right text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {isRu ? 'Прямые затраты:' : 'Initial Costs:'}
+                            {tr('Прямые затраты:', 'Initial Costs:')}
                         </Label>
                         <div className="col-span-3 relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
@@ -201,29 +193,29 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                         <div className="grid grid-cols-2 gap-2 font-mono">
                             <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/15">
                                 <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">
-                                    {isRu ? 'Актив ROU (Дебет):' : 'ROU Asset (Debit):'}
+                                    {tr('Актив ROU (Дебет):', 'ROU Asset (Debit):')}
                                 </span>
                                 <span className="text-base font-extrabold text-blue-600 dark:text-blue-400">
                                     ${result.rou.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                                 <span className="block text-[10px] text-slate-500 font-sans mt-0.5">
-                                    {isRu ? 'Капитализация актива' : 'Asset Capitalization'}
+                                    {tr('Капитализация актива', 'Asset Capitalization')}
                                 </span>
                             </div>
                             <div className="p-2 rounded-lg bg-indigo-500/5 border border-indigo-500/15">
                                 <span className="text-slate-500 dark:text-slate-400 block text-[10px] font-sans">
-                                    {isRu ? 'Обязательство (Кредит):' : 'Lease Liability (Credit):'}
+                                    {tr('Обязательство (Кредит):', 'Lease Liability (Credit):')}
                                 </span>
                                 <span className="text-base font-extrabold text-indigo-600 dark:text-indigo-400">
                                     ${result.liability.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                                 <span className="block text-[10px] text-slate-500 font-sans mt-0.5">
-                                    {isRu ? `Проценты: $${result.interestComponent.toLocaleString()}` : `Interest: $${result.interestComponent.toLocaleString()}`}
+                                    {tr(`Проценты: $${result.interestComponent.toLocaleString()}`, `Interest: $${result.interestComponent.toLocaleString()}`)}
                                 </span>
                             </div>
                         </div>
                         <div className="pt-2 text-[10px] text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                            <span>{isRu ? 'Проводка трансформации:' : 'Accounting Entry:'}</span>
+                            <span>{tr('Проводка трансформации:', 'Accounting Entry:')}</span>
                             <span className="font-mono text-slate-900 dark:text-slate-200 font-semibold bg-slate-200/60 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                                 Дт 08/01 (ROU) — Кт 76 (${result.liability.toLocaleString()})
                             </span>
@@ -240,7 +232,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                         className="text-xs"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-                        {loading ? (isRu ? 'Расчет...' : 'Computing...') : (isRu ? 'Пересчитать' : 'Recalculate')}
+                        {loading ? (tr('Расчет...', 'Computing...')) : (tr('Пересчитать', 'Recalculate'))}
                     </Button>
                     <Button 
                         onClick={handleApply} 
@@ -249,7 +241,7 @@ export default function IFRS16Calculator({ onCalculate, trigger }: IFRS16Calcula
                         size="sm"
                     >
                         <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
-                        {isRu ? 'Применить корректировку IFRS 16' : 'Apply Adjustment'}
+                        {tr('Применить корректировку IFRS 16', 'Apply Adjustment')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

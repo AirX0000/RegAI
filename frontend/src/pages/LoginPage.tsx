@@ -25,29 +25,34 @@ import {
 } from 'lucide-react';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import ThemeToggle from '../components/ThemeToggle';
+import { tr } from '../lib/i18n';
 
 const DEMO_ORGANIZATIONS = [
     {
         id: 'techcorp',
         name: 'TechCorp Ltd',
         label: 'TechCorp (Орг. 1)',
+        labelEn: 'TechCorp (Org. 1)',
+        labelUz: 'TechCorp (1-tashkilot)',
         company_id: '2727830ea39d470c917f1a1544ed5d0f',
         accounts: [
-            { role: 'company_owner', label: 'Владелец (Owner)', name: 'Сардор Рахимов', email: 'owner@axiaris.ai', badge: 'Executive' },
-            { role: 'accountant', label: 'Главбух (МСФО)', name: 'Елена Васильева', email: 'accountant@axiaris.ai', badge: 'Ledger' },
-            { role: 'admin', label: 'Администратор', name: 'Камилла Каримова', email: 'admin@axiaris.ai', badge: 'Admin' },
-            { role: 'auditor', label: 'Аудитор', name: 'Дмитрий Ким', email: 'auditor@axiaris.ai', badge: 'Audit' },
+            { role: 'company_owner', label: 'Владелец (Owner)', labelEn: 'Company Owner', labelUz: 'Biznes egasi (Owner)', name: 'Сардор Рахимов', nameLat: 'Sardor Raximov', email: 'owner@axiaris.ai', badge: 'Executive' },
+            { role: 'accountant', label: 'Главбух (МСФО)', labelEn: 'Chief Accountant (IFRS)', labelUz: 'Bosh buxgalter (MHXS)', name: 'Елена Васильева', nameLat: 'Elena Vasilyeva', email: 'accountant@axiaris.ai', badge: 'Ledger' },
+            { role: 'admin', label: 'Администратор', labelEn: 'Administrator', labelUz: 'Administrator', name: 'Камилла Каримова', nameLat: 'Kamilla Karimova', email: 'admin@axiaris.ai', badge: 'Admin' },
+            { role: 'auditor', label: 'Аудитор', labelEn: 'Auditor', labelUz: 'Auditor', name: 'Дмитрий Ким', nameLat: 'Dmitriy Kim', email: 'auditor@axiaris.ai', badge: 'Audit' },
         ]
     },
     {
         id: 'finserve',
         name: 'FinServe Holdings',
         label: 'FinServe (Орг. 2)',
+        labelEn: 'FinServe (Org. 2)',
+        labelUz: 'FinServe (2-tashkilot)',
         company_id: 'b968f7d7ffe04630a90aadde4d0d8e95',
         accounts: [
-            { role: 'admin', label: 'Администратор FinServe', name: 'Бахром Алиев', email: 'admin@finserve.com', badge: 'Admin' },
-            { role: 'accountant', label: 'Главбух FinServe', name: 'Наргиза Саидова', email: 'accountant@finserve.com', badge: 'Ledger' },
-            { role: 'auditor', label: 'Аудитор FinServe', name: 'Олег Новиков', email: 'auditor@finserve.com', badge: 'Audit' },
+            { role: 'admin', label: 'Администратор FinServe', labelEn: 'FinServe Admin', labelUz: 'FinServe Administratori', name: 'Бахром Алиев', nameLat: 'Baxrom Aliyev', email: 'admin@finserve.com', badge: 'Admin' },
+            { role: 'accountant', label: 'Главбух FinServe', labelEn: 'FinServe Accountant', labelUz: 'FinServe Bosh buxgalteri', name: 'Наргиза Саидова', nameLat: 'Nargiza Saidova', email: 'accountant@finserve.com', badge: 'Ledger' },
+            { role: 'auditor', label: 'Аудитор FinServe', labelEn: 'FinServe Auditor', labelUz: 'FinServe Auditori', name: 'Олег Новиков', nameLat: 'Oleg Novikov', email: 'auditor@finserve.com', badge: 'Audit' },
         ]
     }
 ];
@@ -92,8 +97,8 @@ export default function LoginPage() {
         if (!emailClean || !emailClean.includes('@')) {
             toast({
                 variant: 'destructive',
-                title: 'Ошибка',
-                description: 'Введите корректный корпоративный Email',
+                title: tr('Ошибка', 'Error', 'Xatolik'),
+                description: tr('Введите корректный корпоративный Email', 'Please enter a valid corporate email', 'Iltimos, to\'g\'ri korporativ Email kiriting'),
             });
             return;
         }
@@ -107,8 +112,12 @@ export default function LoginPage() {
             }
             setForgotStep('reset');
             toast({
-                title: 'Код восстановления отправлен',
-                description: `6-значный код безопасности сформирован для ${emailClean} (действителен 15 минут).`,
+                title: tr('Код восстановления отправлен', 'Recovery Code Sent', 'Tiklash kodi yuborildi'),
+                description: tr(
+                    `6-значный код безопасности сформирован для ${emailClean} (действителен 15 минут).`,
+                    `A 6-digit security code has been generated for ${emailClean} (valid for 15 minutes).`,
+                    `${emailClean} uchun 6 xonali xavfsizlik kodi yaratildi (15 daqiqa amal qiladi).`
+                ),
             });
         } catch (err: any) {
             // Local fallback if backend is unreachable
@@ -117,8 +126,12 @@ export default function LoginPage() {
             setResetCode(fallbackCode);
             setForgotStep('reset');
             toast({
-                title: 'Код восстановления сформирован',
-                description: `Используйте 6-значный код подтверждения для смены пароля ${emailClean}.`,
+                title: tr('Код восстановления сформирован', 'Recovery Code Generated', 'Tiklash kodi yaratildi'),
+                description: tr(
+                    `Используйте 6-значный код подтверждения для смены пароля ${emailClean}.`,
+                    `Use the 6-digit verification code to reset the password for ${emailClean}.`,
+                    `${emailClean} parolini tiklash uchun 6 xonali tasdiqlash kodidan foydalaning.`
+                ),
             });
         } finally {
             setIsForgotLoading(false);
@@ -131,24 +144,24 @@ export default function LoginPage() {
         if (resetCode.trim().length < 6) {
             toast({
                 variant: 'destructive',
-                title: 'Неверный код',
-                description: 'Введите 6-значный код подтверждения',
+                title: tr('Неверный код', 'Invalid Code', 'Noto\'g\'ri kod'),
+                description: tr('Введите 6-значный код подтверждения', 'Enter the 6-digit verification code', '6 xonali tasdiqlash kodini kiriting'),
             });
             return;
         }
         if (newPassword.length < 8) {
             toast({
                 variant: 'destructive',
-                title: 'Слабый пароль',
-                description: 'Новый пароль должен содержать минимум 8 символов',
+                title: tr('Слабый пароль', 'Weak Password', 'Zaif parol'),
+                description: tr('Новый пароль должен содержать минимум 8 символов', 'New password must be at least 8 characters', 'Yangi parol kamida 8 ta belgidan iborat bo\'lishi kerak'),
             });
             return;
         }
         if (newPassword !== confirmPassword) {
             toast({
                 variant: 'destructive',
-                title: 'Пароли не совпадают',
-                description: 'Убедитесь, что новый пароль и подтверждение совпадают',
+                title: tr('Пароли не совпадают', 'Passwords Do Not Match', 'Parollar mos kelmadi'),
+                description: tr('Убедитесь, что новый пароль и подтверждение совпадают', 'Make sure the new password and confirmation match', 'Yangi parol va tasdiqlash paroli bir xil ekanligiga ishonch hosil qiling'),
             });
             return;
         }
@@ -164,14 +177,14 @@ export default function LoginPage() {
             setValue('password', newPassword, { shouldValidate: true, shouldDirty: true });
             setIsForgotOpen(false);
             toast({
-                title: 'Пароль успешно изменен',
-                description: 'Новый пароль сохранен и подставлен в форму входа.',
+                title: tr('Пароль успешно изменен', 'Password Updated Successfully', 'Parol muvaffaqiyatli o\'zgartirildi'),
+                description: tr('Новый пароль сохранен и подставлен в форму входа.', 'New password saved and filled into the login form.', 'Yangi parol saqlandi va kirish shakliga kiritildi.'),
             });
         } catch (err: any) {
-            const detail = err?.response?.data?.detail || 'Неверный или просроченный код восстановления';
+            const detail = err?.response?.data?.detail || tr('Неверный или просроченный код восстановления', 'Invalid or expired recovery code', 'Noto\'g\'ri yoki muddati o\'tgan tiklash kodi');
             toast({
                 variant: 'destructive',
-                title: 'Ошибка смены пароля',
+                title: tr('Ошибка смены пароля', 'Password Reset Failed', 'Parolni o\'zgartirishda xatolik'),
                 description: detail,
             });
         } finally {
@@ -281,8 +294,8 @@ export default function LoginPage() {
 
             await login(tokenToUse);
             toast({
-                title: "Welcome to Axiaris",
-                description: `Вход выполнен: ${displayName}`,
+                title: tr('Добро пожаловать в Axiaris', 'Welcome to Axiaris', 'Axiaris tizimiga xush kelibsiz'),
+                description: `${tr('Вход выполнен', 'Signed in as', 'Tizimga kirildi')}: ${displayName}`,
             });
             navigate('/');
         } catch (error: any) {
@@ -331,7 +344,13 @@ export default function LoginPage() {
                                     v2.6 Enterprise
                                 </span>
                             </div>
-                            <p className="text-xs text-slate-400">Autonomous Financial Regulatory Intelligence</p>
+                            <p className="text-xs text-slate-400">
+                                {tr(
+                                    'Автономный финансовый интеллект и регуляторный комплаенс',
+                                    'Autonomous Financial Regulatory Intelligence',
+                                    'Avtonom moliyaviy intellekt va regulyator komplayens'
+                                )}
+                            </p>
                         </div>
                     </div>
 
@@ -361,38 +380,38 @@ export default function LoginPage() {
                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
                                 </span>
                                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-200">
-                                    Live Financial Telemetry
+                                    {tr('Финансовая телеметрия в реальном времени', 'Live Financial Telemetry', 'Jonli moliyaviy telemetriya')}
                                 </span>
                             </div>
                             <span className="text-[11px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">
-                                99.9% Operational
+                                {tr('99.9% Доступность', '99.9% Operational', '99.9% Barqaror')}
                             </span>
                         </div>
 
                         {/* 3 Telemetry Grid Items */}
                         <div className="grid grid-cols-3 gap-3 my-4">
                             <div className="p-3 rounded-xl bg-[#050814]/80 border border-[#162244]">
-                                <div className="text-[11px] text-slate-400 font-medium">МСФО 9 (ECL)</div>
+                                <div className="text-[11px] text-slate-400 font-medium">{tr('МСФО 9 (ECL)', 'IFRS 9 (ECL)', 'MHXS 9 (ECL)')}</div>
                                 <div className="text-sm font-bold text-white mt-1">Stage 1 / 2 / 3</div>
                                 <div className="text-[10px] text-cyan-400 mt-0.5">EAD×PD×LGD×DF</div>
                             </div>
                             <div className="p-3 rounded-xl bg-[#050814]/80 border border-[#162244]">
-                                <div className="text-[11px] text-slate-400 font-medium">МСФО 16 (Аренда)</div>
-                                <div className="text-sm font-bold text-white mt-1">ROU & Обязательства</div>
-                                <div className="text-[10px] text-blue-400 mt-0.5">PV Аннуитет</div>
+                                <div className="text-[11px] text-slate-400 font-medium">{tr('МСФО 16 (Аренда)', 'IFRS 16 (Leases)', 'MHXS 16 (Ijara)')}</div>
+                                <div className="text-sm font-bold text-white mt-1">{tr('ROU & Обязательства', 'ROU & Liabilities', 'ROU va Majburiyatlar')}</div>
+                                <div className="text-[10px] text-blue-400 mt-0.5">{tr('PV Аннуитет', 'PV Annuity', 'PV Annuitet')}</div>
                             </div>
                             <div className="p-3 rounded-xl bg-[#050814]/80 border border-[#162244]">
-                                <div className="text-[11px] text-slate-400 font-medium">1C:Предприятие</div>
+                                <div className="text-[11px] text-slate-400 font-medium">{tr('1C:Предприятие', '1C:Enterprise', '1C:Korxona')}</div>
                                 <div className="text-sm font-bold text-white mt-1">OData REST API</div>
-                                <div className="text-[10px] text-emerald-400 mt-0.5">Двусторонний sync</div>
+                                <div className="text-[10px] text-emerald-400 mt-0.5">{tr('Двусторонний sync', 'Bi-directional sync', 'Ikki tomonlama sync')}</div>
                             </div>
                         </div>
 
                         {/* Journal Entry Real-Time Preview */}
                         <div className="pt-3 border-t border-[#162244] flex items-center justify-between text-[11px] font-mono text-slate-400">
-                            <span className="text-slate-500">Автопроводки:</span>
+                            <span className="text-slate-500">{tr('Автопроводки:', 'Auto-entries:', 'Avto-provodkalar:')}</span>
                             <span className="text-slate-300 font-semibold bg-[#050814]/90 px-2.5 py-1 rounded border border-[#162244] text-[10px] sm:text-[11px]">
-                                Дт 91.02 — Кт 63 | Дт 08.04 — Кт 76.07
+                                {tr('Дт 91.02 — Кт 63 | Дт 08.04 — Кт 76.07', 'Dr 91.02 — Cr 63 | Dr 08.04 — Cr 76.07', 'Dt 91.02 — Kt 63 | Dt 08.04 — Kt 76.07')}
                             </span>
                         </div>
                     </div>
@@ -406,11 +425,11 @@ export default function LoginPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Building2 className="w-4 h-4 text-cyan-400" />
-                        <span>Мультитенантная изоляция</span>
+                        <span>{tr('Мультитенантная изоляция', 'Multi-Tenant Isolation', 'Multitenant izolyatsiya')}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <FileSpreadsheet className="w-4 h-4 text-violet-400" />
-                        <span>МСФО (IFRS) & НСБУ</span>
+                        <span>{tr('МСФО (IFRS) & НСБУ', 'IFRS & NAS Ready', 'MHXS (IFRS) va BHMS')}</span>
                     </div>
                 </div>
             </div>
@@ -480,7 +499,7 @@ export default function LoginPage() {
                                             : 'text-slate-400 hover:text-slate-200 hover:bg-[#0b1228]'
                                     }`}
                                 >
-                                    {org.label}
+                                    {tr(org.label, org.labelEn, org.labelUz)}
                                 </button>
                             ))}
                         </div>
@@ -501,10 +520,10 @@ export default function LoginPage() {
                                         }`}
                                     >
                                         <div className="flex items-center justify-between w-full gap-2">
-                                            <span className="text-xs font-semibold whitespace-nowrap text-white">{acc.label}</span>
+                                            <span className="text-xs font-semibold whitespace-nowrap text-white">{tr(acc.label, acc.labelEn, acc.labelUz)}</span>
                                             {isSelected ? (
                                                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/30 whitespace-nowrap">
-                                                    ✓ Готово
+                                                    {tr('✓ Готово', '✓ Ready', '✓ Tayyor')}
                                                 </span>
                                             ) : (
                                                 <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#101935] text-slate-400 font-mono whitespace-nowrap">{acc.badge}</span>
@@ -512,7 +531,7 @@ export default function LoginPage() {
                                         </div>
                                         <div className="flex items-center justify-between text-[10px] text-slate-400">
                                             <span className="font-mono text-slate-400 truncate max-w-[125px]">{acc.email}</span>
-                                            <span className="text-slate-400 text-[10px] font-medium truncate">{acc.name}</span>
+                                            <span className="text-slate-400 text-[10px] font-medium truncate">{tr(acc.name, acc.nameLat, acc.nameLat)}</span>
                                         </div>
                                     </button>
                                 );
@@ -525,7 +544,7 @@ export default function LoginPage() {
                                 <div className="flex items-center gap-2">
                                     <span className="text-cyan-400 text-xs font-bold">✓</span>
                                     <span className="text-xs text-cyan-300 font-medium">
-                                        Данные заполнены
+                                        {tr('Данные заполнены', 'Credentials filled', 'Ma\'lumotlar to\'ldirildi')}
                                     </span>
                                 </div>
                                 <button
@@ -533,7 +552,7 @@ export default function LoginPage() {
                                     onClick={() => onSubmit({ email: activeDemo, password: 'FinBridge2026!' })}
                                     className="text-xs px-2.5 py-1 rounded-md bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-slate-950 font-bold transition-all shadow-xs cursor-pointer flex items-center gap-1"
                                 >
-                                    <span>Войти сейчас</span>
+                                    <span>{tr('Войти сейчас', 'Sign in now', 'Hozir kirish')}</span>
                                     <ArrowRight className="w-3 h-3" />
                                 </button>
                             </div>
@@ -616,7 +635,7 @@ export default function LoginPage() {
                         <div className="mt-4">
                             <Button variant="outline" className="w-full border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white">
                                 <Building2 className="w-4 h-4 mr-2 text-slate-400" />
-                                Вход через 1С / SSO (OIDC)
+                                {tr('Вход через 1С / SSO (OIDC)', 'Sign in with 1C / SSO (OIDC)', '1C / SSO (OIDC) orqali kirish')}
                             </Button>
                         </div>
                     )}
@@ -640,7 +659,7 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() => setIsForgotOpen(false)}
-                            aria-label="Закрыть окно восстановления пароля"
+                            aria-label={tr('Закрыть окно восстановления пароля', 'Close password recovery modal', 'Parolni tiklash oynasini yopish')}
                             className="absolute right-4 top-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#121c3d] transition-colors cursor-pointer"
                         >
                             <X className="w-4 h-4" />
@@ -652,12 +671,12 @@ export default function LoginPage() {
                             </div>
                             <div>
                                 <h3 id="forgot-password-title" className="text-lg font-bold text-white">
-                                    Восстановление пароля
+                                    {tr('Восстановление пароля', 'Password Recovery', 'Parolni tiklash')}
                                 </h3>
                                 <p className="text-xs text-slate-400">
                                     {forgotStep === 'request'
-                                        ? 'Шаг 1 из 2 • Запрос одноразового кода безопасности'
-                                        : 'Шаг 2 из 2 • Подтверждение кода и установка нового пароля'}
+                                        ? tr('Шаг 1 из 2 • Запрос одноразового кода безопасности', 'Step 1 of 2 • Request one-time security code', '1-qadam (2 dan) • Bir martalik xavfsizlik kodini so\'rash')
+                                        : tr('Шаг 2 из 2 • Подтверждение кода и установка нового пароля', 'Step 2 of 2 • Verify code and set new password', '2-qadam (2 dan) • Kodni tasdiqlash va yangi parol o\'rnatish')}
                                 </p>
                             </div>
                         </div>
@@ -665,11 +684,15 @@ export default function LoginPage() {
                         {forgotStep === 'request' ? (
                             <form onSubmit={handleRequestResetCode} className="space-y-4">
                                 <p className="text-xs text-slate-300 leading-relaxed">
-                                    Укажите ваш корпоративный Email. Система сформирует 6-значный одноразовый код подтверждения (действителен 15 минут) и зафиксирует событие в журнале аудита.
+                                    {tr(
+                                        'Укажите ваш корпоративный Email. Система сформирует 6-значный одноразовый код подтверждения (действителен 15 минут) и зафиксирует событие в журнале аудита.',
+                                        'Enter your corporate email. The system will generate a 6-digit one-time verification code (valid for 15 minutes) and log the event in the audit trail.',
+                                        'Korporativ elektron pochtangizni kiriting. Tizim 6 xonali bir martalik tasdiqlash kodini yaratadi (15 daqiqa amal qiladi) va hodisani audit jurnaliga yozadi.'
+                                    )}
                                 </p>
                                 <div>
                                     <label htmlFor="forgot-email-input" className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        Корпоративный Email
+                                        {tr('Корпоративный Email', 'Corporate Email', 'Korporativ Email')}
                                     </label>
                                     <div className="relative">
                                         <Input
@@ -693,14 +716,16 @@ export default function LoginPage() {
                                         onClick={() => setIsForgotOpen(false)}
                                         className="border-[#162244] bg-[#050814] text-slate-300 hover:bg-[#121c3d] hover:text-white"
                                     >
-                                        Отмена
+                                        {tr('Отмена', 'Cancel', 'Bekor qilish')}
                                     </Button>
                                     <Button
                                         type="submit"
                                         disabled={isForgotLoading}
                                         className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold"
                                     >
-                                        {isForgotLoading ? 'Отправка...' : 'Получить код'}
+                                        {isForgotLoading
+                                            ? tr('Отправка...', 'Sending...', 'Yuborilmoqda...')
+                                            : tr('Получить код', 'Get Reset Code', 'Kodni olish')}
                                     </Button>
                                 </div>
                             </form>
@@ -710,7 +735,7 @@ export default function LoginPage() {
                                     <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-2 text-xs text-cyan-300">
                                             <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0" />
-                                            <span>Код подтверждения для <b>{forgotEmail}</b>:</span>
+                                            <span>{tr('Код подтверждения для', 'Verification code for', 'Tasdiqlash kodi')} <b>{forgotEmail}</b>:</span>
                                         </div>
                                         <span className="font-mono text-sm font-bold tracking-widest text-white bg-[#050814] px-2.5 py-1 rounded-lg border border-cyan-500/40">
                                             {generatedDemoCode}
@@ -720,7 +745,7 @@ export default function LoginPage() {
 
                                 <div>
                                     <label htmlFor="reset-code-input" className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        6-значный код подтверждения
+                                        {tr('6-значный код подтверждения', '6-Digit Verification Code', '6 xonali tasdiqlash kodi')}
                                     </label>
                                     <Input
                                         id="reset-code-input"
@@ -738,7 +763,7 @@ export default function LoginPage() {
 
                                 <div>
                                     <label htmlFor="new-password-input" className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        Новый пароль (минимум 8 символов)
+                                        {tr('Новый пароль (минимум 8 символов)', 'New Password (min. 8 characters)', 'Yangi parol (kamida 8 ta belgi)')}
                                     </label>
                                     <div className="relative">
                                         <Input
@@ -749,7 +774,7 @@ export default function LoginPage() {
                                             required
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
-                                            placeholder="Введите новый пароль"
+                                            placeholder={tr('Введите новый пароль', 'Enter new password', 'Yangi parolni kiriting')}
                                             className="bg-[#050814] border-[#162244] text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 pl-9 pr-10"
                                         />
                                         <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
@@ -765,7 +790,7 @@ export default function LoginPage() {
 
                                 <div>
                                     <label htmlFor="confirm-password-input" className="block text-xs font-medium text-slate-300 mb-1.5">
-                                        Подтвердите новый пароль
+                                        {tr('Подтвердите новый пароль', 'Confirm New Password', 'Yangi parolni tasdiqlang')}
                                     </label>
                                     <div className="relative">
                                         <Input
@@ -776,7 +801,7 @@ export default function LoginPage() {
                                             required
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="Повторите новый пароль"
+                                            placeholder={tr('Повторите новый пароль', 'Repeat new password', 'Yangi parolni qayta kiriting')}
                                             className="bg-[#050814] border-[#162244] text-white placeholder:text-slate-500 focus-visible:ring-cyan-500 pl-9"
                                         />
                                         <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
@@ -790,14 +815,16 @@ export default function LoginPage() {
                                         onClick={() => setForgotStep('request')}
                                         className="text-xs text-slate-400 hover:text-white hover:bg-[#121c3d]"
                                     >
-                                        ← Изменить Email
+                                        {tr('← Изменить Email', '← Change Email', '← Emailni o\'zgartirish')}
                                     </Button>
                                     <Button
                                         type="submit"
                                         disabled={isForgotLoading}
                                         className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold"
                                     >
-                                        {isForgotLoading ? 'Сохранение...' : 'Сохранить новый пароль'}
+                                        {isForgotLoading
+                                            ? tr('Сохранение...', 'Saving...', 'Saqlanmoqda...')
+                                            : tr('Сохранить новый пароль', 'Save New Password', 'Yangi parolni saqlash')}
                                     </Button>
                                 </div>
                             </form>

@@ -34,9 +34,9 @@ export default function CompaniesPage() {
                     <thead className="border-b bg-gray-50">
                         <tr>
                             <th className="p-4 text-left font-medium">{t('name')}</th>
-                            <th className="p-4 text-left font-medium">Domain</th>
+                            <th className="p-4 text-left font-medium">{t('domain')}</th>
                             <th className="p-4 text-left font-medium">{t('status')}</th>
-                            <th className="p-4 text-left font-medium">Risk Score</th>
+                            <th className="p-4 text-left font-medium">{t('risk_score')}</th>
                             <th className="p-4 text-left font-medium">{t('created_at')}</th>
                         </tr>
                     </thead>

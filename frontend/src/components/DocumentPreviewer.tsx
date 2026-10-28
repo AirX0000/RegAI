@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { tr } from '@/lib/i18n';
 import { 
     FileText, Download, Printer, Eye, Maximize2, Minimize2, 
     ExternalLink, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, 
@@ -154,7 +155,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             <span>•</span>
                             <span className="text-emerald-400 flex items-center gap-1 font-medium">
                                 <CheckCircle2 className="w-3 h-3" />
-                                {isRu ? 'Оригинал проверен' : 'Authentic verified'}
+                                {tr('Оригинал проверен', 'Authentic verified')}
                             </span>
                         </div>
                     </div>
@@ -169,10 +170,10 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 ? 'bg-blue-600 text-white shadow-xs'
                                 : 'text-slate-400 hover:text-white'
                         }`}
-                        title={isRu ? "Интерактивный бланк документа (A4)" : "Interactive Document Sheet"}
+                        title={tr("Интерактивный бланк документа (A4)", "Interactive Document Sheet")}
                     >
                         <FileText className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isRu ? 'Бланк (A4)' : 'Document Sheet'}</span>
+                        <span className="hidden sm:inline">{tr('Бланк (A4)', 'Document Sheet')}</span>
                     </button>
                     <button
                         onClick={() => setViewMode('pdf')}
@@ -181,10 +182,10 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 ? 'bg-blue-600 text-white shadow-xs'
                                 : 'text-slate-400 hover:text-white'
                         }`}
-                        title={isRu ? "Встроенный PDF-ридер браузера" : "Native Browser PDF Viewer"}
+                        title={tr("Встроенный PDF-ридер браузера", "Native Browser PDF Viewer")}
                     >
                         <Eye className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isRu ? 'PDF-ридер' : 'PDF Reader'}</span>
+                        <span className="hidden sm:inline">{tr('PDF-ридер', 'PDF Reader')}</span>
                     </button>
                     <button
                         onClick={() => setViewMode('table')}
@@ -193,10 +194,10 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 ? 'bg-blue-600 text-white shadow-xs'
                                 : 'text-slate-400 hover:text-white'
                         }`}
-                        title={isRu ? "Финансовые регистры и таблица" : "Financial Data Grid"}
+                        title={tr("Финансовые регистры и таблица", "Financial Data Grid")}
                     >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isRu ? 'Таблица' : 'Spreadsheet'}</span>
+                        <span className="hidden sm:inline">{tr('Таблица', 'Spreadsheet')}</span>
                     </button>
                     <button
                         onClick={() => setViewMode('text')}
@@ -205,10 +206,10 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 ? 'bg-blue-600 text-white shadow-xs'
                                 : 'text-slate-400 hover:text-white'
                         }`}
-                        title={isRu ? "Исходный текст и реквизиты" : "Plain Text Disclosure"}
+                        title={tr("Исходный текст и реквизиты", "Plain Text Disclosure")}
                     >
                         <Layers className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{isRu ? 'Текст' : 'Text'}</span>
+                        <span className="hidden sm:inline">{tr('Текст', 'Text')}</span>
                     </button>
                 </div>
 
@@ -220,8 +221,8 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             <button
                                 onClick={handleZoomOut}
                                 className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800"
-                                title={isRu ? "Уменьшить" : "Zoom out"}
-                                aria-label={isRu ? "Уменьшить масштаб" : "Zoom out"}
+                                title={tr("Уменьшить", "Zoom out")}
+                                aria-label={tr("Уменьшить масштаб", "Zoom out")}
                             >
                                 <ZoomOut className="w-3.5 h-3.5" />
                             </button>
@@ -231,16 +232,16 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             <button
                                 onClick={handleZoomIn}
                                 className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800"
-                                title={isRu ? "Увеличить" : "Zoom in"}
-                                aria-label={isRu ? "Увеличить масштаб" : "Zoom in"}
+                                title={tr("Увеличить", "Zoom in")}
+                                aria-label={tr("Увеличить масштаб", "Zoom in")}
                             >
                                 <ZoomIn className="w-3.5 h-3.5" />
                             </button>
                             <button
                                 onClick={handleZoomReset}
                                 className="p-1 text-slate-400 hover:text-white rounded-md cursor-pointer hover:bg-slate-800 ml-0.5 border-l border-slate-700"
-                                title={isRu ? "Сброс зума (100%)" : "Reset Zoom"}
-                                aria-label={isRu ? "Сбросить масштаб" : "Reset Zoom"}
+                                title={tr("Сброс зума (100%)", "Reset Zoom")}
+                                aria-label={tr("Сбросить масштаб", "Reset Zoom")}
                             >
                                 <RotateCcw className="w-3 h-3" />
                             </button>
@@ -254,20 +255,20 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
                                 className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded-md cursor-pointer hover:bg-slate-800"
-                                title={isRu ? "Предыдущая страница" : "Previous page"}
-                                aria-label={isRu ? "Предыдущая страница" : "Previous page"}
+                                title={tr("Предыдущая страница", "Previous page")}
+                                aria-label={tr("Предыдущая страница", "Previous page")}
                             >
                                 <ChevronLeft className="w-3.5 h-3.5" />
                             </button>
                             <span className="px-2 text-[11px] font-semibold text-slate-200">
-                                {isRu ? `Стр. ${currentPage} из ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+                                {tr(`Стр. ${currentPage} из ${totalPages}`, `Page ${currentPage} of ${totalPages}`)}
                             </span>
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
                                 className="p-1 text-slate-400 hover:text-white disabled:opacity-30 disabled:hover:text-slate-400 rounded-md cursor-pointer hover:bg-slate-800"
-                                title={isRu ? "Следующая страница" : "Next page"}
-                                aria-label={isRu ? "Следующая страница" : "Next page"}
+                                title={tr("Следующая страница", "Next page")}
+                                aria-label={tr("Следующая страница", "Next page")}
                             >
                                 <ChevronRight className="w-3.5 h-3.5" />
                             </button>
@@ -281,7 +282,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             size="icon"
                             onClick={handleOpenInNewTab}
                             className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
-                            title={isRu ? "Открыть PDF в новой вкладке" : "Open PDF in new tab"}
+                            title={tr("Открыть PDF в новой вкладке", "Open PDF in new tab")}
                         >
                             <ExternalLink className="w-3.5 h-3.5" />
                         </Button>
@@ -293,7 +294,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                         size="icon"
                         onClick={handlePrint}
                         className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
-                        title={isRu ? "Печать документа" : "Print document"}
+                        title={tr("Печать документа", "Print document")}
                     >
                         <Printer className="w-3.5 h-3.5" />
                     </Button>
@@ -304,7 +305,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                         size="icon"
                         onClick={handleDownloadReport}
                         className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
-                        title={isRu ? "Скачать оригинал PDF" : "Download PDF"}
+                        title={tr("Скачать оригинал PDF", "Download PDF")}
                     >
                         <Download className="w-3.5 h-3.5" />
                     </Button>
@@ -316,7 +317,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             size="icon"
                             onClick={onOpenFullscreen}
                             className="h-8 w-8 text-blue-400 hover:text-blue-300 hover:bg-slate-800 cursor-pointer"
-                            title={isRu ? "Развернуть на весь экран" : "Fullscreen viewer"}
+                            title={tr("Развернуть на весь экран", "Fullscreen viewer")}
                         >
                             <Maximize2 className="w-3.5 h-3.5" />
                         </Button>
@@ -328,7 +329,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             size="icon"
                             onClick={onCloseFullscreen}
                             className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
-                            title={isRu ? "Свернуть полноэкранный режим" : "Exit fullscreen"}
+                            title={tr("Свернуть полноэкранный режим", "Exit fullscreen")}
                         >
                             <Minimize2 className="w-3.5 h-3.5" />
                         </Button>
@@ -372,7 +373,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                             REF: #{report.id?.substring(0, 8).toUpperCase()}
                                         </div>
                                         <div className="text-slate-500 mt-0.5">
-                                            {isRu ? 'Дата:' : 'Date:'} {new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
+                                            {tr('Дата:', 'Date:')} {new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString(isRu ? 'ru-RU' : 'en-US')}
                                         </div>
                                     </div>
                                 </div>
@@ -384,13 +385,11 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                             {report.title || 'Annual Financial Audit 2024'}
                                         </h2>
                                         <p className="text-xs text-purple-700 mt-1">
-                                            {isRu 
-                                                ? 'Стандарты: МСА 700 / 701, МСФО (IFRS) • Статус: БЕЗОГОВОРОЧНО ПОЛОЖИТЕЛЬНОЕ ЗАКЛЮЧЕНИЕ' 
-                                                : 'Standards: ISA 700 / 701, IFRS Taxonomy • Status: UNMODIFIED CLEAN OPINION'}
+                                            {tr('Стандарты: МСА 700 / 701, МСФО (IFRS) • Статус: БЕЗОГОВОРОЧНО ПОЛОЖИТЕЛЬНОЕ ЗАКЛЮЧЕНИЕ', 'Standards: ISA 700 / 701, IFRS Taxonomy • Status: UNMODIFIED CLEAN OPINION')}
                                         </p>
                                     </div>
                                     <span className="px-3 py-1 rounded-md text-xs font-bold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300 self-start sm:self-auto shrink-0">
-                                        {isRu ? 'ЧИСТОЕ ЗАКЛЮЧЕНИЕ' : 'CLEAN AUDIT PASS'}
+                                        {tr('ЧИСТОЕ ЗАКЛЮЧЕНИЕ', 'CLEAN AUDIT PASS')}
                                     </span>
                                 </div>
 
@@ -398,7 +397,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                            {isRu ? 'Субъект аудита / Организация' : 'Audited Legal Entity'}
+                                            {tr('Субъект аудита / Организация', 'Audited Legal Entity')}
                                         </div>
                                         <div className="font-bold text-sm text-slate-900 mt-1 flex items-center gap-1.5">
                                             <Building2 className="w-3.5 h-3.5 text-blue-600" />
@@ -407,16 +406,16 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </div>
                                     <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                            {isRu ? 'Оценка рисков комплаенса' : 'Compliance Risk Assessment'}
+                                            {tr('Оценка рисков комплаенса', 'Compliance Risk Assessment')}
                                         </div>
                                         <div className="font-bold text-sm text-purple-700 mt-1 flex items-center gap-1.5">
                                             <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                                            <span>98 / 100 ({isRu ? 'Низкий аудиторский риск' : 'Low Audit Risk'})</span>
+                                            <span>98 / 100 ({tr('Низкий аудиторский риск', 'Low Audit Risk')})</span>
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                            {isRu ? 'Ведущий рецензент аудита' : 'Lead Assurance Director'}
+                                            {tr('Ведущий рецензент аудита', 'Lead Assurance Director')}
                                         </div>
                                         <div className="font-semibold text-xs text-slate-800 mt-1">
                                             Senior IFRS Partner & Lead Assurance Director
@@ -424,11 +423,11 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </div>
                                     <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/60">
                                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                            {isRu ? 'Контроль балансового равенства' : 'Balance Sheet Equilibrium'}
+                                            {tr('Контроль балансового равенства', 'Balance Sheet Equilibrium')}
                                         </div>
                                         <div className="font-bold text-xs text-emerald-700 mt-1 flex items-center gap-1">
                                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                            <span>{isRu ? 'Сбалансирован (Δ 0.00) • A = L + E' : 'Equilibrium Verified (Δ 0.00)'}</span>
+                                            <span>{tr('Сбалансирован (Δ 0.00) • A = L + E', 'Equilibrium Verified (Δ 0.00)')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -438,22 +437,18 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
                                         <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
-                                            {isRu ? '1. Мнение независимого аудитора (МСА 700 / ISA 700)' : "1. Independent Auditor's Opinion (ISA 700)"}
+                                            {tr('1. Мнение независимого аудитора (МСА 700 / ISA 700)', "1. Independent Auditor's Opinion (ISA 700)")}
                                         </h3>
                                     </div>
                                     <div className="p-3.5 rounded-lg border border-purple-200 bg-purple-50/40 text-xs text-slate-700 leading-relaxed space-y-2">
                                         <div className="font-semibold text-purple-900">
-                                            {isRu ? 'Безоговорочно положительное мнение (Unmodified Clean Opinion):' : 'Unmodified Opinion Statement:'}
+                                            {tr('Безоговорочно положительное мнение (Unmodified Clean Opinion):', 'Unmodified Opinion Statement:')}
                                         </div>
                                         <p>
-                                            {isRu 
-                                                ? 'Мы провели независимую верификацию результатов трансформации финансовой отчетности организации из национальных стандартов (НСБУ 21) в Международные стандарты финансовой отчетности (МСФО / IFRS).'
-                                                : 'We have audited the financial transformation from National Accounting Standards into International Financial Reporting Standards (IFRS).'}
+                                            {tr('Мы провели независимую верификацию результатов трансформации финансовой отчетности организации из национальных стандартов (НСБУ 21) в Международные стандарты финансовой отчетности (МСФО / IFRS).', 'We have audited the financial transformation from National Accounting Standards into International Financial Reporting Standards (IFRS).')}
                                         </p>
                                         <p>
-                                            {isRu
-                                                ? 'По нашему мнению, прилагаемый отчет о финансовом положении отражает достоверно во всех существенных аспектах финансовое состояние организации по состоянию на отчетную дату в соответствии с МСФО.'
-                                                : 'In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the company in accordance with IFRS.'}
+                                            {tr('По нашему мнению, прилагаемый отчет о финансовом положении отражает достоверно во всех существенных аспектах финансовое состояние организации по состоянию на отчетную дату в соответствии с МСФО.', 'In our opinion, the accompanying financial statements present fairly, in all material respects, the financial position of the company in accordance with IFRS.')}
                                         </p>
                                     </div>
                                 </div>
@@ -463,7 +458,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
                                         <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
-                                            {isRu ? '2. Ключевые вопросы аудита (Key Audit Matters — МСА 701)' : '2. Key Audit Matters (ISA 701)'}
+                                            {tr('2. Ключевые вопросы аудита (Key Audit Matters — МСА 701)', '2. Key Audit Matters (ISA 701)')}
                                         </h3>
                                     </div>
                                     <div className="space-y-2">
@@ -473,9 +468,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IAS 1</span>
                                             </div>
                                             <p className="text-slate-600 text-[11px] leading-relaxed">
-                                                {isRu
-                                                    ? 'Активы ($48,250,000.00) строго равны сумме обязательств ($12,650,000.00) и собственного капитала ($35,600,000.00). Контрольное расхождение составляет ровно 0.00.'
-                                                    : 'Total assets ($48,250,000.00) strictly equal liabilities ($12,650,000.00) and equity ($35,600,000.00). Control discrepancy is zero.'}
+                                                {tr('Активы ($48,250,000.00) строго равны сумме обязательств ($12,650,000.00) и собственного капитала ($35,600,000.00). Контрольное расхождение составляет ровно 0.00.', 'Total assets ($48,250,000.00) strictly equal liabilities ($12,650,000.00) and equity ($35,600,000.00). Control discrepancy is zero.')}
                                             </p>
                                         </div>
                                         <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 text-xs">
@@ -484,9 +477,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IFRS 16</span>
                                             </div>
                                             <p className="text-slate-600 text-[11px] leading-relaxed">
-                                                {isRu
-                                                    ? 'Признаны активы в форме права пользования (ROU) и дисконтированная стоимость арендных обязательств по ставке заимствования компании.'
-                                                    : 'Right-of-use (ROU) assets and discounted lease liabilities recognized at incremental borrowing rate.'}
+                                                {tr('Признаны активы в форме права пользования (ROU) и дисконтированная стоимость арендных обязательств по ставке заимствования компании.', 'Right-of-use (ROU) assets and discounted lease liabilities recognized at incremental borrowing rate.')}
                                             </p>
                                         </div>
                                         <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/70 text-xs">
@@ -495,9 +486,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded-sm bg-slate-200 text-slate-700 font-mono">IFRS 9</span>
                                             </div>
                                             <p className="text-slate-600 text-[11px] leading-relaxed">
-                                                {isRu
-                                                    ? 'Применена 3-стадийная модель резервирования дебиторской задолженности исходя из исторической вероятности дефолта.'
-                                                    : 'Three-stage ECL matrix applied to accounts receivable based on historical default rates.'}
+                                                {tr('Применена 3-стадийная модель резервирования дебиторской задолженности исходя из исторической вероятности дефолта.', 'Three-stage ECL matrix applied to accounts receivable based on historical default rates.')}
                                             </p>
                                         </div>
                                     </div>
@@ -506,7 +495,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 {/* Page 1 Footer */}
                                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
                                     <span>Axiaris RegAI Platform • Официальный электронный отчет • sha256:{report.id?.substring(0, 16)}</span>
-                                    <span>{isRu ? 'Стр. 1 из 2' : 'Page 1 of 2'}</span>
+                                    <span>{tr('Стр. 1 из 2', 'Page 1 of 2')}</span>
                                 </div>
                             </div>
                         )}
@@ -532,44 +521,44 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
                                         <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
-                                            {isRu ? '3. Верифицированный баланс по МСФО (Statement of Financial Position)' : '3. Statement of Financial Position (IFRS)'}
+                                            {tr('3. Верифицированный баланс по МСФО (Statement of Financial Position)', '3. Statement of Financial Position (IFRS)')}
                                         </h3>
                                     </div>
                                     
                                     <div className="border border-slate-200 rounded-lg overflow-hidden text-xs">
                                         <div className="grid grid-cols-12 bg-slate-100 p-2.5 font-bold text-slate-700">
-                                            <div className="col-span-5">{isRu ? 'Статья финансового отчета' : 'Line Item'}</div>
-                                            <div className="col-span-3">{isRu ? 'Стандарт' : 'Standard'}</div>
-                                            <div className="col-span-2 text-right">{isRu ? 'Сумма (USD)' : 'Amount (USD)'}</div>
-                                            <div className="col-span-2 text-right">{isRu ? 'Сходимость' : 'Convergence'}</div>
+                                            <div className="col-span-5">{tr('Статья финансового отчета', 'Line Item')}</div>
+                                            <div className="col-span-3">{tr('Стандарт', 'Standard')}</div>
+                                            <div className="col-span-2 text-right">{tr('Сумма (USD)', 'Amount (USD)')}</div>
+                                            <div className="col-span-2 text-right">{tr('Сходимость', 'Convergence')}</div>
                                         </div>
                                         <div className="divide-y divide-slate-100 bg-white">
                                             <div className="grid grid-cols-12 p-2.5 items-center">
-                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого активы (Total Assets)' : 'Total Assets'}</div>
+                                                <div className="col-span-5 font-semibold text-slate-900">{tr('Итого активы (Total Assets)', 'Total Assets')}</div>
                                                 <div className="col-span-3 text-slate-500 font-mono text-[11px]">IAS 1 / IFRS</div>
                                                 <div className="col-span-2 text-right font-mono font-bold text-slate-900">$48,250,000</div>
                                                 <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
                                             </div>
                                             <div className="grid grid-cols-12 p-2.5 items-center bg-slate-50/50">
-                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого обязательства (Total Liabilities)' : 'Total Liabilities'}</div>
+                                                <div className="col-span-5 font-semibold text-slate-900">{tr('Итого обязательства (Total Liabilities)', 'Total Liabilities')}</div>
                                                 <div className="col-span-3 text-slate-500 font-mono text-[11px]">IFRS 16 / 9</div>
                                                 <div className="col-span-2 text-right font-mono font-bold text-slate-900">$12,650,000</div>
                                                 <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
                                             </div>
                                             <div className="grid grid-cols-12 p-2.5 items-center">
-                                                <div className="col-span-5 font-semibold text-slate-900">{isRu ? 'Итого собственный капитал (Equity)' : 'Total Equity'}</div>
+                                                <div className="col-span-5 font-semibold text-slate-900">{tr('Итого собственный капитал (Equity)', 'Total Equity')}</div>
                                                 <div className="col-span-3 text-slate-500 font-mono text-[11px]">IAS 1 Capital</div>
                                                 <div className="col-span-2 text-right font-mono font-bold text-slate-900">$35,600,000</div>
                                                 <div className="col-span-2 text-right text-emerald-600 font-bold text-[11px]">100% ВЕРИФ.</div>
                                             </div>
                                             <div className="grid grid-cols-12 p-2.5 items-center bg-purple-50/70 border-t-2 border-purple-300 font-bold">
-                                                <div className="col-span-5 text-purple-950">{isRu ? 'ИТОГО КАПИТАЛ И ОБЯЗАТЕЛЬСТВА' : 'TOTAL EQUITY & LIABILITIES'}</div>
+                                                <div className="col-span-5 text-purple-950">{tr('ИТОГО КАПИТАЛ И ОБЯЗАТЕЛЬСТВА', 'TOTAL EQUITY & LIABILITIES')}</div>
                                                 <div className="col-span-3 text-purple-800 text-[11px]">Балансовый баланс</div>
                                                 <div className="col-span-2 text-right font-mono text-purple-950 text-sm">$48,250,000</div>
                                                 <div className="col-span-2 text-right text-emerald-700">СОШЕЛСЯ</div>
                                             </div>
                                             <div className="grid grid-cols-12 p-2.5 items-center bg-emerald-50 text-[11px] font-semibold text-emerald-800">
-                                                <div className="col-span-8">{isRu ? 'Контрольное расхождение (Zero-Delta Variance)' : 'Zero-Delta Variance Discrepancy'}</div>
+                                                <div className="col-span-8">{tr('Контрольное расхождение (Zero-Delta Variance)', 'Zero-Delta Variance Discrepancy')}</div>
                                                 <div className="col-span-2 text-right font-mono font-bold">$0.00</div>
                                                 <div className="col-span-2 text-right font-bold">Δ 0.00 (РАЗРЫВОВ НЕТ)</div>
                                             </div>
@@ -582,24 +571,24 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     <div className="flex items-center gap-2">
                                         <div className="w-1.5 h-4 bg-purple-600 rounded-xs" />
                                         <h3 className="font-bold text-xs uppercase tracking-wider text-slate-800">
-                                            {isRu ? '4. Результаты анализа финансовой устойчивости' : '4. Financial Stability & Ratios'}
+                                            {tr('4. Результаты анализа финансовой устойчивости', '4. Financial Stability & Ratios')}
                                         </h3>
                                     </div>
                                     <div className="grid grid-cols-3 gap-2 text-xs">
                                         <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
-                                            <div className="text-[10px] text-slate-500">{isRu ? 'Текущая ликвидность (CR)' : 'Current Ratio'}</div>
+                                            <div className="text-[10px] text-slate-500">{tr('Текущая ликвидность (CR)', 'Current Ratio')}</div>
                                             <div className="text-base font-bold text-slate-900 mt-0.5">1.72x</div>
-                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Норма: >= 1.15x' : 'Target: >= 1.15x'}</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{tr('Норма: >= 1.15x', 'Target: >= 1.15x')}</div>
                                         </div>
                                         <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
-                                            <div className="text-[10px] text-slate-500">{isRu ? 'Леверидж (D / E)' : 'Debt to Equity'}</div>
+                                            <div className="text-[10px] text-slate-500">{tr('Леверидж (D / E)', 'Debt to Equity')}</div>
                                             <div className="text-base font-bold text-slate-900 mt-0.5">0.35x</div>
-                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Консервативно' : 'Conservative'}</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{tr('Консервативно', 'Conservative')}</div>
                                         </div>
                                         <div className="p-2.5 rounded-lg border border-slate-200 bg-slate-50">
-                                            <div className="text-[10px] text-slate-500">{isRu ? 'Чистый оборотный капитал' : 'Net Working Capital'}</div>
+                                            <div className="text-[10px] text-slate-500">{tr('Чистый оборотный капитал', 'Net Working Capital')}</div>
                                             <div className="text-base font-bold text-slate-900 mt-0.5">$35.6M</div>
-                                            <div className="text-[10px] text-emerald-600 font-medium">{isRu ? 'Положительный' : 'Positive'}</div>
+                                            <div className="text-[10px] text-emerald-600 font-medium">{tr('Положительный', 'Positive')}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -607,16 +596,16 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 {/* Section 5: Dual Signatures and Seals */}
                                 <div className="pt-2">
                                     <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                                        {isRu ? 'Электронная валидация и регламентные подписи' : 'Signatures & Cryptographic Audit Seals'}
+                                        {tr('Электронная валидация и регламентные подписи', 'Signatures & Cryptographic Audit Seals')}
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                         
                                         {/* Company Submitter Signature */}
                                         <div className="p-3.5 rounded-xl border border-slate-300 bg-slate-50/80 space-y-2 relative overflow-hidden">
-                                            <div className="font-bold text-slate-900">{isRu ? 'ОТ СУБЪЕКТА ОТЧЕТНОСТИ:' : 'FROM REPORTING ENTITY:'}</div>
+                                            <div className="font-bold text-slate-900">{tr('ОТ СУБЪЕКТА ОТЧЕТНОСТИ:', 'FROM REPORTING ENTITY:')}</div>
                                             <div className="text-slate-600 text-[11px]">
                                                 {companyName}<br />
-                                                <span className="text-slate-500">{isRu ? 'Главный бухгалтер / Руководитель' : 'Lead Controller'}</span>
+                                                <span className="text-slate-500">{tr('Главный бухгалтер / Руководитель', 'Lead Controller')}</span>
                                             </div>
                                             <div className="pt-2 flex items-center justify-between text-[11px]">
                                                 <span className="font-mono text-slate-500">
@@ -631,7 +620,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
 
                                         {/* RegAI Assurance Seal */}
                                         <div className="p-3.5 rounded-xl border border-purple-200 bg-purple-50/50 space-y-2 relative overflow-hidden">
-                                            <div className="font-bold text-purple-950">{isRu ? 'ОТ АУДИТОРСКОЙ ПЛАТФОРМЫ RegAI:' : 'FROM RegAI ASSURANCE:'}</div>
+                                            <div className="font-bold text-purple-950">{tr('ОТ АУДИТОРСКОЙ ПЛАТФОРМЫ RegAI:', 'FROM RegAI ASSURANCE:')}</div>
                                             <div className="text-slate-600 text-[11px]">
                                                 RegAI Neural Compliance Engine v2.4<br />
                                                 <span className="text-purple-700 font-medium">Certified IFRS & ISA Inspector</span>
@@ -653,7 +642,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 {/* Page 2 Footer */}
                                 <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
                                     <span>Axiaris RegAI Platform • Реестровый хэш: sha256:{report.id?.substring(0, 16)}</span>
-                                    <span>{isRu ? 'Стр. 2 из 2' : 'Page 2 of 2'}</span>
+                                    <span>{tr('Стр. 2 из 2', 'Page 2 of 2')}</span>
                                 </div>
                             </div>
                         )}
@@ -666,7 +655,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                         {isLoadingPdf ? (
                             <div className="flex flex-col items-center justify-center p-12 text-slate-400 space-y-3">
                                 <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                <span className="text-xs">{isRu ? 'Генерация PDF документа высокой точности...' : 'Rendering high-fidelity PDF...'}</span>
+                                <span className="text-xs">{tr('Генерация PDF документа высокой точности...', 'Rendering high-fidelity PDF...')}</span>
                             </div>
                         ) : pdfBlobUrl ? (
                             <div className="w-full h-full flex flex-col flex-1">
@@ -678,10 +667,10 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                             </div>
                         ) : (
                             <div className="p-8 text-center text-slate-400">
-                                <p>{isRu ? 'Не удалось загрузить PDF-ридер.' : 'Failed to load PDF reader.'}</p>
+                                <p>{tr('Не удалось загрузить PDF-ридер.', 'Failed to load PDF reader.')}</p>
                                 <Button onClick={handleDownloadReport} className="mt-3 bg-blue-600 text-white">
                                     <Download className="w-4 h-4 mr-2" />
-                                    {isRu ? 'Скачать файл' : 'Download file'}
+                                    {tr('Скачать файл', 'Download file')}
                                 </Button>
                             </div>
                         )}
@@ -694,28 +683,28 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                         <div className="p-3 bg-slate-800 border-b border-slate-700 flex items-center justify-between">
                             <span className="font-semibold text-white flex items-center gap-1.5">
                                 <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                                {isRu ? 'Регистры Главной книги и Балансовые статьи' : 'General Ledger & Financial Line Items'}
+                                {tr('Регистры Главной книги и Балансовые статьи', 'General Ledger & Financial Line Items')}
                             </span>
                             <span className="text-[11px] text-slate-400 font-mono">
-                                {isRu ? 'Валюта: USD • Точность: 2 знака' : 'Currency: USD • Decimals: 2'}
+                                {tr('Валюта: USD • Точность: 2 знака', 'Currency: USD • Decimals: 2')}
                             </span>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-800/60 text-slate-400 border-b border-slate-700 text-[11px]">
-                                        <th className="p-3 font-semibold">{isRu ? 'Код' : 'Code'}</th>
-                                        <th className="p-3 font-semibold">{isRu ? 'Наименование статьи' : 'Item Description'}</th>
-                                        <th className="p-3 font-semibold">{isRu ? 'Стандарт' : 'Standard'}</th>
-                                        <th className="p-3 font-semibold text-right">{isRu ? 'Сумма по отчету' : 'Reported Sum'}</th>
-                                        <th className="p-3 font-semibold text-right">{isRu ? 'Эталон GL' : 'GL Benchmark'}</th>
-                                        <th className="p-3 font-semibold text-right">{isRu ? 'Расхождение' : 'Variance'}</th>
+                                        <th className="p-3 font-semibold">{tr('Код', 'Code')}</th>
+                                        <th className="p-3 font-semibold">{tr('Наименование статьи', 'Item Description')}</th>
+                                        <th className="p-3 font-semibold">{tr('Стандарт', 'Standard')}</th>
+                                        <th className="p-3 font-semibold text-right">{tr('Сумма по отчету', 'Reported Sum')}</th>
+                                        <th className="p-3 font-semibold text-right">{tr('Эталон GL', 'GL Benchmark')}</th>
+                                        <th className="p-3 font-semibold text-right">{tr('Расхождение', 'Variance')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800 text-slate-300">
                                     <tr className="hover:bg-slate-800/40">
                                         <td className="p-3 font-mono text-slate-400">1100</td>
-                                        <td className="p-3 font-medium text-white">{isRu ? 'Основные средства (PPE)' : 'Property, Plant & Equipment'}</td>
+                                        <td className="p-3 font-medium text-white">{tr('Основные средства (PPE)', 'Property, Plant & Equipment')}</td>
                                         <td className="p-3 text-slate-400">IAS 16</td>
                                         <td className="p-3 text-right font-mono">$18,450,000</td>
                                         <td className="p-3 text-right font-mono">$18,450,000</td>
@@ -723,7 +712,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </tr>
                                     <tr className="hover:bg-slate-800/40">
                                         <td className="p-3 font-mono text-slate-400">1200</td>
-                                        <td className="p-3 font-medium text-white">{isRu ? 'Активы в форме права пользования (ROU)' : 'Right-of-Use Assets'}</td>
+                                        <td className="p-3 font-medium text-white">{tr('Активы в форме права пользования (ROU)', 'Right-of-Use Assets')}</td>
                                         <td className="p-3 text-slate-400">IFRS 16</td>
                                         <td className="p-3 text-right font-mono">$8,200,000</td>
                                         <td className="p-3 text-right font-mono">$8,200,000</td>
@@ -731,7 +720,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </tr>
                                     <tr className="hover:bg-slate-800/40">
                                         <td className="p-3 font-mono text-slate-400">1300</td>
-                                        <td className="p-3 font-medium text-white">{isRu ? 'Товарно-материальные запасы' : 'Inventories'}</td>
+                                        <td className="p-3 font-medium text-white">{tr('Товарно-материальные запасы', 'Inventories')}</td>
                                         <td className="p-3 text-slate-400">IAS 2</td>
                                         <td className="p-3 text-right font-mono">$7,150,000</td>
                                         <td className="p-3 text-right font-mono">$7,150,000</td>
@@ -739,7 +728,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </tr>
                                     <tr className="hover:bg-slate-800/40">
                                         <td className="p-3 font-mono text-slate-400">1400</td>
-                                        <td className="p-3 font-medium text-white">{isRu ? 'Торговая дебиторская задолженность (net)' : 'Trade Receivables (net)'}</td>
+                                        <td className="p-3 font-medium text-white">{tr('Торговая дебиторская задолженность (net)', 'Trade Receivables (net)')}</td>
                                         <td className="p-3 text-slate-400">IFRS 9</td>
                                         <td className="p-3 text-right font-mono">$9,850,000</td>
                                         <td className="p-3 text-right font-mono">$9,850,000</td>
@@ -747,7 +736,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </tr>
                                     <tr className="hover:bg-slate-800/40">
                                         <td className="p-3 font-mono text-slate-400">1500</td>
-                                        <td className="p-3 font-medium text-white">{isRu ? 'Денежные средства и эквиваленты' : 'Cash & Cash Equivalents'}</td>
+                                        <td className="p-3 font-medium text-white">{tr('Денежные средства и эквиваленты', 'Cash & Cash Equivalents')}</td>
                                         <td className="p-3 text-slate-400">IAS 7</td>
                                         <td className="p-3 text-right font-mono">$4,600,000</td>
                                         <td className="p-3 text-right font-mono">$4,600,000</td>
@@ -755,7 +744,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                     </tr>
                                     <tr className="bg-slate-800/70 font-bold border-t border-slate-700">
                                         <td className="p-3 font-mono text-blue-400">TOTAL</td>
-                                        <td className="p-3 text-white">{isRu ? 'ИТОГО АКТИВЫ' : 'TOTAL ASSETS'}</td>
+                                        <td className="p-3 text-white">{tr('ИТОГО АКТИВЫ', 'TOTAL ASSETS')}</td>
                                         <td className="p-3 text-slate-400">IAS 1</td>
                                         <td className="p-3 text-right font-mono text-blue-400 text-sm">$48,250,000</td>
                                         <td className="p-3 text-right font-mono text-blue-400 text-sm">$48,250,000</td>
@@ -772,7 +761,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                     <div className="w-full max-w-[760px] bg-slate-900 border border-slate-700 rounded-xl p-4 sm:p-6 shadow-xl space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                             <span className="font-mono text-xs text-slate-400 uppercase tracking-wider">
-                                {isRu ? 'Текстовый дамп отчета' : 'Raw Text Document Disclosure'}
+                                {tr('Текстовый дамп отчета', 'Raw Text Document Disclosure')}
                             </span>
                             <Button
                                 size="sm"
@@ -781,7 +770,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
                                 className="h-7 text-xs gap-1.5 border-slate-700 hover:bg-slate-800 text-slate-300"
                             >
                                 {copiedText ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                <span>{copiedText ? (isRu ? 'Скопировано!' : 'Copied!') : (isRu ? 'Копировать' : 'Copy')}</span>
+                                <span>{copiedText ? (tr('Скопировано!', 'Copied!')) : (tr('Копировать', 'Copy'))}</span>
                             </Button>
                         </div>
                         <pre className="font-mono text-xs text-slate-300 whitespace-pre-wrap overflow-x-auto leading-relaxed p-3 bg-slate-950 rounded-lg border border-slate-800">
@@ -824,7 +813,7 @@ ${report.description || 'Comprehensive financial audit for fiscal year 2024'}
             <div className="px-4 py-2.5 bg-slate-800/80 border-t border-slate-700/80 flex items-center justify-between text-xs text-slate-400">
                 <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>{isRu ? 'Интерактивный просмотр реального файла активен' : 'Interactive real file preview active'}</span>
+                    <span>{tr('Интерактивный просмотр реального файла активен', 'Interactive real file preview active')}</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-[11px] font-mono text-slate-500">
@@ -835,7 +824,7 @@ ${report.description || 'Comprehensive financial audit for fiscal year 2024'}
                         className="text-blue-400 hover:text-blue-300 font-medium underline flex items-center gap-1 cursor-pointer"
                     >
                         <Download className="w-3 h-3" />
-                        <span>{isRu ? 'Скачать копию' : 'Download copy'}</span>
+                        <span>{tr('Скачать копию', 'Download copy')}</span>
                     </button>
                 </div>
             </div>

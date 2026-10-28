@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { tr } from '@/lib/i18n';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -36,8 +37,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
     const navigate = useNavigate();
     const { toast } = useToast();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
-
+    void i18n.language;
     const [templates, setTemplates] = useState<any[]>([]);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<any>(null);
@@ -95,17 +95,15 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
 
     const handleDelete = async (id: string, name: string) => {
         const confirmed = confirm(
-            isRu 
-                ? `Вы уверены, что хотите удалить шаблон "${name}"?` 
-                : `Are you sure you want to delete template "${name}"?`
+            tr(`Вы уверены, что хотите удалить шаблон "${name}"?`, `Are you sure you want to delete template "${name}"?`)
         );
         if (!confirmed) return;
 
         try {
             await api.delete(`/templates/${id}`);
             toast({
-                title: isRu ? "Шаблон удален" : "Template Deleted",
-                description: isRu ? "Шаблон успешно исключен из библиотеки" : "Template removed from library",
+                title: tr("Шаблон удален", "Template Deleted"),
+                description: tr("Шаблон успешно исключен из библиотеки", "Template removed from library"),
             });
             setTemplates(prev => {
                 const next = prev.filter(t => t.id !== id);
@@ -120,8 +118,8 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось удалить шаблон" : "Failed to delete template"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось удалить шаблон", "Failed to delete template")),
             });
         }
     };
@@ -149,10 +147,8 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         try {
             const res = await api.post(`/templates/${id}/use`);
             toast({
-                title: isRu ? "Шаблон применен" : "Template Applied",
-                description: isRu 
-                    ? `Параметры "${res.data.template_name || res.data.title}" загружены в форму` 
-                    : `Parameters for "${res.data.template_name || res.data.title}" loaded into form`,
+                title: tr("Шаблон применен", "Template Applied"),
+                description: tr(`Параметры "${res.data.template_name || res.data.title}" загружены в форму`, `Parameters for "${res.data.template_name || res.data.title}" loaded into form`),
             });
             if (onSelectTemplate) {
                 onSelectTemplate(res.data);
@@ -163,20 +159,20 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось применить шаблон" : "Failed to apply template"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось применить шаблон", "Failed to apply template")),
             });
         }
     };
 
     const getCountryBadge = (code?: string) => {
         switch (code) {
-            case 'UZ': return isRu ? '🇺🇿 Узбекистан' : '🇺🇿 Uzbekistan';
-            case 'KZ': return isRu ? '🇰🇿 Казахстан' : '🇰🇿 Kazakhstan';
-            case 'GB': return isRu ? '🇬🇧 Великобритания' : '🇬🇧 United Kingdom';
-            case 'US': return isRu ? '🇺🇸 США' : '🇺🇸 USA';
-            case 'DE': return isRu ? '🇩🇪 Германия / ЕС' : '🇩🇪 Germany / EU';
-            default: return isRu ? '🌐 Глобальный' : '🌐 Global';
+            case 'UZ': return tr('🇺🇿 Узбекистан', '🇺🇿 Uzbekistan');
+            case 'KZ': return tr('🇰🇿 Казахстан', '🇰🇿 Kazakhstan');
+            case 'GB': return tr('🇬🇧 Великобритания', '🇬🇧 United Kingdom');
+            case 'US': return tr('🇺🇸 США', '🇺🇸 USA');
+            case 'DE': return tr('🇩🇪 Германия / ЕС', '🇩🇪 Germany / EU');
+            default: return tr('🌐 Глобальный', '🌐 Global');
         }
     };
 
@@ -196,12 +192,10 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                 <div>
                     <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-blue-600" />
-                        {isRu ? 'Библиотека Smart-Шаблонов' : 'Smart Templates Library'}
+                        {tr('Библиотека Smart-Шаблонов', 'Smart Templates Library')}
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {isRu 
-                            ? 'Пакеты регламентных проверок, правил трансформации МСФО и аудиторских сценариев' 
-                            : 'Compliance packages, IFRS transformation rules, and audit automation scenarios'}
+                        {tr('Пакеты регламентных проверок, правил трансформации МСФО и аудиторских сценариев', 'Compliance packages, IFRS transformation rules, and audit automation scenarios')}
                     </p>
                 </div>
                 <Button
@@ -209,7 +203,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                     className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-xs hover:shadow-md font-semibold text-xs transition-all duration-200 group cursor-pointer inline-flex items-center gap-1.5"
                 >
                     <Plus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" />
-                    {isRu ? 'Новый Smart-Шаблон' : 'New Smart Template'}
+                    {tr('Новый Smart-Шаблон', 'New Smart Template')}
                 </Button>
             </div>
 
@@ -245,16 +239,16 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                         <button
                                             onClick={() => handleEdit(template)}
                                             className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
-                                            title={isRu ? "Редактировать шаблон" : "Edit template"}
-                                            aria-label={isRu ? `Редактировать шаблон ${template.name}` : `Edit template ${template.name}`}
+                                            title={tr("Редактировать шаблон", "Edit template")}
+                                            aria-label={tr(`Редактировать шаблон ${template.name}`, `Edit template ${template.name}`)}
                                         >
                                             <Edit className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(template.id, template.name)}
                                             className="p-1.5 hover:bg-red-50 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors cursor-pointer"
-                                            title={isRu ? "Удалить шаблон" : "Delete template"}
-                                            aria-label={isRu ? `Удалить шаблон ${template.name}` : `Delete template ${template.name}`}
+                                            title={tr("Удалить шаблон", "Delete template")}
+                                            aria-label={tr(`Удалить шаблон ${template.name}`, `Delete template ${template.name}`)}
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </button>
@@ -262,7 +256,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                 </div>
 
                                 <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                    {template.description || (isRu ? 'Интеллектуальный шаблон финансовой трансформации и комплаенса.' : 'Intelligent compliance and financial transformation template.')}
+                                    {template.description || (tr('Интеллектуальный шаблон финансовой трансформации и комплаенса.', 'Intelligent compliance and financial transformation template.'))}
                                 </p>
 
                                 {/* Smart Configuration Badges */}
@@ -300,11 +294,11 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                                 </span>
                                             ) : dataSource === 'excel_upload' ? (
                                                 <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
-                                                    <FileSpreadsheet className="h-3 w-3" /> {isRu ? 'Excel ОСВ' : 'Excel TB'}
+                                                    <FileSpreadsheet className="h-3 w-3" /> {tr('Excel ОСВ', 'Excel TB')}
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-1 text-blue-700 dark:text-blue-400 font-semibold">
-                                                    <FileText className="h-3 w-3" /> {isRu ? 'Выбор баланса' : 'Balance Sheet'}
+                                                    <FileText className="h-3 w-3" /> {tr('Выбор баланса', 'Balance Sheet')}
                                                 </span>
                                             )}
                                         </div>
@@ -321,7 +315,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                         {cfg.ai_audit_enabled !== false ? (
                                             <span className="flex items-center gap-1 text-purple-700 dark:text-purple-400 font-medium text-[10px]">
                                                 <Brain className="h-3 w-3" />
-                                                {isRu ? 'ИИ-аудит активен' : 'AI Audit Active'}
+                                                {tr('ИИ-аудит активен', 'AI Audit Active')}
                                             </span>
                                         ) : (
                                             <span></span>
@@ -330,7 +324,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                         {template.is_recurring && (
                                             <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium text-[10px]">
                                                 <RefreshCw className="h-3 w-3" />
-                                                {template.recurrence_pattern || (isRu ? 'квартально' : 'quarterly')}
+                                                {template.recurrence_pattern || (tr('квартально', 'quarterly'))}
                                             </span>
                                         )}
                                     </div>
@@ -343,7 +337,7 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                 className="w-full mt-4 bg-slate-900 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs font-semibold h-9 rounded-xl shadow-xs transition-colors"
                             >
                                 <Sparkles className="mr-1.5 h-3.5 w-3.5 text-blue-400 dark:text-blue-200" />
-                                {isRu ? 'Использовать шаблон' : 'Use Template'}
+                                {tr('Использовать шаблон', 'Use Template')}
                             </Button>
                         </div>
                     );
@@ -353,18 +347,16 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
             {(!Array.isArray(templates) || templates.length === 0) && (
                 <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 p-8 space-y-3">
                     <Sparkles className="mx-auto h-8 w-8 text-blue-500" />
-                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{isRu ? 'Шаблоны пока не созданы' : 'No templates created yet'}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{tr('Шаблоны пока не созданы', 'No templates created yet')}</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                        {isRu 
-                            ? 'Создайте свой первый интеллектуальный регламентный шаблон с помощью 5-шагового конструктора.' 
-                            : 'Create your first smart compliance template using the 5-step wizard.'}
+                        {tr('Создайте свой первый интеллектуальный регламентный шаблон с помощью 5-шагового конструктора.', 'Create your first smart compliance template using the 5-step wizard.')}
                     </p>
                     <Button
                         onClick={() => { setEditingTemplate(null); setIsWizardOpen(true); }}
                         size="sm"
                         className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-medium shadow-xs hover:shadow-md transition-all duration-200 group cursor-pointer inline-flex items-center gap-1.5"
                     >
-                        <Plus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" /> {isRu ? 'Создать шаблон' : 'Create Template'}
+                        <Plus className="h-4 w-4 transition-transform duration-200 group-hover:rotate-90" /> {tr('Создать шаблон', 'Create Template')}
                     </Button>
                 </div>
             )}
@@ -400,14 +392,10 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                     <DialogHeader>
                         <DialogTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                             <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                            {isRu 
-                                ? `Использовать Smart-Шаблон: ${selectedTemplateForAction?.name}` 
-                                : `Use Smart Template: ${selectedTemplateForAction?.name}`}
+                            {tr(`Использовать Smart-Шаблон: ${selectedTemplateForAction?.name}`, `Use Smart Template: ${selectedTemplateForAction?.name}`)}
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
-                            {isRu 
-                                ? 'Выберите необходимый рабочий сценарий для данного регламентного пакета:' 
-                                : 'Select the required workflow scenario for this compliance package:'}
+                            {tr('Выберите необходимый рабочий сценарий для данного регламентного пакета:', 'Select the required workflow scenario for this compliance package:')}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -419,10 +407,8 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                                 setActionChooserOpen(false);
                                 navigate('/transformation/new');
                                 toast({
-                                    title: isRu ? "Режим трансформации запущен" : "Transformation Mode Activated",
-                                    description: isRu 
-                                        ? `Применены стандарты: ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16 / IAS 36'}`
-                                        : `Applied standards: ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16 / IAS 36'}`
+                                    title: tr("Режим трансформации запущен", "Transformation Mode Activated"),
+                                    description: tr(`Применены стандарты: ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16 / IAS 36'}`, `Applied standards: ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16 / IAS 36'}`)
                                 });
                             }}
                             className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:border-blue-400 dark:hover:border-blue-700 cursor-pointer transition-all flex items-start gap-4 group"
@@ -432,13 +418,11 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                             </div>
                             <div className="flex-1">
                                 <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center justify-between">
-                                    <span>{isRu ? '⚡ Запустить трансформацию баланса (NAS ➔ IFRS)' : '⚡ Launch Balance Sheet Transformation (NAS ➔ IFRS)'}</span>
+                                    <span>{tr('⚡ Запустить трансформацию баланса (NAS ➔ IFRS)', '⚡ Launch Balance Sheet Transformation (NAS ➔ IFRS)')}</span>
                                     <ArrowRight className="w-4 h-4 text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform" />
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                                    {isRu 
-                                        ? `Открыть мастер трансформации со стандартами ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16, IAS 36, IFRS 9'} и контролем Zero Delta.`
-                                        : `Open transformation wizard with standards ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16, IAS 36, IFRS 9'} and Zero Delta balance guard.`}
+                                    {tr(`Открыть мастер трансформации со стандартами ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16, IAS 36, IFRS 9'} и контролем Zero Delta.`, `Open transformation wizard with standards ${(selectedTemplateForAction?.configuration?.active_standards || []).join(', ') || 'IFRS 16, IAS 36, IFRS 9'} and Zero Delta balance guard.`)}
                                 </p>
                             </div>
                         </div>
@@ -456,13 +440,11 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                             </div>
                             <div className="flex-1">
                                 <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center justify-between">
-                                    <span>{isRu ? '🔌 Синхронизировать с 1С:Предприятие (OData Sync)' : '🔌 Synchronize with 1C:Enterprise (OData Sync)'}</span>
+                                    <span>{tr('🔌 Синхронизировать с 1С:Предприятие (OData Sync)', '🔌 Synchronize with 1C:Enterprise (OData Sync)')}</span>
                                     <ArrowRight className="w-4 h-4 text-amber-600 dark:text-amber-400 group-hover:translate-x-1 transition-transform" />
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                                    {isRu 
-                                        ? 'Выгрузить оборотно-сальдовую ведомость (ОСВ) из 1С по счетам шаблона для последующей автоматической сверки.' 
-                                        : 'Export trial balance from 1C via OData according to template accounts for automated reconciliation.'}
+                                    {tr('Выгрузить оборотно-сальдовую ведомость (ОСВ) из 1С по счетам шаблона для последующей автоматической сверки.', 'Export trial balance from 1C via OData according to template accounts for automated reconciliation.')}
                                 </p>
                             </div>
                         </div>
@@ -482,13 +464,11 @@ export default function TemplatesSection({ onSelectTemplate }: TemplatesSectionP
                             </div>
                             <div className="flex-1">
                                 <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center justify-between">
-                                    <span>{isRu ? '📄 Сдать регламентированный комплаенс-отчет' : '📄 Submit Regulatory Compliance Report'}</span>
+                                    <span>{tr('📄 Сдать регламентированный комплаенс-отчет', '📄 Submit Regulatory Compliance Report')}</span>
                                     <ArrowRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                                 </div>
                                 <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                                    {isRu 
-                                        ? 'Сформировать стандартный отчет в реестре отчетности с автозаполнением регламента и чек-листа.' 
-                                        : 'Generate a standard report in the registry with auto-filled regulation criteria and pre-submission checklist.'}
+                                    {tr('Сформировать стандартный отчет в реестре отчетности с автозаполнением регламента и чек-листа.', 'Generate a standard report in the registry with auto-filled regulation criteria and pre-submission checklist.')}
                                 </p>
                             </div>
                         </div>

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import TemplatesSection from '../components/TemplatesSection';
 import { useTranslation } from 'react-i18next';
+import { tr, getActiveLang } from '../lib/i18n';
 import { PERMISSIONS } from '../lib/permissions';
 
 // Defer heavy modal-only components (xlsx/spreadsheet previewer & IFRS wizard) off the LCP critical path
@@ -155,8 +156,8 @@ export default function ReportsPage() {
             });
 
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Отчет успешно создан" : "Report created successfully",
+                title: tr("Успешно", "Success"),
+                description: tr("Отчет успешно создан", "Report created successfully"),
             });
 
             setIsSubmitOpen(false);
@@ -166,8 +167,8 @@ export default function ReportsPage() {
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось создать отчет" : "Failed to create report"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось создать отчет", "Failed to create report")),
             });
         }
     };
@@ -176,8 +177,8 @@ export default function ReportsPage() {
         try {
             await api.post(`/reports/${selectedReport.id}/review`, reviewData);
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Решение по отчету сохранено" : "Review submitted successfully",
+                title: tr("Успешно", "Success"),
+                description: tr("Решение по отчету сохранено", "Review submitted successfully"),
             });
             setIsReviewOpen(false);
             setReviewData({ status: 'approved', reviewer_comments: '' });
@@ -185,8 +186,8 @@ export default function ReportsPage() {
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось сохранить рецензию" : "Failed to submit review"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось сохранить рецензию", "Failed to submit review")),
             });
         }
     };
@@ -200,16 +201,16 @@ export default function ReportsPage() {
         try {
             await api.post(`/reports/${checklistReportId}/submit`);
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Отчет отправлен на проверку" : "Report submitted for review",
+                title: tr("Успешно", "Success"),
+                description: tr("Отчет отправлен на проверку", "Report submitted for review"),
             });
             setIsChecklistOpen(false);
             fetchReports();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось отправить отчет" : "Failed to submit report"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось отправить отчет", "Failed to submit report")),
             });
         }
     };
@@ -227,14 +228,14 @@ export default function ReportsPage() {
             link.click();
             link.remove();
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Реестр отчетов выгружен в Excel" : "Reports exported to Excel",
+                title: tr("Успешно", "Success"),
+                description: tr("Реестр отчетов выгружен в Excel", "Reports exported to Excel"),
             });
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось выгрузить отчеты в Excel" : "Failed to export reports",
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось выгрузить отчеты в Excel", "Failed to export reports"),
             });
         }
     };
@@ -246,15 +247,15 @@ export default function ReportsPage() {
             const { downloadReportAsPdf } = await import('../lib/pdfReportGenerator');
             await downloadReportAsPdf(rep, companyName);
             toast({
-                title: isRu ? "Успешно" : "Success",
-                description: isRu ? "Отчет успешно загружен в формате PDF" : "Report downloaded in PDF format",
+                title: tr("Успешно", "Success"),
+                description: tr("Отчет успешно загружен в формате PDF", "Report downloaded in PDF format"),
             });
         } catch (error: any) {
             console.error("Failed to generate PDF report", error);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: isRu ? "Не удалось загрузить PDF" : "Failed to download PDF",
+                title: tr("Ошибка", "Error"),
+                description: tr("Не удалось загрузить PDF", "Failed to download PDF"),
             });
         }
     };
@@ -270,8 +271,8 @@ export default function ReportsPage() {
     const handleValidate = async (reportId: string) => {
         try {
             toast({
-                title: isRu ? "Проверка" : "Processing",
-                description: isRu ? "Выполняется валидация отчета..." : "Validating report... This may take a moment."
+                title: tr("Проверка", "Processing"),
+                description: tr("Выполняется валидация отчета...", "Validating report... This may take a moment.")
             });
             await api.post(`/reports/${reportId}/validate`);
 
@@ -282,22 +283,23 @@ export default function ReportsPage() {
                 setIsValidationOpen(true);
             } else {
                 toast({
-                    title: isRu ? "Информация" : "Info",
-                    description: isRu ? "Валидация завершена, замечаний не найдено." : "Validation completed but no results found."
+                    title: tr("Информация", "Info"),
+                    description: tr("Валидация завершена, замечаний не найдено.", "Validation completed but no results found.")
                 });
             }
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка" : "Error",
-                description: error.response?.data?.detail || (isRu ? "Не удалось проверить отчет" : "Failed to validate report"),
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || (tr("Не удалось проверить отчет", "Failed to validate report")),
             });
         }
     };
 
     const getReportTypeLabel = (type?: string) => {
         const key = (type || '').toLowerCase().trim();
-        if (!isRu) {
+        const lang = getActiveLang();
+        if (lang === 'en') {
             const enLabels: Record<string, string> = {
                 financial: 'Financial',
                 compliance: 'Compliance',
@@ -308,6 +310,18 @@ export default function ReportsPage() {
                 other: 'Other',
             };
             return enLabels[key] || (type ? type.replace(/_/g, ' ') : '-');
+        }
+        if (lang === 'uz') {
+            const uzLabels: Record<string, string> = {
+                financial: 'Moliyaviy',
+                compliance: 'Komplayens',
+                audit: 'Audit',
+                risk_assessment: 'Xavflarni baholash',
+                tax: 'Soliq',
+                ifrs: 'MHXS (IFRS)',
+                other: 'Boshqa',
+            };
+            return uzLabels[key] || (type ? type.replace(/_/g, ' ') : '-');
         }
         const ruLabels: Record<string, string> = {
             financial: 'Финансовый',
@@ -322,8 +336,31 @@ export default function ReportsPage() {
     };
 
     const getLocalizedReportTitle = (title?: string) => {
-        if (!title || !isRu) return title || '';
+        if (!title) return '';
+        const lang = getActiveLang();
+        if (lang === 'en') return title;
         const trimmed = title.trim();
+        if (lang === 'uz') {
+            const uzTitleMap: Record<string, string> = {
+                'Amazon-2024-Annual-Report': '2024-yil uchun yillik moliyaviy hisobot (Amazon)',
+                'Tax Analysis Report': 'Soliq tahlili va solishtirma hisoboti',
+                'Q4 2024 Compliance Report': '2024-yil 4-chorak uchun regulyator komplayens hisoboti',
+                'Annual Financial Audit 2024': '2024-yil uchun yillik moliyaviy audit',
+                'Tax Filing Report - Q3 2024': '2024-yil 3-chorak uchun soliq deklaratsiyasi',
+                'Risk Assessment - Cybersecurity': 'Xavflarni baholash — Kiberxavfsizlik',
+                'GDPR Compliance Audit': 'Shaxsiy ma\'lumotlarni himoya qilish auditi (GDPR)',
+                'Q3 2026 IFRS Compliance Report': '2026-yil 3-chorak uchun MHXS muvofiqlik hisoboti',
+                'AML Annual Risk Assessment 2026': '2026-yil uchun AML xavflarini yillik baholash',
+                'HIPAA Annual Compliance Assessment 2026': '2026-yil uchun HIPAA muvofiqligini yillik baholash',
+                'GDPR Data Processing Audit': 'Shaxsiy ma\'lumotlarni qayta ishlash auditi (GDPR)',
+                'GDPR Readiness Assessment Q3 2026': '2026-yil 3-chorak uchun ma\'lumotlar himoyasi (GDPR) tayyorgarligini baholash',
+                'Отчет о прибылях и убытках (МСФО / НСБУ) — Октябрь 2026': 'Foyda va zararlar to\'g\'risidagi hisobot (MHXS / BHMS) — Oktabr 2026',
+                'Налоговая декларация и комплаенс (НДС 12% / Налог на прибыль 15%) — Октябрь 2026': 'Soliq deklaratsiyasi va komplayens (QQS 12% / Foyda solig\'i 15%) — Oktabr 2026',
+                'Годовой консолидированный финансовый отчет по МСФО — 2026 год': 'MHXS bo\'yicha yillik konsolidatsiyalashgan moliyaviy hisobot — 2026-yil',
+                'Аудиторское заключение и проверка ковенантов (МСА 700) — 2026 год': 'Auditorlik xulosasi va kovenantlar tekshiruvi (XAS 700) — 2026-yil',
+            };
+            return uzTitleMap[trimmed] || title;
+        }
         const titleMap: Record<string, string> = {
             'Amazon-2024-Annual-Report': 'Годовой финансовый отчет за 2024 год (Amazon)',
             'Tax Analysis Report': 'Отчет по налоговому анализу и сверке',
@@ -342,8 +379,22 @@ export default function ReportsPage() {
     };
 
     const getLocalizedReportDescription = (desc?: string) => {
-        if (!desc || !isRu) return desc || '';
+        if (!desc) return '';
+        const lang = getActiveLang();
+        if (lang === 'en') return desc;
         const trimmed = desc.trim();
+        if (lang === 'uz') {
+            const uzDescMap: Record<string, string> = {
+                'Quarterly compliance': 'Har choraklik regulyator talablariga muvofiqlik tekshiruvi',
+                'Uploaded for AI analysis': 'Avtomatik AI tahlili va soliq solishtirmasi uchun yuklangan',
+                'Quarterly compliance assessment covering GDPR, CCPA, and HIPAA regulations': 'GDPR, CCPA va HIPAA me\'yorlariga muvofiqlikni choraklik baholash',
+                'Comprehensive financial audit for fiscal year 2024': '2024-moliya yili uchun kompleks moliyaviy audit',
+                'Quarterly tax filing documentation and calculations': 'Choraklik soliq hujjatlari va soliq hisob-kitoblari',
+                'Assessment of cybersecurity risks and mitigation strategies': 'Kiberxavfsizlik xavflarini baholash va ularni kamaytirish strategiyalari',
+                'Detailed audit of GDPR compliance measures and data protection practices': 'GDPR muvofiqlik choralari va ma\'lumotlarni himoya qilish amaliyotining batafsil auditi',
+            };
+            return uzDescMap[trimmed] || desc;
+        }
         const descMap: Record<string, string> = {
             'Quarterly compliance': 'Ежеквартальная проверка соблюдения регуляторных требований',
             'Uploaded for AI analysis': 'Загружено для автоматического анализа ИИ и налоговой сверки',
@@ -358,6 +409,7 @@ export default function ReportsPage() {
 
     const getStatusBadge = (status: string) => {
         const key = (status || 'draft').toLowerCase().trim();
+        const lang = getActiveLang();
         const colors: Record<string, string> = {
             draft: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
             submitted: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60',
@@ -385,8 +437,19 @@ export default function ReportsPage() {
             completed: 'COMPLETED',
             rejected: 'REJECTED',
         };
-        const label = isRu
+        const uzStatusLabels: Record<string, string> = {
+            draft: 'QORALAMA',
+            submitted: 'YUBORILGAN',
+            under_review: "KO'RIB CHIQILMOQDA",
+            in_progress: 'JARAYONDA',
+            approved: 'TASDIQLANGAN',
+            completed: 'YAKUNLANGAN',
+            rejected: 'RAD ETILGAN',
+        };
+        const label = lang === 'ru'
             ? (ruStatusLabels[key] || status.replace(/_/g, ' ').toUpperCase())
+            : lang === 'uz'
+            ? (uzStatusLabels[key] || status.replace(/_/g, ' ').toUpperCase())
             : (enStatusLabels[key] || status.replace(/_/g, ' ').toUpperCase());
         return (
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[key] || 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'}`}>
@@ -456,16 +519,16 @@ export default function ReportsPage() {
             await api.delete(`/reports/${reportId}`);
 
             toast({
-                title: isRu ? "Отчет удален" : "Report Deleted",
-                description: isRu ? "Отчет успешно удален из системы." : "Report has been successfully deleted.",
+                title: tr("Отчет удален", "Report Deleted"),
+                description: tr("Отчет успешно удален из системы.", "Report has been successfully deleted."),
             });
             setReportToDelete(null);
         } catch (error: any) {
             console.error("Failed to delete report", error);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка удаления" : "Delete Failed",
-                description: error.response?.data?.detail || (isRu ? "Не удалось удалить отчет" : "Failed to delete report"),
+                title: tr("Ошибка удаления", "Delete Failed"),
+                description: error.response?.data?.detail || (tr("Не удалось удалить отчет", "Failed to delete report")),
             });
             fetchReports();
         } finally {
@@ -500,8 +563,8 @@ export default function ReportsPage() {
         try {
             await Promise.allSettled(idsToDelete.map(id => api.delete(`/reports/${id}`)));
             toast({
-                title: isRu ? "Отчеты удалены" : "Reports Deleted",
-                description: isRu ? `Удалено отчетов: ${count}` : `Successfully deleted ${count} reports.`,
+                title: tr("Отчеты удалены", "Reports Deleted"),
+                description: tr(`Удалено отчетов: ${count}`, `Successfully deleted ${count} reports.`),
             });
         } catch (error) {
             console.error("Batch delete error", error);
@@ -517,7 +580,7 @@ export default function ReportsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{isRu ? 'Отчетность' : 'Reports'}</h1>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{tr('Отчетность', 'Reports')}</h1>
                     {user?.role !== 'superadmin' && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
@@ -530,7 +593,7 @@ export default function ReportsPage() {
                             value={selectedCompany}
                             onChange={(e) => handleCompanyFilter(e.target.value)}
                         >
-                            <option value="">{isRu ? 'Все компании' : 'All Companies'} ({Array.isArray(allReports) ? allReports.length : 0})</option>
+                            <option value="">{tr('Все компании', 'All Companies')} ({Array.isArray(allReports) ? allReports.length : 0})</option>
                             {companies.map((company: any) => (
                                 <option key={company.id} value={company.id}>
                                     {company.name} ({Array.isArray(allReports) ? allReports.filter((r: any) => r.company_id === company.id).length : 0})
@@ -551,7 +614,7 @@ export default function ReportsPage() {
                                 className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white font-semibold shadow-xs hover:shadow-md transition-all duration-200 group cursor-pointer"
                             >
                                 <Sparkles className="mr-2 h-4 w-4 text-purple-200 transition-transform duration-200 group-hover:rotate-12" />
-                                {isRu ? 'Создать IFRS отчет' : 'Create IFRS Report'}
+                                {tr('Создать IFRS отчет', 'Create IFRS Report')}
                             </Button>
                             <Button onClick={() => setIsSubmitOpen(true)} className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold shadow-xs hover:shadow-md transition-all duration-200 group cursor-pointer">
                                 <FileUp className="mr-2 h-4 w-4 transition-transform duration-200 group-hover:-translate-y-0.5" />
@@ -578,7 +641,7 @@ export default function ReportsPage() {
                         className="border-red-200 text-red-600 dark:border-red-900/60 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all cursor-pointer"
                     >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {isRu ? `Удалить выбранные (${selectedReports.length})` : `Delete Selected (${selectedReports.length})`}
+                        {tr(`Удалить выбранные (${selectedReports.length})`, `Delete Selected (${selectedReports.length})`)}
                     </Button>
                     <Button onClick={() => setSelectedReports([])} size="sm" variant="ghost" className="hover:bg-blue-100/60 dark:hover:bg-slate-800 active:scale-95 transition-all">
                         {t('clear')}
@@ -603,7 +666,7 @@ export default function ReportsPage() {
             <div
                 tabIndex={0}
                 role="region"
-                aria-label={isRu ? 'Таблица регуляторных и финансовых отчетов' : 'Regulatory and financial reports table'}
+                aria-label={tr('Таблица регуляторных и финансовых отчетов', 'Regulatory and financial reports table')}
                 className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-x-auto"
             >
                 <table className="w-full">
@@ -612,7 +675,7 @@ export default function ReportsPage() {
                             <th className="p-3 text-left">
                                 <input
                                     type="checkbox"
-                                    aria-label={isRu ? 'Выбрать все отчеты' : 'Select all reports'}
+                                    aria-label={tr('Выбрать все отчеты', 'Select all reports')}
                                     checked={Array.isArray(reports) && reports.length > 0 && selectedReports.length === reports.length}
                                     onChange={toggleSelectAll}
                                     className="rounded border-slate-300 dark:border-slate-700 cursor-pointer"
@@ -667,7 +730,7 @@ export default function ReportsPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleDownload(report.id, getLocalizedReportTitle(report.title))}
-                                                title={isRu ? "Скачать PDF отчет" : "Download PDF Report"}
+                                                title={tr("Скачать PDF отчет", "Download PDF Report")}
                                                 className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                                             >
                                                 <Download className="h-4 w-4" />
@@ -680,7 +743,7 @@ export default function ReportsPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleValidate(report.id)}
-                                                title={isRu ? "Проверить отчет" : "Validate Report"}
+                                                title={tr("Проверить отчет", "Validate Report")}
                                                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                                             >
                                                 <FileCheck className="h-4 w-4" />
@@ -700,7 +763,7 @@ export default function ReportsPage() {
                                                 });
                                                 setIsReviewOpen(true);
                                             }}
-                                            title={isRu ? "Просмотр отчета" : "View Report"}
+                                            title={tr("Просмотр отчета", "View Report")}
                                             className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
                                         >
                                             <Eye className="h-4 w-4" />
@@ -721,14 +784,14 @@ export default function ReportsPage() {
                                                             company_id: report.company_id
                                                         });
                                                         toast({
-                                                            title: isRu ? "Редактирование" : "Edit",
-                                                            description: isRu ? "Редактирование черновика будет доступно в следующем обновлении" : "Edit functionality coming in next update"
+                                                            title: tr("Редактирование", "Edit"),
+                                                            description: tr("Редактирование черновика будет доступно в следующем обновлении", "Edit functionality coming in next update")
                                                         });
                                                     }}
                                                     className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                                    title={isRu ? "Редактировать черновик" : "Edit Draft"}
+                                                    title={tr("Редактировать черновик", "Edit Draft")}
                                                 >
-                                                    <span className="sr-only">{isRu ? 'Редактировать' : 'Edit'}</span>
+                                                    <span className="sr-only">{tr('Редактировать', 'Edit')}</span>
                                                     ✏️
                                                 </Button>
 
@@ -737,7 +800,7 @@ export default function ReportsPage() {
                                                     className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-2xs transition-all"
                                                     onClick={() => handleSubmitReport(report.id)}
                                                 >
-                                                    {isRu ? 'Отправить' : 'Submit'}
+                                                    {tr('Отправить', 'Submit')}
                                                 </Button>
                                             </>
                                         )}
@@ -753,11 +816,11 @@ export default function ReportsPage() {
                                                         try {
                                                             await api.post(`/reports/${report.id}/review`, {
                                                                 status: 'approved',
-                                                                reviewer_comments: isRu ? 'Утверждено через быстрое действие' : 'Approved via quick action'
+                                                                reviewer_comments: tr('Утверждено через быстрое действие', 'Approved via quick action')
                                                             });
                                                             toast({
-                                                                title: isRu ? "Успешно" : "Success",
-                                                                description: isRu ? "Отчет утвержден" : "Report approved"
+                                                                title: tr("Успешно", "Success"),
+                                                                description: tr("Отчет утвержден", "Report approved")
                                                             });
 
                                                             // Update local state immediately
@@ -770,20 +833,20 @@ export default function ReportsPage() {
                                                         } catch (e) {
                                                             toast({
                                                                 variant: "destructive",
-                                                                title: isRu ? "Ошибка" : "Error",
-                                                                description: isRu ? "Не удалось утвердить отчет" : "Failed to approve report"
+                                                                title: tr("Ошибка", "Error"),
+                                                                description: tr("Не удалось утвердить отчет", "Failed to approve report")
                                                             });
                                                         }
                                                     }}
                                                 >
-                                                    {isRu ? 'Утвердить' : 'Approve'}
+                                                    {tr('Утвердить', 'Approve')}
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
                                                     className="text-red-600 border-red-200 dark:border-red-800 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all"
                                                     onClick={async () => {
-                                                        const reason = prompt(isRu ? "Укажите причину отклонения отчета:" : "Please enter rejection reason:");
+                                                        const reason = prompt(tr("Укажите причину отклонения отчета:", "Please enter rejection reason:"));
                                                         if (reason) {
                                                             try {
                                                                 await api.post(`/reports/${report.id}/review`, {
@@ -791,8 +854,8 @@ export default function ReportsPage() {
                                                                     reviewer_comments: reason
                                                                 });
                                                                 toast({
-                                                                    title: isRu ? "Успешно" : "Success",
-                                                                    description: isRu ? "Отчет отклонен" : "Report rejected"
+                                                                    title: tr("Успешно", "Success"),
+                                                                    description: tr("Отчет отклонен", "Report rejected")
                                                                 });
 
                                                                 // Update local state immediately
@@ -805,14 +868,14 @@ export default function ReportsPage() {
                                                             } catch (e) {
                                                                 toast({
                                                                     variant: "destructive",
-                                                                    title: isRu ? "Ошибка" : "Error",
-                                                                    description: isRu ? "Не удалось отклонить отчет" : "Failed to reject report"
+                                                                    title: tr("Ошибка", "Error"),
+                                                                    description: tr("Не удалось отклонить отчет", "Failed to reject report")
                                                                 });
                                                             }
                                                         }
                                                     }}
                                                 >
-                                                    {isRu ? 'Отклонить' : 'Reject'}
+                                                    {tr('Отклонить', 'Reject')}
                                                 </Button>
                                             </>
                                         )}
@@ -822,12 +885,12 @@ export default function ReportsPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                title={isRu ? "Удалить отчет" : "Delete report"}
+                                                title={tr("Удалить отчет", "Delete report")}
                                                 className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-90 transition-all duration-200 group cursor-pointer"
                                                 onClick={() => setReportToDelete(report)}
                                             >
                                                 <Trash2 className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                                                <span className="sr-only">Delete</span>
+                                                <span className="sr-only">{tr('Удалить', 'Delete', 'O\'chirish')}</span>
                                             </Button>
                                         )}
                                     </div>
@@ -840,7 +903,13 @@ export default function ReportsPage() {
                                 <div className="flex flex-col items-center justify-center gap-2">
                                     <FileSpreadsheet className="h-10 w-10 text-slate-300 dark:text-slate-600" />
                                     <p className="font-medium text-slate-600 dark:text-slate-300">{t('no_reports_found') || 'Нет отчетов для отображения'}</p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500">Нажмите «Submit Report» или используйте шаблон для загрузки нового отчета</p>
+                                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                                        {tr(
+                                            'Нажмите «Отправить отчет» или используйте шаблон для создания нового отчета',
+                                            'Click "Submit Report" or use a template to create a new report',
+                                            'Yangi hisobot yaratish uchun «Hisobotni yuborish» tugmasini bosing yoki shablondan foydalaning'
+                                        )}
+                                    </p>
                                 </div>
                             </td>
                         </tr>
@@ -855,7 +924,7 @@ export default function ReportsPage() {
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl text-slate-900 dark:text-slate-100 animate-scale-in">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {isRu ? 'Подать отчет' : 'Submit Report'}
+                                {tr('Подать отчет', 'Submit Report')}
                             </h2>
                             <Button
                                 variant="ghost"
@@ -870,10 +939,10 @@ export default function ReportsPage() {
                         <div className="p-3 mb-4 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/80 flex items-center justify-between gap-3 text-xs">
                             <div>
                                 <span className="font-semibold text-purple-900 dark:text-purple-200 block">
-                                    {isRu ? 'Готовый отчет по МСФО?' : 'Direct IFRS Report?'}
+                                    {tr('Готовый отчет по МСФО?', 'Direct IFRS Report?')}
                                 </span>
                                 <span className="text-purple-700 dark:text-purple-300 text-[11px]">
-                                    {isRu ? 'Создать напрямую без файла с авто-проверкой ошибок.' : 'Build directly without file upload.'}
+                                    {tr('Создать напрямую без файла с авто-проверкой ошибок.', 'Build directly without file upload.')}
                                 </span>
                             </div>
                             <Button
@@ -886,51 +955,51 @@ export default function ReportsPage() {
                                 className="bg-purple-600 hover:bg-purple-700 text-white text-xs h-7 px-2.5 shrink-0 cursor-pointer"
                             >
                                 <Sparkles className="w-3 h-3 mr-1" />
-                                {isRu ? 'Конструктор' : 'Builder'}
+                                {tr('Конструктор', 'Builder')}
                             </Button>
                         </div>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Название отчета' : 'Title'}
+                                    {tr('Название отчета', 'Title')}
                                 </label>
                                 <Input
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder={isRu ? 'Введите название отчета' : 'Report title'}
+                                    placeholder={tr('Введите название отчета', 'Report title')}
                                     className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Тип отчета' : 'Type'}
+                                    {tr('Тип отчета', 'Type')}
                                 </label>
                                 <select
                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5"
                                     value={formData.report_type}
                                     onChange={(e) => setFormData({ ...formData, report_type: e.target.value })}
                                 >
-                                    <option value="compliance">{isRu ? 'Комплаенс-отчет' : 'Compliance Report'}</option>
-                                    <option value="audit">{isRu ? 'Аудиторский отчет' : 'Audit Report'}</option>
-                                    <option value="financial">{isRu ? 'Финансовый отчет' : 'Financial Report'}</option>
-                                    <option value="risk_assessment">{isRu ? 'Оценка рисков' : 'Risk Assessment'}</option>
+                                    <option value="compliance">{tr('Комплаенс-отчет', 'Compliance Report')}</option>
+                                    <option value="audit">{tr('Аудиторский отчет', 'Audit Report')}</option>
+                                    <option value="financial">{tr('Финансовый отчет', 'Financial Report')}</option>
+                                    <option value="risk_assessment">{tr('Оценка рисков', 'Risk Assessment')}</option>
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Описание' : 'Description'}
+                                    {tr('Описание', 'Description')}
                                 </label>
                                 <textarea
                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5"
                                     rows={3}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder={isRu ? 'Краткое описание отчета' : 'Report description'}
+                                    placeholder={tr('Краткое описание отчета', 'Report description')}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                    {isRu ? 'Файл отчета' : 'File'}
+                                    {tr('Файл отчета', 'File')}
                                 </label>
                                 <input
                                     type="file"
@@ -939,16 +1008,16 @@ export default function ReportsPage() {
                                     className="w-full text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/40 dark:file:text-blue-300"
                                 />
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    {isRu ? 'Макс. 10 МБ. Разрешены: PDF, DOCX, XLSX, CSV, TXT' : 'Max 10MB. Allowed: PDF, DOCX, XLSX, CSV, TXT'}
+                                    {tr('Макс. 10 МБ. Разрешены: PDF, DOCX, XLSX, CSV, TXT', 'Max 10MB. Allowed: PDF, DOCX, XLSX, CSV, TXT')}
                                 </p>
                             </div>
                         </div>
                         <div className="flex gap-2 mt-6">
                             <Button onClick={handleSubmit} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
-                                {isRu ? 'Отправить' : 'Submit'}
+                                {tr('Отправить', 'Submit')}
                             </Button>
                             <Button onClick={() => setIsSubmitOpen(false)} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800">
-                                {isRu ? 'Отмена' : 'Cancel'}
+                                {tr('Отмена', 'Cancel')}
                             </Button>
                         </div>
                     </div>
@@ -981,7 +1050,7 @@ export default function ReportsPage() {
                                             {getReportTypeLabel(selectedReport.report_type)}
                                         </span>
                                         <span>•</span>
-                                        <span>{isRu ? 'Официальный регуляторный отчет' : 'Official Regulatory Report'}</span>
+                                        <span>{tr('Официальный регуляторный отчет', 'Official Regulatory Report')}</span>
                                     </p>
                                 </div>
                             </div>
@@ -993,27 +1062,27 @@ export default function ReportsPage() {
                                     size="sm"
                                     onClick={() => navigate('/ai-analysis', { state: { report: selectedReport } })}
                                     className="hidden sm:flex items-center gap-1.5 text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-950/40 cursor-pointer"
-                                    title={isRu ? "Открыть в AI-Анализе" : "Open in AI Analysis"}
+                                    title={tr("Открыть в AI-Анализе", "Open in AI Analysis")}
                                 >
                                     <Sparkles className="w-3.5 h-3.5" />
-                                    <span>{isRu ? 'AI-Анализ' : 'AI Analysis'}</span>
+                                    <span>{tr('AI-Анализ', 'AI Analysis')}</span>
                                 </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleDownload(selectedReport.id, selectedReport.title)}
                                     className="flex items-center gap-1.5 text-xs dark:border-slate-700 dark:hover:bg-slate-800 cursor-pointer"
-                                    title={isRu ? "Скачать PDF отчет" : "Download PDF report"}
+                                    title={tr("Скачать PDF отчет", "Download PDF report")}
                                 >
                                     <Download className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">{isRu ? 'Скачать PDF' : 'Download PDF'}</span>
+                                    <span className="hidden sm:inline">{tr('Скачать PDF', 'Download PDF')}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => window.print()}
                                     className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
-                                    title={isRu ? "Печать" : "Print"}
+                                    title={tr("Печать", "Print")}
                                 >
                                     <Printer className="w-3.5 h-3.5" />
                                 </Button>
@@ -1033,7 +1102,7 @@ export default function ReportsPage() {
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                                 <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
                                 <div className="truncate">
-                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{isRu ? 'Организация' : 'Company'}</div>
+                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{tr('Организация', 'Company')}</div>
                                     <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
                                         {companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
                                     </div>
@@ -1042,27 +1111,27 @@ export default function ReportsPage() {
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                                 <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
                                 <div className="truncate">
-                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{isRu ? 'Дата подачи' : 'Submitted Date'}</div>
+                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{tr('Дата подачи', 'Submitted Date')}</div>
                                     <div className="font-medium text-slate-800 dark:text-slate-200">
                                         {selectedReport.submitted_at || selectedReport.created_at
                                             ? new Date(selectedReport.submitted_at || selectedReport.created_at).toLocaleDateString(isRu ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : (isRu ? 'Текущий квартал' : 'Current Quarter')}
+                                            : (tr('Текущий квартал', 'Current Quarter'))}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                                 <User className="w-4 h-4 text-slate-400 shrink-0" />
                                 <div className="truncate">
-                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{isRu ? 'Инициатор' : 'Submitter'}</div>
+                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{tr('Инициатор', 'Submitter')}</div>
                                     <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
-                                        {selectedReport.submitted_by === user?.id ? (isRu ? 'Текущий аккаунт' : 'You') : (isRu ? 'Главный бухгалтер' : 'Lead Auditor')}
+                                        {selectedReport.submitted_by === user?.id ? (tr('Текущий аккаунт', 'You')) : (tr('Главный бухгалтер', 'Lead Auditor'))}
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                                 <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
                                 <div className="truncate">
-                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{isRu ? 'Валидация' : 'Validation'}</div>
+                                    <div className="text-[10px] uppercase font-semibold text-slate-400">{tr('Валидация', 'Validation')}</div>
                                     <div className="font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                                         <span>ЭЦП SHA-256</span>
                                     </div>
@@ -1081,7 +1150,7 @@ export default function ReportsPage() {
                                 }`}
                             >
                                 <FileText className="w-3.5 h-3.5" />
-                                <span>{isRu ? 'Содержание и Документ' : 'Document & Summary'}</span>
+                                <span>{tr('Содержание и Документ', 'Document & Summary')}</span>
                             </button>
                             <button
                                 onClick={() => setViewerTab('metrics')}
@@ -1092,7 +1161,7 @@ export default function ReportsPage() {
                                 }`}
                             >
                                 <Layers className="w-3.5 h-3.5" />
-                                <span>{isRu ? 'Показатели и Нормативы' : 'KPIs & Standards'}</span>
+                                <span>{tr('Показатели и Нормативы', 'KPIs & Standards')}</span>
                             </button>
                             <button
                                 onClick={() => setViewerTab('ai')}
@@ -1103,7 +1172,7 @@ export default function ReportsPage() {
                                 }`}
                             >
                                 <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-                                <span>{isRu ? 'AI-Аудит и Риски' : 'AI Audit & Insights'}</span>
+                                <span>{tr('AI-Аудит и Риски', 'AI Audit & Insights')}</span>
                             </button>
                             <button
                                 onClick={() => setViewerTab('review')}
@@ -1114,7 +1183,7 @@ export default function ReportsPage() {
                                 }`}
                             >
                                 <FileCheck className="w-3.5 h-3.5" />
-                                <span>{isRu ? 'Рецензия и Согласование' : 'Review & Decision'}</span>
+                                <span>{tr('Рецензия и Согласование', 'Review & Decision')}</span>
                             </button>
                         </div>
 
@@ -1147,7 +1216,7 @@ export default function ReportsPage() {
                                                     <span>•</span>
                                                     <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
                                                         <CheckCircle className="w-3 h-3" />
-                                                        {isRu ? 'Файл проверен и доступен' : 'Verified & Available'}
+                                                        {tr('Файл проверен и доступен', 'Verified & Available')}
                                                     </span>
                                                 </div>
                                             </div>
@@ -1163,7 +1232,7 @@ export default function ReportsPage() {
                                                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-9 gap-1.5 cursor-pointer shadow-xs"
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
-                                                <span>{isRu ? 'Предпросмотр документа' : 'Preview Document'}</span>
+                                                <span>{tr('Предпросмотр документа', 'Preview Document')}</span>
                                             </Button>
                                             <Button
                                                 onClick={() => handleDownload(selectedReport.id, selectedReport.title)}
@@ -1171,7 +1240,7 @@ export default function ReportsPage() {
                                                 className="text-xs h-9 gap-1.5 cursor-pointer dark:border-slate-700 dark:hover:bg-slate-800"
                                             >
                                                 <Download className="w-3.5 h-3.5" />
-                                                <span>{isRu ? 'Скачать PDF' : 'Download PDF'}</span>
+                                                <span>{tr('Скачать PDF', 'Download PDF')}</span>
                                             </Button>
                                         </div>
                                     </div>
@@ -1188,7 +1257,7 @@ export default function ReportsPage() {
                                                 }`}
                                             >
                                                 <Layers className="w-3.5 h-3.5" />
-                                                <span>{isRu ? 'Бриф + Превью документа' : 'Summary & Document'}</span>
+                                                <span>{tr('Бриф + Превью документа', 'Summary & Document')}</span>
                                             </button>
                                             <button
                                                 onClick={() => setContentSubView('preview')}
@@ -1199,7 +1268,7 @@ export default function ReportsPage() {
                                                 }`}
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
-                                                <span>{isRu ? 'Только превью файла' : 'Full Document Only'}</span>
+                                                <span>{tr('Только превью файла', 'Full Document Only')}</span>
                                             </button>
                                             <button
                                                 onClick={() => setContentSubView('brief')}
@@ -1210,7 +1279,7 @@ export default function ReportsPage() {
                                                 }`}
                                             >
                                                 <FileText className="w-3.5 h-3.5" />
-                                                <span>{isRu ? 'Только бриф и разделы' : 'Brief & Sections'}</span>
+                                                <span>{tr('Только бриф и разделы', 'Brief & Sections')}</span>
                                             </button>
                                         </div>
                                         <Button
@@ -1218,10 +1287,10 @@ export default function ReportsPage() {
                                             size="sm"
                                             onClick={() => setIsFullscreenPreviewOpen(true)}
                                             className="text-xs h-7 gap-1 text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
-                                            title={isRu ? "Полноэкранный просмотр документа" : "Fullscreen document view"}
+                                            title={tr("Полноэкранный просмотр документа", "Fullscreen document view")}
                                         >
                                             <Maximize2 className="w-3 h-3" />
-                                            <span className="hidden sm:inline">{isRu ? 'На весь экран' : 'Fullscreen'}</span>
+                                            <span className="hidden sm:inline">{tr('На весь экран', 'Fullscreen')}</span>
                                         </Button>
                                     </div>
 
@@ -1231,55 +1300,53 @@ export default function ReportsPage() {
                                             {/* Executive Summary */}
                                             <div className="space-y-2">
                                                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                                    {isRu ? 'Исполнительное резюме (Executive Summary)' : 'Executive Summary'}
+                                                    {tr('Исполнительное резюме (Executive Summary)', 'Executive Summary')}
                                                 </h3>
                                                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-2xs">
-                                                    {getLocalizedReportDescription(selectedReport.description) || (isRu 
-                                                        ? 'Официальный регуляторный отчет компании, подготовленный в соответствии с требованиями национального законодательства и международных стандартов финансовой отчетности (МСФО / IFRS).'
-                                                        : 'Official regulatory filing document compiled in accordance with standard compliance guidelines and statutory reporting obligations.')}
+                                                    {getLocalizedReportDescription(selectedReport.description) || (tr('Официальный регуляторный отчет компании, подготовленный в соответствии с требованиями национального законодательства и международных стандартов финансовой отчетности (МСФО / IFRS).', 'Official regulatory filing document compiled in accordance with standard compliance guidelines and statutory reporting obligations.'))}
                                                 </div>
                                             </div>
 
                                             {/* Document Outline / Blueprint */}
                                             <div className="space-y-2.5">
                                                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                                    {isRu ? 'Структура и разделы документа' : 'Document Sections & Structure'}
+                                                    {tr('Структура и разделы документа', 'Document Sections & Structure')}
                                                 </h3>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                     <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
                                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
                                                             <span className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] font-bold">1</span>
-                                                            <span>{isRu ? 'Общие сведения и периметр' : 'Entity Scope & Identification'}</span>
+                                                            <span>{tr('Общие сведения и периметр', 'Entity Scope & Identification')}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 pl-7">
-                                                            {isRu ? 'Идентификация субъекта отчетности, реквизиты лицензии, период аудита.' : 'Legal entity credentials, licensing registry and audit timeframe.'}
+                                                            {tr('Идентификация субъекта отчетности, реквизиты лицензии, период аудита.', 'Legal entity credentials, licensing registry and audit timeframe.')}
                                                         </p>
                                                     </div>
                                                     <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
                                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
                                                             <span className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] font-bold">2</span>
-                                                            <span>{isRu ? 'Регуляторный комплаенс' : 'Statutory Compliance Check'}</span>
+                                                            <span>{tr('Регуляторный комплаенс', 'Statutory Compliance Check')}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 pl-7">
-                                                            {isRu ? 'Сверка балансовых статей с МСФО 9, 15, 16 и налоговыми ставками.' : 'Reconciliation of balance sheet entries with IFRS 9, 15, 16 & Tax codes.'}
+                                                            {tr('Сверка балансовых статей с МСФО 9, 15, 16 и налоговыми ставками.', 'Reconciliation of balance sheet entries with IFRS 9, 15, 16 & Tax codes.')}
                                                         </p>
                                                     </div>
                                                     <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
                                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
                                                             <span className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] font-bold">3</span>
-                                                            <span>{isRu ? 'Резервы и риск-профиль' : 'Risk Reserves & Exposure'}</span>
+                                                            <span>{tr('Резервы и риск-профиль', 'Risk Reserves & Exposure')}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 pl-7">
-                                                            {isRu ? 'Оценка достаточности капитала (CAR), ликвидности (LCR) и резервов ECL.' : 'Evaluation of capital adequacy (CAR), liquidity (LCR) and ECL provisions.'}
+                                                            {tr('Оценка достаточности капитала (CAR), ликвидности (LCR) и резервов ECL.', 'Evaluation of capital adequacy (CAR), liquidity (LCR) and ECL provisions.')}
                                                         </p>
                                                     </div>
                                                     <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 space-y-1">
                                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
                                                             <span className="w-5 h-5 rounded-md bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[11px] font-bold">4</span>
-                                                            <span>{isRu ? 'Заключение и сертификация' : 'Certification & Sign-Off'}</span>
+                                                            <span>{tr('Заключение и сертификация', 'Certification & Sign-Off')}</span>
                                                         </div>
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 pl-7">
-                                                            {isRu ? 'Электронная подпись ответственного лица и регистрация в реестре.' : 'Authorized digital sign-off and central regulatory registry timestamp.'}
+                                                            {tr('Электронная подпись ответственного лица и регистрация в реестре.', 'Authorized digital sign-off and central regulatory registry timestamp.')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1293,10 +1360,10 @@ export default function ReportsPage() {
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                                                     <Eye className="w-3.5 h-3.5 text-blue-500" />
-                                                    <span>{isRu ? 'Содержимое реального файла: Интерактивный просмотр' : 'Real File Content: Interactive Preview'}</span>
+                                                    <span>{tr('Содержимое реального файла: Интерактивный просмотр', 'Real File Content: Interactive Preview')}</span>
                                                 </h3>
                                                 <span className="text-[11px] text-slate-400">
-                                                    {isRu ? 'МСА 700 / МСФО (IFRS)' : 'ISA 700 / IFRS Standard'}
+                                                    {tr('МСА 700 / МСФО (IFRS)', 'ISA 700 / IFRS Standard')}
                                                 </span>
                                             </div>
                                             <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Загрузка превью документа...</div>}>
@@ -1318,56 +1385,56 @@ export default function ReportsPage() {
                                 <div className="space-y-5 animate-in fade-in duration-150">
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Достаточность капитала (CAR)' : 'Capital Adequacy (CAR)'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Достаточность капитала (CAR)', 'Capital Adequacy (CAR)')}</div>
                                             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">14.8%</div>
                                             <div className="text-[11px] text-slate-500 flex items-center gap-1">
                                                 <CheckCircle className="w-3 h-3 text-emerald-500" />
-                                                <span>{isRu ? 'Мин. норматив: 11.5%' : 'Target: >= 11.5%'}</span>
+                                                <span>{tr('Мин. норматив: 11.5%', 'Target: >= 11.5%')}</span>
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Покрытие ликвидности (LCR)' : 'Liquidity Coverage (LCR)'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Покрытие ликвидности (LCR)', 'Liquidity Coverage (LCR)')}</div>
                                             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">134.2%</div>
                                             <div className="text-[11px] text-slate-500 flex items-center gap-1">
                                                 <CheckCircle className="w-3 h-3 text-emerald-500" />
-                                                <span>{isRu ? 'Мин. норматив: 100%' : 'Target: >= 100%'}</span>
+                                                <span>{tr('Мин. норматив: 100%', 'Target: >= 100%')}</span>
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Соответствие стандартам' : 'Compliance Rate'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Соответствие стандартам', 'Compliance Rate')}</div>
                                             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">96.4%</div>
                                             <div className="text-[11px] text-slate-500 flex items-center gap-1">
                                                 <CheckCircle className="w-3 h-3 text-blue-500" />
-                                                <span>{isRu ? 'Все ключевые нормы соблюдены' : 'All key controls pass'}</span>
+                                                <span>{tr('Все ключевые нормы соблюдены', 'All key controls pass')}</span>
                                             </div>
                                         </div>
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Активы в отчете' : 'Total Assets Reported'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Активы в отчете', 'Total Assets Reported')}</div>
                                             <div className="text-2xl font-bold text-slate-900 dark:text-white">$48,250,000</div>
-                                            <div className="text-[11px] text-slate-500">{isRu ? 'Сбалансировано с Главной книгой' : 'Reconciled with GL'}</div>
+                                            <div className="text-[11px] text-slate-500">{tr('Сбалансировано с Главной книгой', 'Reconciled with GL')}</div>
                                         </div>
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Расхождения в балансе' : 'Variance / Discrepancy'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Расхождения в балансе', 'Variance / Discrepancy')}</div>
                                             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">$0.00</div>
-                                            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">{isRu ? 'Нулевое расхождение (100% сходимость)' : 'Zero variance'}</div>
+                                            <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">{tr('Нулевое расхождение (100% сходимость)', 'Zero variance')}</div>
                                         </div>
                                         <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 space-y-1">
-                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{isRu ? 'Категория риска' : 'Risk Rating'}</div>
-                                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{isRu ? 'Низкий' : 'Low'}</div>
-                                            <div className="text-[11px] text-slate-500">{isRu ? 'Зеленая зона регулятора' : 'Green Zone'}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">{tr('Категория риска', 'Risk Rating')}</div>
+                                            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{tr('Низкий', 'Low')}</div>
+                                            <div className="text-[11px] text-slate-500">{tr('Зеленая зона регулятора', 'Green Zone')}</div>
                                         </div>
                                     </div>
 
                                     {/* Standards table */}
                                     <div className="space-y-2">
                                         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            {isRu ? 'Результаты сверки со стандартами' : 'Standards Audit Breakdown'}
+                                            {tr('Результаты сверки со стандартами', 'Standards Audit Breakdown')}
                                         </h3>
                                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                             <div className="grid grid-cols-12 bg-slate-100 dark:bg-slate-800/80 p-2.5 font-semibold text-slate-600 dark:text-slate-300">
-                                                <div className="col-span-5">{isRu ? 'Регуляторный стандарт' : 'Standard'}</div>
-                                                <div className="col-span-4">{isRu ? 'Требование' : 'Requirement'}</div>
-                                                <div className="col-span-3 text-right">{isRu ? 'Статус' : 'Status'}</div>
+                                                <div className="col-span-5">{tr('Регуляторный стандарт', 'Standard')}</div>
+                                                <div className="col-span-4">{tr('Требование', 'Requirement')}</div>
+                                                <div className="col-span-3 text-right">{tr('Статус', 'Status')}</div>
                                             </div>
                                             <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                                                 <div className="grid grid-cols-12 p-3 items-center">
@@ -1421,29 +1488,27 @@ export default function ReportsPage() {
                                                     RegAI Neural Compliance Engine
                                                 </h4>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                                                    {isRu ? 'Автоматизированный аудит корректности расчетов и формул отчета' : 'Automated analysis of formulas, balances and statutory rules'}
+                                                    {tr('Автоматизированный аудит корректности расчетов и формул отчета', 'Automated analysis of formulas, balances and statutory rules')}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className="text-right shrink-0">
                                             <div className="text-2xl font-black text-purple-600 dark:text-purple-400">98 / 100</div>
-                                            <div className="text-[11px] text-purple-700 dark:text-purple-300 font-medium">Confidence Score</div>
+                                            <div className="text-[11px] text-purple-700 dark:text-purple-300 font-medium">{tr('Уровень достоверности', 'Confidence Score', 'Ishonchlilik darajasi')}</div>
                                         </div>
                                     </div>
 
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                                         <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5 text-sm">
                                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                            <span>{isRu ? 'Заключение ИИ-инспектора' : 'AI Inspector Conclusion'}</span>
+                                            <span>{tr('Заключение ИИ-инспектора', 'AI Inspector Conclusion')}</span>
                                         </div>
                                         <p>
-                                            {isRu
-                                                ? 'Все арифметические соотношения, валютные пересчеты и контрольные суммы отчета сошлись с эталонными балансовыми регистрами. Критических расхождений, признаков искажения финансового результата или занижения налогооблагаемой базы не зафиксировано.'
-                                                : 'All cross-sheet calculations, FX revaluations and control sums accurately match reference General Ledger registers. No material omissions or tax discrepancies detected.'}
+                                            {tr('Все арифметические соотношения, валютные пересчеты и контрольные суммы отчета сошлись с эталонными балансовыми регистрами. Критических расхождений, признаков искажения финансового результата или занижения налогооблагаемой базы не зафиксировано.', 'All cross-sheet calculations, FX revaluations and control sums accurately match reference General Ledger registers. No material omissions or tax discrepancies detected.')}
                                         </p>
                                         <div className="p-3 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 space-y-1">
-                                            <div className="font-semibold">{isRu ? 'Рекомендация по оптимизации:' : 'Optimization Advice:'}</div>
-                                            <div>{isRu ? 'Рекомендуется синхронизировать резервы по обесценению дебиторской задолженности со сроками погашения по обновленной матрице дефолтов.' : 'Ensure aging buckets for Stage 2 accounts receivable reflect the latest historical loss rate updates.'}</div>
+                                            <div className="font-semibold">{tr('Рекомендация по оптимизации:', 'Optimization Advice:')}</div>
+                                            <div>{tr('Рекомендуется синхронизировать резервы по обесценению дебиторской задолженности со сроками погашения по обновленной матрице дефолтов.', 'Ensure aging buckets for Stage 2 accounts receivable reflect the latest historical loss rate updates.')}</div>
                                         </div>
                                     </div>
 
@@ -1453,7 +1518,7 @@ export default function ReportsPage() {
                                             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                                         >
                                             <Sparkles className="w-4 h-4" />
-                                            <span>{isRu ? 'Открыть интерактивный AI-Анализ отчета' : 'Launch Deep AI Analysis Workspace'}</span>
+                                            <span>{tr('Открыть интерактивный AI-Анализ отчета', 'Launch Deep AI Analysis Workspace')}</span>
                                             <ChevronRight className="w-4 h-4" />
                                         </Button>
                                     </div>
@@ -1466,19 +1531,19 @@ export default function ReportsPage() {
                                     {/* Resolution Status Card */}
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 space-y-2">
                                         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            {isRu ? 'Текущая резолюция' : 'Current Resolution'}
+                                            {tr('Текущая резолюция', 'Current Resolution')}
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 {getStatusBadge(selectedReport.status)}
                                                 <span className="text-xs text-slate-600 dark:text-slate-400">
-                                                    {selectedReport.reviewed_at ? `${isRu ? 'Проверено' : 'Reviewed'}: ${new Date(selectedReport.reviewed_at).toLocaleDateString()}` : (isRu ? 'Ожидает решения' : 'Awaiting decision')}
+                                                    {selectedReport.reviewed_at ? `${tr('Проверено', 'Reviewed')}: ${new Date(selectedReport.reviewed_at).toLocaleDateString()}` : (tr('Ожидает решения', 'Awaiting decision'))}
                                                 </span>
                                             </div>
                                         </div>
                                         {selectedReport.reviewer_comments && (
                                             <div className="text-xs p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300">
-                                                <span className="font-semibold">{isRu ? 'Комментарий рецензента: ' : 'Reviewer Note: '}</span>
+                                                <span className="font-semibold">{tr('Комментарий рецензента: ', 'Reviewer Note: ')}</span>
                                                 {selectedReport.reviewer_comments}
                                             </div>
                                         )}
@@ -1487,31 +1552,31 @@ export default function ReportsPage() {
                                     {/* Review Action Form (for Admin or Pending status) */}
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4">
                                         <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                                            {isRu ? 'Вынести решение по отчету' : 'Submit Review Decision'}
+                                            {tr('Вынести решение по отчету', 'Submit Review Decision')}
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-xs font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                                    {isRu ? 'Решение' : 'Decision'}
+                                                    {tr('Решение', 'Decision')}
                                                 </label>
                                                 <select
                                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2 text-xs"
                                                     value={reviewData.status}
                                                     onChange={(e) => setReviewData({ ...reviewData, status: e.target.value })}
                                                 >
-                                                    <option value="approved">{isRu ? 'Одобрить (Approve)' : 'Approve'}</option>
-                                                    <option value="rejected">{isRu ? 'Отклонить (Reject)' : 'Reject'}</option>
+                                                    <option value="approved">{tr('Одобрить (Approve)', 'Approve')}</option>
+                                                    <option value="rejected">{tr('Отклонить (Reject)', 'Reject')}</option>
                                                 </select>
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                                    {isRu ? 'Комментарий к резолюции' : 'Reviewer Comments'}
+                                                    {tr('Комментарий к резолюции', 'Reviewer Comments')}
                                                 </label>
                                                 <Input
                                                     className="w-full text-xs"
                                                     value={reviewData.reviewer_comments}
                                                     onChange={(e) => setReviewData({ ...reviewData, reviewer_comments: e.target.value })}
-                                                    placeholder={isRu ? "Укажите причину или подтверждение..." : "Notes or approval remarks..."}
+                                                    placeholder={tr("Укажите причину или подтверждение...", "Notes or approval remarks...")}
                                                 />
                                             </div>
                                         </div>
@@ -1520,7 +1585,7 @@ export default function ReportsPage() {
                                                 onClick={handleReview}
                                                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer shadow-xs"
                                             >
-                                                {isRu ? 'Сохранить резолюцию' : 'Submit Review Decision'}
+                                                {tr('Сохранить резолюцию', 'Submit Review Decision')}
                                             </Button>
                                         </div>
                                     </div>
@@ -1528,7 +1593,7 @@ export default function ReportsPage() {
                                     {/* Discussion / Comments Section */}
                                     <div className="pt-2">
                                         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                                            {isRu ? 'История комментариев и обсуждение' : 'Audit Trail & Discussion'}
+                                            {tr('История комментариев и обсуждение', 'Audit Trail & Discussion')}
                                         </div>
                                         <Suspense fallback={<div className="p-4 text-xs text-slate-400">Загрузка комментариев...</div>}>
                                             <CommentsSection reportId={selectedReport.id} />
@@ -1543,14 +1608,14 @@ export default function ReportsPage() {
                         <div className="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 flex items-center justify-between gap-3 text-xs">
                             <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                                <span>{isRu ? 'Синхронизировано с базой регулятора' : 'Synced with regulator repository'}</span>
+                                <span>{tr('Синхронизировано с базой регулятора', 'Synced with regulator repository')}</span>
                             </div>
                             <Button
                                 variant="outline"
                                 onClick={() => setIsReviewOpen(false)}
                                 className="dark:border-slate-700 dark:hover:bg-slate-800 cursor-pointer"
                             >
-                                {isRu ? 'Закрыть' : 'Close'}
+                                {tr('Закрыть', 'Close')}
                             </Button>
                         </div>
                     </div>
@@ -1577,10 +1642,10 @@ export default function ReportsPage() {
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-slate-900 dark:text-slate-100 animate-scale-in">
                         <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
                             <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {isRu ? 'Результаты проверки' : 'Validation Results'}
+                                {tr('Результаты проверки', 'Validation Results')}
                             </h2>
                             <Button variant="ghost" size="sm" onClick={() => setIsValidationOpen(false)} className="dark:hover:bg-slate-800">
-                                {isRu ? 'Закрыть' : 'Close'}
+                                {tr('Закрыть', 'Close')}
                             </Button>
                         </div>
 
@@ -1594,7 +1659,7 @@ export default function ReportsPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-slate-900 dark:text-white">
-                                        {isRu ? 'Общая оценка соответствия' : 'Overall Compliance Score'}
+                                        {tr('Общая оценка соответствия', 'Overall Compliance Score')}
                                     </h3>
                                     <p className="text-sm text-slate-600 dark:text-slate-300">{validationResult.summary}</p>
                                 </div>
@@ -1604,22 +1669,22 @@ export default function ReportsPage() {
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{validationResult.passed_checks}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Успешные проверки' : 'Passed Checks'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{tr('Успешные проверки', 'Passed Checks')}</div>
                                 </div>
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{validationResult.warnings}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Предупреждения' : 'Warnings'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{tr('Предупреждения', 'Warnings')}</div>
                                 </div>
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-red-600 dark:text-red-400">{validationResult.errors}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Критические ошибки' : 'Critical Errors'}</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{tr('Критические ошибки', 'Critical Errors')}</div>
                                 </div>
                             </div>
 
                             {/* Detailed Errors */}
                             <div>
                                 <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
-                                    {isRu ? 'Детальные замечания' : 'Detailed Findings'}
+                                    {tr('Детальные замечания', 'Detailed Findings')}
                                 </h3>
                                 {Array.isArray(validationResult?.error_details) && validationResult.error_details.length > 0 ? (
                                     <div className="space-y-2">
@@ -1636,12 +1701,12 @@ export default function ReportsPage() {
                                                     <p className="text-sm mt-1 text-slate-700 dark:text-slate-300">{error.recommendation || error.message}</p>
                                                     {error.location && (
                                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            {isRu ? 'Расположение' : 'Location'}: {error.location}
+                                                            {tr('Расположение', 'Location')}: {error.location}
                                                         </p>
                                                     )}
                                                     {error.expected !== undefined && error.found !== undefined && (
                                                         <p className="text-xs font-mono mt-1 text-slate-600 dark:text-slate-400">
-                                                            {isRu ? 'Ожидалось' : 'Expected'}: {error.expected} | {isRu ? 'Найдено' : 'Found'}: {error.found}
+                                                            {tr('Ожидалось', 'Expected')}: {error.expected} | {tr('Найдено', 'Found')}: {error.found}
                                                         </p>
                                                     )}
                                                 </div>
@@ -1652,7 +1717,7 @@ export default function ReportsPage() {
                                     <div className="p-8 text-center border border-emerald-200 dark:border-emerald-900/40 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30">
                                         <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
                                         <p className="text-emerald-800 dark:text-emerald-200 font-medium">
-                                            {isRu ? 'Ошибок и замечаний не обнаружено!' : 'No issues found!'}
+                                            {tr('Ошибок и замечаний не обнаружено!', 'No issues found!')}
                                         </p>
                                     </div>
                                 )}
@@ -1672,10 +1737,10 @@ export default function ReportsPage() {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                                    {isRu ? 'Удалить отчет?' : 'Delete Report?'}
+                                    {tr('Удалить отчет?', 'Delete Report?')}
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {isRu ? 'Это действие нельзя отменить' : 'This action cannot be undone'}
+                                    {tr('Это действие нельзя отменить', 'This action cannot be undone')}
                                 </p>
                             </div>
                         </div>
@@ -1698,7 +1763,7 @@ export default function ReportsPage() {
                                 disabled={isDeleting}
                                 className="dark:border-slate-700 dark:hover:bg-slate-800 active:scale-95 transition-all"
                             >
-                                {isRu ? 'Отмена' : 'Cancel'}
+                                {tr('Отмена', 'Cancel')}
                             </Button>
                             <Button
                                 onClick={() => executeDeleteReport(reportToDelete.id)}
@@ -1706,7 +1771,7 @@ export default function ReportsPage() {
                                 className="bg-red-600 hover:bg-red-700 active:scale-95 text-white font-medium shadow-xs hover:shadow-red-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                                 <Trash2 className="w-4 h-4" />
-                                {isDeleting ? (isRu ? 'Удаление...' : 'Deleting...') : (isRu ? 'Удалить' : 'Delete')}
+                                {isDeleting ? (tr('Удаление...', 'Deleting...')) : (tr('Удалить', 'Delete'))}
                             </Button>
                         </div>
                     </div>

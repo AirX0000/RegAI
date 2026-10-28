@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { tr } from '../lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, BarChart3, Shield, Users, MessageCircle, CheckCircle, AlertCircle, FileCheck, Upload, Eye, Download, Settings, TrendingUp, Plus, Send, Mail, Phone, HelpCircle, ChevronRight } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -27,36 +28,68 @@ export default function HelpPage() {
 
     const faqItems = [
         {
-            question: "How do I upload financial reports?",
-            answer: "Navigate to the Upload page from the main menu. You can drag and drop Excel/CSV files or click to browse. The system supports balance sheet data in standard formats."
+            question: tr('Как загрузить финансовые отчеты?', "How do I upload financial reports?", 'Moliyaviy hisobotlarni qanday yuklash mumkin?'),
+            answer: tr(
+                'Перейдите в раздел «Загрузка» из главного меню. Перетащите файл Excel/CSV или выберите его на компьютере. Система поддерживает стандартные форматы ОСВ и бухгалтерского баланса.',
+                "Navigate to the Upload page from the main menu. You can drag and drop Excel/CSV files or click to browse. The system supports balance sheet data in standard formats.",
+                'Asosiy menyudan «Yuklash» bo\'limiga o\'ting. Excel/CSV fayllarni tortib tashlang yoki kompyuterdan tanlang. Tizim Aylanma-saldo qaydnomasi va buxgalteriya balansining standart formatlarini qo\'llab-quvvatlaydi.'
+            )
         },
         {
-            question: "Where can I find Uzbekistan regulations?",
-            answer: "Go to Regulations page and filter by Jurisdiction: 'Uzbekistan'. You'll find 7 regulations including detailed guides for accountants (UZ-ACCT-GUIDE) and auditors (UZ-AUDIT-GUIDE)."
+            question: tr('Где найти нормативы Республики Узбекистан?', "Where can I find Uzbekistan regulations?", 'O\'zbekiston Respublikasi normativlarini qayerdan topish mumkin?'),
+            answer: tr(
+                'Перейдите в базу нормативов и выберите юрисдикцию «Узбекистан». Доступны руководства для бухгалтеров (UZ-ACCT-GUIDE) и аудиторов (UZ-AUDIT-GUIDE).',
+                "Go to Regulations page and filter by Jurisdiction: 'Uzbekistan'. You'll find 7 regulations including detailed guides for accountants (UZ-ACCT-GUIDE) and auditors (UZ-AUDIT-GUIDE).",
+                'Normativlar bazasiga o\'ting va «O\'zbekiston» yurisdiksiyasini tanlang. Buxgalterlar (UZ-ACCT-GUIDE) va auditorlar (UZ-AUDIT-GUIDE) uchun batafsil qo\'llanmalar mavjud.'
+            )
         },
         {
-            question: "How do I access detailed accounting instructions?",
-            answer: "Search for 'UZ-ACCT-GUIDE' in the Regulations page. This contains 100+ pages of step-by-step instructions for preparing financial reports according to NAS."
+            question: tr('Где найти пошаговые инструкции по бухгалтерскому учету?', "How do I access detailed accounting instructions?", 'Buxgalteriya hisobi bo\'yicha bosqichma-bosqich yo\'riqnomalarni qayerdan olish mumkin?'),
+            answer: tr(
+                'Найдите код «UZ-ACCT-GUIDE» в базе нормативов — документ содержит пошаговые инструкции по подготовке отчетности по НСБУ и МСФО.',
+                "Search for 'UZ-ACCT-GUIDE' in the Regulations page. This contains 100+ pages of step-by-step instructions for preparing financial reports according to NAS.",
+                'Normativlar bazasidan «UZ-ACCT-GUIDE» kodini qidiring — hujjat BHMS va MHXS bo\'yicha hisobotlarni tayyorlash bo\'yicha bosqichma-bosqich ko\'rsatmalarni o\'z ichiga oladi.'
+            )
         },
         {
-            question: "What is the difference between IFRS and NAS?",
-            answer: "IFRS (International Financial Reporting Standards) includes provisions like IFRS 9 ECL and IFRS 16 leases. NAS (National Accounting Standards) follows Uzbekistan's specific requirements. See the Examples page for side-by-side comparisons."
+            question: tr('В чем разница между МСФО (IFRS) и НСБУ (NAS)?', "What is the difference between IFRS and NAS?", 'MHXS (IFRS) va BHMS (NAS) o\'rtasida qanday farq bor?'),
+            answer: tr(
+                'МСФО включает резервы под ожидаемые кредитные убытки (IFRS 9 ECL) и капитализацию аренды (IFRS 16). НСБУ следует национальным стандартам учета РУз. Сравнение приведено в разделе «Примеры отчетов».',
+                "IFRS (International Financial Reporting Standards) includes provisions like IFRS 9 ECL and IFRS 16 leases. NAS (National Accounting Standards) follows Uzbekistan's specific requirements. See the Examples page for side-by-side comparisons.",
+                'MHXS kutilayotgan kredit zararlar zaxiralarini (IFRS 9 ECL) va ijarani kapitallashtirishni (IFRS 16) o\'z ichiga oladi. BHMS O\'zbekiston milliy buxgalteriya standartlariga amal qiladi. Taqqoslash «Hisobot namunalari» bo\'limida keltirilgan.'
+            )
         },
         {
-            question: "How do I calculate materiality for audit?",
-            answer: "Use the materiality calculator in the Examples page under 'For Auditors'. Typically: Revenue × 1%, Assets × 2%, Profit × 5%. Use the lowest value."
+            question: tr('Как рассчитать уровень существенности для аудита?', "How do I calculate materiality for audit?", 'Audit uchun muhimlik darajasini qanday hisoblash mumkin?'),
+            answer: tr(
+                'Используйте калькулятор существенности в разделе «Примеры отчетов» (вкладка «Для аудиторов»): Выручка × 1%, Активы × 2%, Прибыль до налогообложения × 5%.',
+                "Use the materiality calculator in the Examples page under 'For Auditors'. Typically: Revenue × 1%, Assets × 2%, Profit × 5%. Use the lowest value.",
+                '«Hisobot namunalari» bo\'limidagi («Auditorlar uchun» ilovasi) muhimlik kalkulyatoridan foydalaning: Tushum × 1%, Aktivlar × 2%, Soliqdan oldingi foyda × 5%.'
+            )
         },
         {
-            question: "Can I download example reports?",
-            answer: "Yes! Visit the Examples page (/examples) where you can download filled balance sheets, P&L statements, cash flow statements, and audit working papers."
+            question: tr('Можно ли скачать образцы отчетов в Excel?', "Can I download example reports?", 'Hisobot namunalarini Excel formatida yuklab olish mumkinmi?'),
+            answer: tr(
+                'Да! В разделе «Примеры отчетов» (/examples) можно скачать заполненные балансы НСБУ и МСФО, ОПиУ, ОДДС и рабочие документы аудитора.',
+                "Yes! Visit the Examples page (/examples) where you can download filled balance sheets, P&L statements, cash flow statements, and audit working papers.",
+                'Ha! «Hisobot namunalari» (/examples) bo\'limida to\'ldirilgan BHMS va MHXS balanslari, Foyda va zararlar, Pul oqimlari hisobotlari hamda auditor ishchi hujjatlarini yuklab olishingiz mumkin.'
+            )
         },
         {
-            question: "How do I switch between Russian and English?",
-            answer: "Use the language selector in the top navigation bar. The system supports full bilingual content for all regulations and instructions."
+            question: tr('Как переключить язык интерфейса (RU / EN / UZ)?', "How do I switch between Russian, English, and Uzbek?", 'Interfeys tilini (RU / EN / UZ) qanday almashtirish mumkin?'),
+            answer: tr(
+                'Используйте переключатель языков (RU / EN / UZ) в верхней панели навигации. Система поддерживает полный перевод интерфейса на русский, английский и узбекский языки.',
+                "Use the language selector (RU / EN / UZ) in the top navigation bar. The system supports full trilingual content across Russian, English, and Uzbek.",
+                'Yuqori navigatsiya panelidagi til almashtirgichdan (RU / EN / UZ) foydalaning. Tizim rus, ingliz va o\'zbek tillarida to\'liq interfeys tarjimasini qo\'llab-quvvatlaydi.'
+            )
         },
         {
-            question: "What are workflow steps in regulations?",
-            answer: "Many regulations include interactive workflow steps with checklists. Click on a regulation to view its workflow, track your progress, and check off completed items."
+            question: tr('Что такое этапы рабочего процесса в нормативах?', "What are workflow steps in regulations?", 'Normativlardagi ish jarayoni bosqichlari nima?'),
+            answer: tr(
+                'Нормативы содержат интерактивные чек-листы рабочего процесса. Откройте норматив, чтобы отслеживать прогресс и отмечать выполненные аудиторские процедуры.',
+                "Many regulations include interactive workflow steps with checklists. Click on a regulation to view its workflow, track your progress, and check off completed items.",
+                'Normativlar interaktiv ish jarayoni chek-listlarini o\'z ichiga oladi. Jarayonni kuzatish va bajarilgan auditorlik amallarini belgilash uchun normativni oching.'
+            )
         }
     ];
 
@@ -81,7 +114,7 @@ export default function HelpPage() {
                             href="/guide"
                             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 text-white rounded-lg hover:from-cyan-400 hover:via-blue-500 hover:to-violet-500 transition-all font-semibold shadow-lg shadow-cyan-500/20"
                         >
-                            📖 Полное руководство пользователя с визуалами
+                            📖 {tr('Полное руководство пользователя с визуалами', 'Complete Visual User Guide', 'Vizual materiallar bilan to\'liq foydalanuvchi qo\'llanmasi')}
                             <ChevronRight className="h-5 w-5" />
                         </a>
                     </div>

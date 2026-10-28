@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { tr } from '@/lib/i18n';
 import { useNavigate } from 'react-router-dom';
 import { read, utils } from 'xlsx';
 import { FileUpload } from '@/components/FileUpload';
@@ -37,16 +38,16 @@ export default function UploadResults() {
                 } else {
                     toast({
                         variant: "destructive",
-                        title: isRu ? "Файл пуст" : "Empty file",
-                        description: isRu ? "Не удалось обнаружить строки в документе" : "No rows found in sheet",
+                        title: tr("Файл пуст", "Empty file"),
+                        description: tr("Не удалось обнаружить строки в документе", "No rows found in sheet"),
                     });
                 }
             } catch (error) {
                 console.error('Error parsing file:', error);
                 toast({
                     variant: "destructive",
-                    title: isRu ? "Ошибка чтения файла" : "File read error",
-                    description: isRu ? "Не удалось распарсить Excel документ" : "Failed to parse Excel document",
+                    title: tr("Ошибка чтения файла", "File read error"),
+                    description: tr("Не удалось распарсить Excel документ", "Failed to parse Excel document"),
                 });
             } finally {
                 setIsProcessing(false);
@@ -67,10 +68,8 @@ export default function UploadResults() {
             const newId = res.data?.id;
 
             toast({
-                title: isRu ? "Баланс успешно импортирован" : "Balance Sheet Imported",
-                description: isRu 
-                    ? `Загружено ${items.length} статей баланса. Переход к трансформации...`
-                    : `Loaded ${items.length} line items. Proceeding to transformation...`,
+                title: tr("Баланс успешно импортирован", "Balance Sheet Imported"),
+                description: tr(`Загружено ${items.length} статей баланса. Переход к трансформации...`, `Loaded ${items.length} line items. Proceeding to transformation...`),
             });
 
             if (newId) {
@@ -82,8 +81,8 @@ export default function UploadResults() {
             console.error('Failed to save balance sheet', error);
             toast({
                 variant: "destructive",
-                title: isRu ? "Ошибка сохранения" : "Save Error",
-                description: isRu ? "Не удалось сохранить загруженный баланс" : "Failed to save imported balance sheet",
+                title: tr("Ошибка сохранения", "Save Error"),
+                description: tr("Не удалось сохранить загруженный баланс", "Failed to save imported balance sheet"),
             });
             throw error;
         }
@@ -110,16 +109,14 @@ export default function UploadResults() {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                                {isRu ? 'Умный импорт оборотно-сальдовой ведомости' : 'Smart Trial Balance (OSV) Ingestion'}
+                                {tr('Умный импорт оборотно-сальдовой ведомости', 'Smart Trial Balance (OSV) Ingestion')}
                             </h1>
                             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                                 1C ➔ МСФО
                             </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            {isRu 
-                                ? 'Загрузка файлов Excel/CSV из 1С:Бухгалтерии с автоопределением субсчетов и интерактивным сопоставлением колонок.'
-                                : 'Upload 1C or Excel balance sheets with automated plan of accounts recognition and visual column mapping.'}
+                            {tr('Загрузка файлов Excel/CSV из 1С:Бухгалтерии с автоопределением субсчетов и интерактивным сопоставлением колонок.', 'Upload 1C or Excel balance sheets with automated plan of accounts recognition and visual column mapping.')}
                         </p>
                     </div>
                 </div>
@@ -127,7 +124,7 @@ export default function UploadResults() {
                 {rawRows.length > 0 && (
                     <Button variant="outline" size="sm" onClick={handleReset} className="text-xs self-start sm:self-auto">
                         <UploadIcon className="w-3.5 h-3.5 mr-1.5" />
-                        {isRu ? 'Загрузить другой файл' : 'Upload Another File'}
+                        {tr('Загрузить другой файл', 'Upload Another File')}
                     </Button>
                 )}
             </div>
@@ -139,7 +136,7 @@ export default function UploadResults() {
                         <div className="text-center py-20 bg-card rounded-2xl border border-border/80 shadow-xs space-y-3">
                             <FileSpreadsheet className="w-10 h-10 text-blue-600 animate-bounce mx-auto" />
                             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                                {isRu ? 'Анализ структуры документа 1С...' : 'Parsing 1C document structure...'}
+                                {tr('Анализ структуры документа 1С...', 'Parsing 1C document structure...')}
                             </p>
                         </div>
                     ) : (

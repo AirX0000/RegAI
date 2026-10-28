@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Shield, User, Download, Activity, AlertCircle, CheckCircle, XCircle, Clock, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { tr } from '../lib/i18n';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function AuditLogPage() {
@@ -83,16 +84,14 @@ export default function AuditLogPage() {
             link.remove();
 
             toast({
-                title: isRu ? "Аудиторский экспорт подтвержден" : "Audit Export Verified",
-                description: isRu
-                    ? `Выгружено записей: ${recordCount || 'все'}. Хеш SHA-256: ${checksum ? checksum.substring(0, 16) + '...' : 'Рассчитан'}`
-                    : `Exported ${recordCount || 'all'} records. SHA-256: ${checksum ? checksum.substring(0, 16) + '...' : 'Generated'}`,
+                title: tr("Аудиторский экспорт подтвержден", "Audit Export Verified"),
+                description: tr(`Выгружено записей: ${recordCount || 'все'}. Хеш SHA-256: ${checksum ? checksum.substring(0, 16) + '...' : 'Рассчитан'}`, `Exported ${recordCount || 'all'} records. SHA-256: ${checksum ? checksum.substring(0, 16) + '...' : 'Generated'}`),
             });
         } catch (error) {
             console.error('Failed to export audit logs:', error);
             toast({
-                title: isRu ? "Ошибка экспорта" : "Export Failed",
-                description: isRu ? "Не удалось выгрузить журнал аудита" : "Failed to download audit logs",
+                title: tr("Ошибка экспорта", "Export Failed"),
+                description: tr("Не удалось выгрузить журнал аудита", "Failed to download audit logs"),
                 variant: "destructive"
             });
         }
@@ -140,40 +139,38 @@ export default function AuditLogPage() {
 
     const getActionLabel = (action: string) => {
         const act = action.toLowerCase();
-        if (!isRu) return action.toUpperCase();
         switch (act) {
-            case 'create': return 'СОЗДАНИЕ';
-            case 'update': return 'ИЗМЕНЕНИЕ';
-            case 'delete': return 'УДАЛЕНИЕ';
-            case 'login': return 'ВХОД';
-            case 'logout': return 'ВЫХОД';
-            case 'view': return 'ПРОСМОТР';
-            case 'sync': return 'СИНХРОНИЗАЦИЯ';
-            case 'transform': return 'ТРАНСФОРМАЦИЯ';
-            case 'review': return 'УТВЕРЖДЕНИЕ';
-            case 'compliance': return 'КОМПЛАЕНС';
+            case 'create': return tr('СОЗДАНИЕ', 'CREATE', 'YARATISH');
+            case 'update': return tr('ИЗМЕНЕНИЕ', 'UPDATE', 'YANGILASH');
+            case 'delete': return tr('УДАЛЕНИЕ', 'DELETE', 'O\'CHIRISH');
+            case 'login': return tr('ВХОД', 'LOGIN', 'KIRISH');
+            case 'logout': return tr('ВЫХОД', 'LOGOUT', 'CHIQISH');
+            case 'view': return tr('ПРОСМОТР', 'VIEW', 'KO\'RISH');
+            case 'sync': return tr('СИНХРОНИЗАЦИЯ', 'SYNC', 'SINXRONIZATSIYA');
+            case 'transform': return tr('ТРАНСФОРМАЦИЯ', 'TRANSFORM', 'TRANSFORMATSIYA');
+            case 'review': return tr('УТВЕРЖДЕНИЕ', 'REVIEW', 'TASDIQLASH');
+            case 'compliance': return tr('КОМПЛАЕНС', 'COMPLIANCE', 'KOMPLAYENS');
             default: return action.toUpperCase();
         }
     };
 
     const getResourceLabel = (resType?: string) => {
         if (!resType) return 'N/A';
-        if (!isRu) return resType;
         const map: Record<string, string> = {
-            report: 'Отчет',
-            reports: 'Отчеты',
-            balance_sheet: 'Баланс МСФО',
-            balance_sheets: 'Балансы МСФО',
-            user: 'Пользователь',
-            users: 'Пользователи',
-            company: 'Компания',
-            companies: 'Компании',
-            tax_rate: 'Налоговая ставка',
-            onec_sync: 'Синхронизация 1С',
-            regulation: 'Норматив',
-            alert: 'Уведомление комплаенс',
-            auth: 'Аутентификация',
-            system: 'Система',
+            report: tr('Отчет', 'Report', 'Hisobot'),
+            reports: tr('Отчеты', 'Reports', 'Hisobotlar'),
+            balance_sheet: tr('Баланс МСФО', 'IFRS Balance Sheet', 'MHXS balansi'),
+            balance_sheets: tr('Балансы МСФО', 'IFRS Balance Sheets', 'MHXS balanslari'),
+            user: tr('Пользователь', 'User', 'Foydalanuvchi'),
+            users: tr('Пользователи', 'Users', 'Foydalanuvchilar'),
+            company: tr('Компания', 'Company', 'Kompaniya'),
+            companies: tr('Компании', 'Companies', 'Kompaniyalar'),
+            tax_rate: tr('Налоговая ставка', 'Tax Rate', 'Soliq stavkasi'),
+            onec_sync: tr('Синхронизация 1С', '1C Sync', '1C sinxronizatsiyasi'),
+            regulation: tr('Норматив', 'Regulation', 'Normativ'),
+            alert: tr('Уведомление комплаенс', 'Compliance Alert', 'Komplayens ogohlantirishi'),
+            auth: tr('Аутентификация', 'Authentication', 'Autentifikatsiya'),
+            system: tr('Система', 'System', 'Tizim'),
         };
         return map[resType.toLowerCase()] || resType;
     };
@@ -192,7 +189,7 @@ export default function AuditLogPage() {
     };
 
     if (loading && logs.length === 0) {
-        return <div className="p-8 text-center">{isRu ? 'Загрузка журнала аудита...' : 'Loading audit logs...'}</div>;
+        return <div className="p-8 text-center">{tr('Загрузка журнала аудита...', 'Loading audit logs...')}</div>;
     }
 
     return (
@@ -202,20 +199,20 @@ export default function AuditLogPage() {
                     <div className="flex flex-wrap items-center gap-2.5">
                         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-slate-900 dark:text-white">
                             <Shield className="h-8 w-8 text-blue-600" />
-                            {isRu ? 'Журнал аудита' : 'Audit Trail'}
+                            {tr('Журнал аудита', 'Audit Trail')}
                         </h1>
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
-                            {user?.role === 'superadmin' ? (isRu ? 'Все организации' : 'All Organizations') : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
+                            {user?.role === 'superadmin' ? (tr('Все организации', 'All Organizations')) : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
                         </span>
                     </div>
                     <p className="text-gray-500 mt-1">
-                        {isRu ? 'Общесистемный журнал действий пользователей и событий безопасности' : 'System-wide activity log'}
+                        {tr('Общесистемный журнал действий пользователей и событий безопасности', 'System-wide activity log')}
                     </p>
                 </div>
                 <Button onClick={handleExport} variant="outline" className="flex items-center gap-2">
                     <Download className="h-4 w-4" />
-                    {isRu ? 'Экспорт в CSV' : 'Export CSV'}
+                    {tr('Экспорт в CSV', 'Export CSV')}
                 </Button>
             </div>
 
@@ -226,7 +223,7 @@ export default function AuditLogPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-500">{isRu ? 'Всего действий' : 'Total Actions'}</p>
+                                    <p className="text-sm text-gray-500">{tr('Всего действий', 'Total Actions')}</p>
                                     <p className="text-2xl font-bold">{stats.total_actions || 0}</p>
                                 </div>
                                 <Activity className="h-8 w-8 text-blue-500" />
@@ -237,7 +234,7 @@ export default function AuditLogPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-500">{isRu ? 'Сегодня' : 'Today'}</p>
+                                    <p className="text-sm text-gray-500">{tr('Сегодня', 'Today')}</p>
                                     <p className="text-2xl font-bold">{stats.today_actions || 0}</p>
                                 </div>
                                 <Clock className="h-8 w-8 text-green-500" />
@@ -248,7 +245,7 @@ export default function AuditLogPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-500">{isRu ? 'Активные пользователи' : 'Active Users'}</p>
+                                    <p className="text-sm text-gray-500">{tr('Активные пользователи', 'Active Users')}</p>
                                     <p className="text-2xl font-bold">{stats.active_users || 0}</p>
                                 </div>
                                 <User className="h-8 w-8 text-purple-500" />
@@ -259,7 +256,7 @@ export default function AuditLogPage() {
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-500">{isRu ? 'Критические действия' : 'Critical Actions'}</p>
+                                    <p className="text-sm text-gray-500">{tr('Критические действия', 'Critical Actions')}</p>
                                     <p className="text-2xl font-bold">{stats.critical_actions || 0}</p>
                                 </div>
                                 <AlertCircle className="h-8 w-8 text-red-500" />
@@ -272,28 +269,28 @@ export default function AuditLogPage() {
             {/* Filters */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">{isRu ? 'Фильтры журнала' : 'Filters'}</CardTitle>
+                    <CardTitle className="text-lg">{tr('Фильтры журнала', 'Filters')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
-                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{isRu ? 'Действие' : 'Action'}</label>
+                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{tr('Действие', 'Action')}</label>
                             <select
                                 className="w-full border border-slate-200 dark:border-slate-700 rounded-md p-2 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 value={filters.action}
                                 onChange={(e) => handleFilterChange('action', e.target.value)}
                             >
-                                <option value="">{isRu ? 'Все действия' : 'All actions'}</option>
-                                <option value="create">{isRu ? 'Создание (Create)' : 'Create'}</option>
-                                <option value="update">{isRu ? 'Изменение (Update)' : 'Update'}</option>
-                                <option value="delete">{isRu ? 'Удаление (Delete)' : 'Delete'}</option>
-                                <option value="login">{isRu ? 'Вход в систему (Login)' : 'Login'}</option>
-                                <option value="logout">{isRu ? 'Выход (Logout)' : 'Logout'}</option>
+                                <option value="">{tr('Все действия', 'All actions')}</option>
+                                <option value="create">{tr('Создание (Create)', 'Create')}</option>
+                                <option value="update">{tr('Изменение (Update)', 'Update')}</option>
+                                <option value="delete">{tr('Удаление (Delete)', 'Delete')}</option>
+                                <option value="login">{tr('Вход в систему (Login)', 'Login')}</option>
+                                <option value="logout">{tr('Выход (Logout)', 'Logout')}</option>
                             </select>
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{isRu ? 'Дата с' : 'Start Date'}</label>
+                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{tr('Дата с', 'Start Date')}</label>
                             <Input
                                 type="date"
                                 value={filters.start_date}
@@ -303,7 +300,7 @@ export default function AuditLogPage() {
                         </div>
 
                         <div>
-                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{isRu ? 'Дата по' : 'End Date'}</label>
+                            <label className="text-sm font-medium mb-2 block text-slate-700 dark:text-slate-300">{tr('Дата по', 'End Date')}</label>
                             <Input
                                 type="date"
                                 value={filters.end_date}
@@ -321,7 +318,7 @@ export default function AuditLogPage() {
                                 }}
                                 className="w-full border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
-                                {isRu ? 'Сбросить фильтры' : 'Clear Filters'}
+                                {tr('Сбросить фильтры', 'Clear Filters')}
                             </Button>
                         </div>
                     </div>
@@ -335,12 +332,12 @@ export default function AuditLogPage() {
                         <table className="w-full">
                             <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'Время' : 'Timestamp'}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'Пользователь' : 'User'}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'Действие' : 'Action'}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'Ресурс' : 'Resource'}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'Подробности' : 'Details'}</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{isRu ? 'IP Адрес' : 'IP Address'}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('Время', 'Timestamp')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('Пользователь', 'User')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('Действие', 'Action')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('Ресурс', 'Resource')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('Подробности', 'Details')}</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{tr('IP Адрес', 'IP Address')}</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800">
@@ -388,14 +385,14 @@ export default function AuditLogPage() {
 
                     {logs.length === 0 && (
                         <div className="text-center py-12 text-gray-500">
-                            {isRu ? 'Записи журнала аудита не найдены' : 'No audit logs found'}
+                            {tr('Записи журнала аудита не найдены', 'No audit logs found')}
                         </div>
                     )}
 
                     {/* Pagination */}
                     <div className="flex items-center justify-between p-4 border-t">
                         <div className="text-sm text-gray-500">
-                            {isRu ? `Показано ${page * 50 + 1} - ${Math.min((page + 1) * 50, total)} из ${total} записей` : `Showing ${page * 50 + 1} to ${Math.min((page + 1) * 50, total)} of ${total} entries`}
+                            {tr(`Показано ${page * 50 + 1} - ${Math.min((page + 1) * 50, total)} из ${total} записей`, `Showing ${page * 50 + 1} to ${Math.min((page + 1) * 50, total)} of ${total} entries`)}
                         </div>
                         <div className="flex gap-2">
                             <Button
@@ -404,7 +401,7 @@ export default function AuditLogPage() {
                                 onClick={() => setPage(p => Math.max(0, p - 1))}
                                 disabled={page === 0}
                             >
-                                {isRu ? 'Назад' : 'Previous'}
+                                {tr('Назад', 'Previous')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -412,7 +409,7 @@ export default function AuditLogPage() {
                                 onClick={() => setPage(p => p + 1)}
                                 disabled={(page + 1) * 50 >= total}
                             >
-                                {isRu ? 'Вперед' : 'Next'}
+                                {tr('Вперед', 'Next')}
                             </Button>
                         </div>
                     </div>

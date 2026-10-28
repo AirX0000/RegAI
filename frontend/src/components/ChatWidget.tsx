@@ -6,6 +6,7 @@ import { X, Send, Sparkles, BookOpen } from 'lucide-react';
 import api from '../lib/api';
 import ReactMarkdown from 'react-markdown';
 import { useTranslation } from 'react-i18next';
+import { normalizeLang } from '../lib/i18n';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -25,12 +26,19 @@ const SUGGESTIONS_BY_LANG: Record<string, string[]> = {
         "Объясни требования соответствия GDPR",
         "Как рассчитать налог для SaaS?",
         "Сводка актуальных ESG нормативов"
+    ],
+    uz: [
+        "MHXS (IFRS) bo'yicha so'nggi o'zgarishlar qanday?",
+        "O'zR Soliq kodeksi 2026 stavkalarini tushuntiring",
+        "IFRS 16 bo'yicha ijara qanday hisoblanadi?",
+        "IFRS 9 ECL zaxiralarini hisoblash tartibi"
     ]
 };
 
 const GREETINGS: Record<string, string> = {
     en: "Hello! I am your Axiaris assistant. Ask me anything about regulations, taxes, or IFRS.",
-    ru: "Здравствуйте! Я ваш ассистент Axiaris. Задайте мне любой вопрос по нормативам, налогам или МСФО."
+    ru: "Здравствуйте! Я ваш ассистент Axiaris. Задайте мне любой вопрос по нормативам, налогам или МСФО.",
+    uz: "Assalomu alaykum! Men sizning Axiaris AI-yordamchingizman. Me'yoriy hujjatlar, soliqlar yoki MHXS (IFRS) bo'yicha istalgan savolingizni bering."
 };
 
 const UI_TEXT: Record<string, {
@@ -59,12 +67,21 @@ const UI_TEXT: Record<string, {
         sources: "Источники",
         error: "Извините, произошла ошибка. Пожалуйста, попробуйте еще раз.",
         fallback: "Ответ сформирован на основе регуляторной базы Axiaris."
+    },
+    uz: {
+        title: "Axiaris AI-Yordamchi",
+        subtitle: "Sun'iy intellekt asosida",
+        suggested: "Tavsiya etilgan savollar",
+        placeholder: "Me'yorlar, soliqlar yoki MHXS haqida so'rang...",
+        sources: "Manbalar",
+        error: "Kechirasiz, xatolik yuz berdi. Iltimos, qayta urinib ko'ring.",
+        fallback: "Javob Axiaris me'yoriy bazasi asosida shakllantirildi."
     }
 };
 
 export function ChatWidget() {
     const { i18n } = useTranslation();
-    const activeLang = (i18n.language || 'ru').toLowerCase().startsWith('en') ? 'en' : 'ru';
+    const activeLang = normalizeLang(i18n.language);
     const textConfig = UI_TEXT[activeLang] || UI_TEXT.ru;
     const suggestedQuestions = SUGGESTIONS_BY_LANG[activeLang] || SUGGESTIONS_BY_LANG.ru;
 

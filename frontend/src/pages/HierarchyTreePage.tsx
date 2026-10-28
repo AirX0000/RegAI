@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, Users, Shield, UserCog, User, Crown, Network
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GroupConsolidationView from '../components/hierarchy/GroupConsolidationView';
+import { tr } from '../lib/i18n';
 
 interface HierarchyLevel {
     level: number;
@@ -29,7 +30,7 @@ export default function HierarchyTreePage() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const { i18n } = useTranslation();
-    const isRu = (i18n.language || 'ru').toLowerCase().startsWith('ru');
+    void i18n.language;
     const isSuperAdmin = user?.role === 'superadmin' || user?.role === 'website_superadmin';
 
     const [hierarchy, setHierarchy] = useState<HierarchyLevel[]>([]);
@@ -85,22 +86,12 @@ export default function HierarchyTreePage() {
     };
 
     const getLocalizedRoleTitle = (levelNum: number, originalName: string) => {
-        if (!isRu) {
-            switch (levelNum) {
-                case 1: return 'Platform SuperAdmin';
-                case 2: return 'Company Owner';
-                case 3: return 'Company Super Admin';
-                case 4: return 'Company Admin';
-                case 5: return 'Auditor / Accountant';
-                default: return originalName;
-            }
-        }
         switch (levelNum) {
-            case 1: return 'Главный администратор платформы';
-            case 2: return 'Владелец компании';
-            case 3: return 'Суперадминистратор компании';
-            case 4: return 'Администратор компании';
-            case 5: return 'Аудитор / Бухгалтер';
+            case 1: return tr('Главный администратор платформы', 'Platform SuperAdmin', 'Platforma bosh administratori');
+            case 2: return tr('Владелец компании', 'Company Owner', 'Kompaniya egasi');
+            case 3: return tr('Суперадминистратор компании', 'Company Super Admin', 'Kompaniya superadministratori');
+            case 4: return tr('Администратор компании', 'Company Admin', 'Kompaniya administratori');
+            case 5: return tr('Аудитор / Бухгалтер', 'Auditor / Accountant', 'Auditor / Buxgalter');
             default: return originalName;
         }
     };
@@ -111,18 +102,22 @@ export default function HierarchyTreePage() {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
                         <Network className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-                        {isRu 
-                            ? (isSuperAdmin ? 'Структура группы и иерархия' : 'Организационная структура и доступы') 
-                            : (isSuperAdmin ? 'Group Structure & Hierarchy' : 'Organizational Structure & Roles')}
+                        {isSuperAdmin
+                            ? tr('Структура группы и иерархия', 'Group Structure & Hierarchy', 'Guruh tuzilmasi va iyerarxiyasi')
+                            : tr('Организационная структура и доступы', 'Organizational Structure & Roles', 'Tashkiliy tuzilma va ruxsatlar')}
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">
-                        {isRu 
-                            ? (isSuperAdmin 
-                                ? 'Консолидация холдинга по МСФО (IFRS 10), внутригрупповые элиминации и ролевые доступы' 
-                                : `Управление ролями, сотрудниками и правами доступа организации ${user?.company_name || 'TechCorp Ltd'}`) 
-                            : (isSuperAdmin 
-                                ? 'IFRS 10 Group Consolidation, Intercompany Eliminations and Organizational Roles' 
-                                : `Manage roles, members, and access permissions for ${user?.company_name || 'TechCorp Ltd'}`)}
+                        {isSuperAdmin
+                            ? tr(
+                                'Консолидация холдинга по МСФО (IFRS 10), внутригрупповые элиминации и ролевые доступы',
+                                'IFRS 10 Group Consolidation, Intercompany Eliminations and Organizational Roles',
+                                'MHXS (IFRS 10) bo\'yicha xolding konsolidatsiyasi, guruh ichidagi eliminatsiyalar va rollar'
+                            )
+                            : tr(
+                                `Управление ролями, сотрудниками и правами доступа организации ${user?.company_name || 'TechCorp Ltd'}`,
+                                `Manage roles, members, and access permissions for ${user?.company_name || 'TechCorp Ltd'}`,
+                                `${user?.company_name || 'TechCorp Ltd'} tashkiloti rollari, xodimlari va kirish huquqlarini boshqarish`
+                            )}
                     </p>
                 </div>
             </div>
@@ -133,22 +128,22 @@ export default function HierarchyTreePage() {
                         <>
                             <TabsTrigger value="consolidation" className="flex items-center gap-2 px-4 py-2 font-medium">
                                 <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                                {isRu ? 'Консолидация группы (IFRS 10)' : 'Group Consolidation (IFRS 10)'}
+                                {tr('Консолидация группы (IFRS 10)', 'Group Consolidation (IFRS 10)')}
                             </TabsTrigger>
                             <TabsTrigger value="roles" className="flex items-center gap-2 px-4 py-2 font-medium">
                                 <Users className="h-4 w-4 text-blue-600" />
-                                {isRu ? 'Ролевая структура платформы' : 'Platform Roles & Access'}
+                                {tr('Ролевая структура платформы', 'Platform Roles & Access')}
                             </TabsTrigger>
                         </>
                     ) : (
                         <>
                             <TabsTrigger value="roles" className="flex items-center gap-2 px-4 py-2 font-medium">
                                 <Users className="h-4 w-4 text-blue-600" />
-                                {isRu ? 'Сотрудники и роли компании' : 'Company Users & Roles'}
+                                {tr('Сотрудники и роли компании', 'Company Users & Roles')}
                             </TabsTrigger>
                             <TabsTrigger value="consolidation" className="flex items-center gap-2 px-4 py-2 font-medium">
                                 <Building2 className="h-4 w-4 text-slate-500" />
-                                {isRu ? 'Статус контура (Автономный)' : 'Entity Scope (Autonomous)'}
+                                {tr('Статус контура (Автономный)', 'Entity Scope (Autonomous)')}
                             </TabsTrigger>
                         </>
                     )}
@@ -166,12 +161,10 @@ export default function HierarchyTreePage() {
                                     </div>
                                     <div>
                                         <CardTitle className="text-lg">
-                                            {isRu ? 'Контур учета: Автономная организация' : 'Scope: Standalone Autonomous Entity'}
+                                            {tr('Контур учета: Автономная организация', 'Scope: Standalone Autonomous Entity')}
                                         </CardTitle>
                                         <CardDescription>
-                                            {isRu 
-                                                ? `Организация ${user?.company_name || 'TechCorp Ltd'} (1 юридическое лицо)` 
-                                                : `Organization ${user?.company_name || 'TechCorp Ltd'} (1 legal entity)`}
+                                            {tr(`Организация ${user?.company_name || 'TechCorp Ltd'} (1 юридическое лицо)`, `Organization ${user?.company_name || 'TechCorp Ltd'} (1 legal entity)`)}
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -179,19 +172,17 @@ export default function HierarchyTreePage() {
                             <CardContent className="space-y-4">
                                 <div className="p-4 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-sm text-slate-700 dark:text-slate-300">
                                     <p>
-                                        {isRu
-                                            ? 'Модуль консолидации по стандарту МСФО 10 (IFRS 10) с матрицей элиминаций внутригрупповых оборотов и неконтролирующей доли (NCI) применяется при наличии дочерних предприятий в составе холдинга. Ваша организация ведет автономный раздельный учет по международным стандартам финансовой отчетности (МСФО).'
-                                            : 'The IFRS 10 group consolidation module with elimination matrices and non-controlling interest (NCI) calculations is enabled for holding groups with active subsidiaries. Your organization operates in isolated autonomous accounting mode.'}
+                                        {tr('Модуль консолидации по стандарту МСФО 10 (IFRS 10) с матрицей элиминаций внутригрупповых оборотов и неконтролирующей доли (NCI) применяется при наличии дочерних предприятий в составе холдинга. Ваша организация ведет автономный раздельный учет по международным стандартам финансовой отчетности (МСФО).', 'The IFRS 10 group consolidation module with elimination matrices and non-controlling interest (NCI) calculations is enabled for holding groups with active subsidiaries. Your organization operates in isolated autonomous accounting mode.')}
                                     </p>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-3 pt-2">
                                     <Button onClick={() => setMainTab('roles')} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
                                         <Users className="h-4 w-4" />
-                                        {isRu ? 'Сотрудники и роли компании' : 'Team Roles & Access'}
+                                        {tr('Сотрудники и роли компании', 'Team Roles & Access')}
                                     </Button>
                                     <Button onClick={() => navigate('/company-settings')} variant="outline" className="gap-2">
                                         <Settings className="h-4 w-4" />
-                                        {isRu ? 'Параметры компании и 1С' : 'Company Settings & 1C'}
+                                        {tr('Параметры компании и 1С', 'Company Settings & 1C')}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -202,15 +193,15 @@ export default function HierarchyTreePage() {
                 <TabsContent value="roles" className="mt-0 space-y-6 focus-visible:outline-hidden">
                     {loading ? (
                         <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
-                            {isRu ? 'Загрузка структуры уровней доступа...' : 'Loading hierarchy...'}
+                            {tr('Загрузка структуры уровней доступа...', 'Loading hierarchy...')}
                         </div>
                     ) : (
                         <>
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>{isRu ? 'Структура уровней доступа' : 'Hierarchy Structure'}</CardTitle>
+                                    <CardTitle>{tr('Структура уровней доступа', 'Hierarchy Structure')}</CardTitle>
                                     <CardDescription>
-                                        {isRu ? 'Нажмите на уровень, чтобы развернуть или свернуть список пользователей' : 'Click on each level to expand/collapse user details'}
+                                        {tr('Нажмите на уровень, чтобы развернуть или свернуть список пользователей', 'Click on each level to expand/collapse user details')}
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -240,15 +231,16 @@ export default function HierarchyTreePage() {
                                                                 <div>
                                                                     <h3 className="font-semibold text-lg">{displayName}</h3>
                                                                     <p className="text-sm opacity-75">
-                                                                        {isRu ? `Уровень ${levelNum}` : `Level ${levelNum}`} • {level.role_name || (isRu ? 'Служба' : 'Service')}
+                                                                        {tr(`Уровень ${levelNum}`, `Level ${levelNum}`)} • {level.role_name || (tr('Служба', 'Service'))}
                                                                     </p>
                                                                 </div>
                                                             </div>
                                                             <span className="px-3 py-1 bg-white/90 dark:bg-slate-900/90 text-slate-800 dark:text-slate-200 rounded-full text-sm font-semibold shadow-xs border border-black/5 dark:border-white/10">
-                                                                {userCount} {isRu
-                                                                    ? (userCount === 1 ? 'пользователь' : (userCount > 1 && userCount < 5 ? 'пользователя' : 'пользователей'))
-                                                                    : (userCount === 1 ? 'user' : 'users')
-                                                                }
+                                                                {userCount} {tr(
+                                                                    userCount === 1 ? 'пользователь' : (userCount > 1 && userCount < 5 ? 'пользователя' : 'пользователей'),
+                                                                    userCount === 1 ? 'user' : 'users',
+                                                                    'foydalanuvchi'
+                                                                )}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -270,7 +262,7 @@ export default function HierarchyTreePage() {
                                                                                         {user.is_company_owner && (
                                                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 rounded text-xs font-medium">
                                                                                                 <Crown className="h-3 w-3" />
-                                                                                                {isRu ? 'Владелец' : 'Owner'}
+                                                                                                {tr('Владелец', 'Owner')}
                                                                                             </span>
                                                                                         )}
                                                                                         {user.company_name && (
@@ -295,7 +287,7 @@ export default function HierarchyTreePage() {
                                                     {/* Empty State */}
                                                     {isExpanded && userList.length === 0 && (
                                                         <div className="bg-slate-50 dark:bg-slate-800/40 p-8 text-center text-slate-500 dark:text-slate-400">
-                                                            {isRu ? 'Нет пользователей на данном уровне' : 'No users at this level'}
+                                                            {tr('Нет пользователей на данном уровне', 'No users at this level')}
                                                         </div>
                                                     )}
                                                 </div>
@@ -306,7 +298,7 @@ export default function HierarchyTreePage() {
                                     {hierarchy.length === 0 && (
                                         <div className="text-center py-12 text-slate-500 dark:text-slate-400">
                                             <Users className="h-12 w-12 mx-auto mb-4 text-slate-400" />
-                                            <p>{isRu ? 'Данные иерархии отсутствуют' : 'No hierarchy data available'}</p>
+                                            <p>{tr('Данные иерархии отсутствуют', 'No hierarchy data available')}</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -315,43 +307,43 @@ export default function HierarchyTreePage() {
                             <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/60">
                                 <CardHeader>
                                     <CardTitle className="text-blue-900 dark:text-blue-300">
-                                        {isRu ? 'Описание уровней иерархии' : 'Hierarchy Levels Explained'}
+                                        {tr('Описание уровней иерархии', 'Hierarchy Levels Explained')}
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="text-sm text-blue-900 dark:text-blue-200/90 space-y-2">
                                     <div className="flex items-start gap-2">
                                         <Crown className="h-4 w-4 mt-0.5 text-purple-600 dark:text-purple-400 shrink-0" />
                                         <div>
-                                            <strong>{isRu ? 'Уровень 1 - Главный администратор платформы:' : 'Level 1 - Website Super Admin:'}</strong>{' '}
-                                            {isRu ? 'Полный системный доступ, управление всеми компаниями и тенантами' : 'Full system access, manages all companies'}
+                                            <strong>{tr('Уровень 1 - Главный администратор платформы:', 'Level 1 - Website Super Admin:')}</strong>{' '}
+                                            {tr('Полный системный доступ, управление всеми компаниями и тенантами', 'Full system access, manages all companies')}
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-2">
                                         <Shield className="h-4 w-4 mt-0.5 text-blue-600 dark:text-blue-400 shrink-0" />
                                         <div>
-                                            <strong>{isRu ? 'Уровень 2 - Владелец компании:' : 'Level 2 - Company Owner:'}</strong>{' '}
-                                            {isRu ? 'Полный доступ к управлению своей компанией, филиалами и финансами' : 'Full access to their company'}
+                                            <strong>{tr('Уровень 2 - Владелец компании:', 'Level 2 - Company Owner:')}</strong>{' '}
+                                            {tr('Полный доступ к управлению своей компанией, филиалами и финансами', 'Full access to their company')}
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-2">
                                         <UserCog className="h-4 w-4 mt-0.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                         <div>
-                                            <strong>{isRu ? 'Уровень 3 - Суперадминистратор компании:' : 'Level 3 - Company Super Admin:'}</strong>{' '}
-                                            {isRu ? 'Управление пользователями, ролями и настройками организации' : 'Manages users and settings'}
+                                            <strong>{tr('Уровень 3 - Суперадминистратор компании:', 'Level 3 - Company Super Admin:')}</strong>{' '}
+                                            {tr('Управление пользователями, ролями и настройками организации', 'Manages users and settings')}
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-2">
                                         <Users className="h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                         <div>
-                                            <strong>{isRu ? 'Уровень 4 - Администратор компании:' : 'Level 4 - Company Admin:'}</strong>{' '}
-                                            {isRu ? 'Проверка и утверждение отчётов, управление финансовыми данными' : 'Reviews reports and manages data'}
+                                            <strong>{tr('Уровень 4 - Администратор компании:', 'Level 4 - Company Admin:')}</strong>{' '}
+                                            {tr('Проверка и утверждение отчётов, управление финансовыми данными', 'Reviews reports and manages data')}
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-2">
                                         <User className="h-4 w-4 mt-0.5 text-slate-600 dark:text-slate-400 shrink-0" />
                                         <div>
-                                            <strong>{isRu ? 'Уровень 5 - Аудитор / Бухгалтер:' : 'Level 5 - Auditor/Accountant:'}</strong>{' '}
-                                            {isRu ? 'Подготовка, загрузка балансов и просмотр назначенных отчетов' : 'Submits and views own reports'}
+                                            <strong>{tr('Уровень 5 - Аудитор / Бухгалтер:', 'Level 5 - Auditor/Accountant:')}</strong>{' '}
+                                            {tr('Подготовка, загрузка балансов и просмотр назначенных отчетов', 'Submits and views own reports')}
                                         </div>
                                     </div>
                                 </CardContent>

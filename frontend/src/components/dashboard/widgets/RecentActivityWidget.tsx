@@ -1,4 +1,5 @@
 import React from 'react';
+import { tr } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { WidgetProps } from '../types';
 import { Activity, RefreshCw, ArrowRightLeft, ShieldCheck, Building2, CheckCircle2, FileText } from 'lucide-react';
@@ -16,31 +17,31 @@ export const RecentActivityWidget: React.FC<WidgetProps> = ({ data }) => {
         switch (action.toLowerCase()) {
             case 'sync':
                 return {
-                    label: isEn ? '1C Sync' : 'Синхронизация 1С',
+                    label: tr('Синхронизация 1С', '1C Sync'),
                     color: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
                     icon: <RefreshCw className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                 };
             case 'transform':
                 return {
-                    label: isEn ? 'IFRS Transform' : 'Трансформация МСФО',
+                    label: tr('Трансформация МСФО', 'IFRS Transform'),
                     color: 'bg-purple-100 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
                     icon: <ArrowRightLeft className="h-3 w-3 text-purple-600 dark:text-purple-400" />
                 };
             case 'review':
                 return {
-                    label: isEn ? 'Audit Review' : 'Аудит и резерв',
+                    label: tr('Аудит и резерв', 'Audit Review'),
                     color: 'bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
                     icon: <CheckCircle2 className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                 };
             case 'consolidation':
                 return {
-                    label: isEn ? 'IFRS 10 Consolidation' : 'Консолидация IFRS 10',
+                    label: tr('Консолидация IFRS 10', 'IFRS 10 Consolidation'),
                     color: 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
                     icon: <Building2 className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                 };
             case 'compliance':
                 return {
-                    label: isEn ? 'Compliance' : 'Комплаенс',
+                    label: tr('Комплаенс', 'Compliance'),
                     color: 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
                     icon: <ShieldCheck className="h-3 w-3 text-amber-600 dark:text-amber-400" />
                 };
@@ -58,10 +59,10 @@ export const RecentActivityWidget: React.FC<WidgetProps> = ({ data }) => {
             const date = new Date(timestamp);
             const diffMs = Date.now() - date.getTime();
             const diffMins = Math.floor(diffMs / (1000 * 60));
-            if (diffMins < 1) return isEn ? 'just now' : 'только что';
-            if (diffMins < 60) return isEn ? `${diffMins} min ago` : `${diffMins} мин назад`;
+            if (diffMins < 1) return tr('только что', 'just now');
+            if (diffMins < 60) return tr(`${diffMins} мин назад`, `${diffMins} min ago`);
             const diffHours = Math.floor(diffMins / 60);
-            if (diffHours < 24) return isEn ? `${diffHours} hr ago` : `${diffHours} ч назад`;
+            if (diffHours < 24) return tr(`${diffHours} ч назад`, `${diffHours} hr ago`);
             return date.toLocaleDateString(isEn ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'short' });
         } catch {
             return timestamp;
@@ -74,24 +75,24 @@ export const RecentActivityWidget: React.FC<WidgetProps> = ({ data }) => {
                 <div>
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <Activity className="h-4 w-4 text-blue-500" />
-                        {isEn ? "Audit & Activity Feed" : "Лента аудита и операций"}
+                        {tr("Лента аудита и операций", "Audit & Activity Feed")}
                     </CardTitle>
                     <CardDescription className="text-xs">
-                        {isEn ? "Live events stream across 1C, IFRS and holding entities" : "Поток операций 1С, МСФО-корректировок и холдинга"}
+                        {tr("Поток операций 1С, МСФО-корректировок и холдинга", "Live events stream across 1C, IFRS and holding entities")}
                     </CardDescription>
                 </div>
                 <button
                     onClick={() => navigate('/audit-log')}
                     className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
-                    {isEn ? "Full Log →" : "Весь журнал →"}
+                    {tr("Весь журнал →", "Full Log →")}
                 </button>
             </CardHeader>
             <CardContent className="pt-2 flex-1">
                 <div className="space-y-3">
                     {activities.length === 0 ? (
                         <div className="text-sm text-muted-foreground text-center py-6">
-                            {isEn ? "No recent activity" : "Нет недавних действий"}
+                            {tr("Нет недавних действий", "No recent activity")}
                         </div>
                     ) : (
                         activities.slice(0, 5).map((activity) => {

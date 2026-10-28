@@ -19,6 +19,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
+import { tr } from '../../lib/i18n';
 
 interface OneCSyncLog {
     id: string;
@@ -35,6 +37,7 @@ interface OneCSyncLog {
 }
 
 export const OneCSyncLogsTable: React.FC = () => {
+    useTranslation();
     const [logs, setLogs] = useState<OneCSyncLog[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedLog, setSelectedLog] = useState<OneCSyncLog | null>(null);
@@ -61,21 +64,21 @@ export const OneCSyncLogsTable: React.FC = () => {
                 return (
                     <span className="flex items-center gap-1.5 text-blue-700 font-medium">
                         <ArrowDownLeft className="h-3.5 w-3.5 text-blue-600" />
-                        Trial Balance Import
+                        {tr('Импорт ОСВ / Баланса', 'Trial Balance Import', 'OSV / Balans importi')}
                     </span>
                 );
             case 'export_adjustments':
                 return (
                     <span className="flex items-center gap-1.5 text-purple-700 font-medium">
                         <ArrowUpRight className="h-3.5 w-3.5 text-purple-600" />
-                        Adjustment Pushback
+                        {tr('Выгрузка корректировок', 'Adjustment Pushback', 'Tuzatishlarni eksport qilish')}
                     </span>
                 );
             case 'test_connection':
                 return (
                     <span className="flex items-center gap-1.5 text-gray-700 font-medium">
                         <Activity className="h-3.5 w-3.5 text-amber-600" />
-                        Ping Healthcheck
+                        {tr('Проверка соединения (Ping)', 'Ping Healthcheck', 'Ulanishni tekshirish (Ping)')}
                     </span>
                 );
             default:
@@ -89,10 +92,14 @@ export const OneCSyncLogsTable: React.FC = () => {
                 <div>
                     <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                         <Clock className="h-4 w-4 text-amber-600" />
-                        1C Integration Audit Trail & Sync History
+                        {tr('Журнал аудита и история синхронизации с 1С', '1C Integration Audit Trail & Sync History', '1C integratsiya auditi va sinxronizatsiya tarixi')}
                     </h3>
                     <p className="text-xs text-gray-500">
-                        Complete log of all extraction queries, pushback documents, latency measurements and error traces.
+                        {tr(
+                            'Полный журнал запросов извлечения ОСВ, выгруженных документов, задержек и трассировки ошибок.',
+                            'Complete log of all extraction queries, pushback documents, latency measurements and error traces.',
+                            'Barcha ma\'lumot olish so\'rovlari, yuborilgan hujjatlar, vaqt o\'lchovlari va xatolar jurnali.'
+                        )}
                     </p>
                 </div>
                 <Button
@@ -103,7 +110,7 @@ export const OneCSyncLogsTable: React.FC = () => {
                     className="h-8 text-xs gap-1.5"
                 >
                     <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-                    Refresh Logs
+                    {tr('Обновить журнал', 'Refresh Logs', 'Jurnalni yangilash')}
                 </Button>
             </div>
 
@@ -113,19 +120,23 @@ export const OneCSyncLogsTable: React.FC = () => {
                 </div>
             ) : (!Array.isArray(logs) || logs.length === 0) ? (
                 <div className="p-6 border border-dashed rounded-lg text-center text-xs text-gray-500">
-                    No 1C synchronization operations recorded yet. Configure connection and trigger sync to view audit trail.
+                    {tr(
+                        'Операции синхронизации с 1С еще не зафиксированы. Настройте подключение и запустите обмен.',
+                        'No 1C synchronization operations recorded yet. Configure connection and trigger sync to view audit trail.',
+                        '1C sinxronizatsiya amallari hali qayd etilmagan. Ulanishni sozlang va sinxronizatsiyani ishga tushiring.'
+                    )}
                 </div>
             ) : (
                 <div className="border rounded-lg overflow-hidden shadow-sm bg-white">
                     <table className="min-w-full divide-y divide-gray-200 text-xs">
                         <thead className="bg-gray-50 font-semibold text-gray-700">
                             <tr>
-                                <th className="px-3 py-2.5 text-left">Timestamp</th>
-                                <th className="px-3 py-2.5 text-left">Operation</th>
-                                <th className="px-3 py-2.5 text-center">Status</th>
-                                <th className="px-3 py-2.5 text-right">Records</th>
-                                <th className="px-3 py-2.5 text-right">Duration</th>
-                                <th className="px-3 py-2.5 text-right">Action</th>
+                                <th className="px-3 py-2.5 text-left">{tr('Дата и время', 'Timestamp', 'Vaqt')}</th>
+                                <th className="px-3 py-2.5 text-left">{tr('Операция', 'Operation', 'Amal')}</th>
+                                <th className="px-3 py-2.5 text-center">{tr('Статус', 'Status', 'Holat')}</th>
+                                <th className="px-3 py-2.5 text-right">{tr('Записей', 'Records', 'Yozuvlar')}</th>
+                                <th className="px-3 py-2.5 text-right">{tr('Длительность', 'Duration', 'Davomiyligi')}</th>
+                                <th className="px-3 py-2.5 text-right">{tr('Действие', 'Action', 'Amal')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 font-mono">
@@ -166,7 +177,7 @@ export const OneCSyncLogsTable: React.FC = () => {
                                             onClick={() => setSelectedLog(log)}
                                             className="h-6 px-2 text-[10px] text-blue-600 hover:text-blue-800"
                                         >
-                                            View Details
+                                            {tr('Подробнее', 'View Details', 'Batafsil')}
                                         </Button>
                                     </td>
                                 </tr>
@@ -183,7 +194,7 @@ export const OneCSyncLogsTable: React.FC = () => {
                         <DialogHeader>
                             <DialogTitle className="text-base font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                                 <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                                1C Sync Audit Details ({selectedLog.sync_type})
+                                {tr('Детали аудита синхронизации 1С', '1C Sync Audit Details', '1C sinxronizatsiya auditi tafsilotlari')} ({selectedLog.sync_type})
                             </DialogTitle>
                             <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
                                 Log ID: <span className="font-mono">{selectedLog.id}</span>
@@ -193,26 +204,26 @@ export const OneCSyncLogsTable: React.FC = () => {
                         <div className="space-y-3 text-xs pt-2">
                             <div className="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-800/60 rounded border border-slate-200 dark:border-slate-700">
                                 <div>
-                                    <span className="text-slate-500 dark:text-slate-400 block">Timestamp:</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">{tr('Время:', 'Timestamp:', 'Vaqt:')}</span>
                                     <span className="font-semibold text-slate-900 dark:text-white">{new Date(selectedLog.created_at).toLocaleString()}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-500 dark:text-slate-400 block">Status:</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">{tr('Статус:', 'Status:', 'Holat:')}</span>
                                     <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.status}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-500 dark:text-slate-400 block">Records Processed:</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">{tr('Обработано записей:', 'Records Processed:', 'Qayta ishlangan yozuvlar:')}</span>
                                     <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.records_processed}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-500 dark:text-slate-400 block">Execution Time:</span>
+                                    <span className="text-slate-500 dark:text-slate-400 block">{tr('Время выполнения:', 'Execution Time:', 'Bajarilish vaqti:')}</span>
                                     <span className="font-semibold text-slate-900 dark:text-white">{selectedLog.duration_ms} ms</span>
                                 </div>
                             </div>
 
                             {selectedLog.error_details && (
                                 <div className="space-y-1">
-                                    <span className="font-semibold text-rose-600 dark:text-rose-400">Error Details:</span>
+                                    <span className="font-semibold text-rose-600 dark:text-rose-400">{tr('Детали ошибки:', 'Error Details:', 'Xatolik tafsilotlari:')}</span>
                                     <pre className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded text-rose-900 dark:text-rose-200 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
                                         {selectedLog.error_details}
                                     </pre>
