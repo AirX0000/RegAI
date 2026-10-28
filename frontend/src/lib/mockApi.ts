@@ -309,39 +309,33 @@ function saveDocumentsStore(docs: any[]): void {
 
 function getRegulationsStore(): any[] {
     const base = (seedData.regulations || []) as any[];
-    const stored = getStored<any[]>('regai_mock_regulations', null as any);
+    const stored = getStored<any[]>('regai_mock_regulations_v3', null as any);
     if (!stored || !Array.isArray(stored) || stored.length === 0) {
-        setStored('regai_mock_regulations', base);
+        setStored('regai_mock_regulations_v3', base);
         return base;
     }
-    // Merge any new seed regulations (e.g. banking regulations) that are not yet in stored
-    const existingCodes = new Set(stored.map((r: any) => r.code || r.metadata?.code));
-    const newItems = base.filter((r: any) => !existingCodes.has(r.code || r.metadata?.code));
-    if (newItems.length > 0) {
-        const merged = [...newItems, ...stored];
-        setStored('regai_mock_regulations', merged);
-        return merged;
-    }
-    return stored;
+    const baseCodes = new Set(base.map((r: any) => (r.code || r.metadata?.code || '').trim().toUpperCase()));
+    // Filter out obsolete non-work regulations that were removed from seed
+    const cleanStored = stored.filter((r: any) => baseCodes.has((r.code || r.metadata?.code || '').trim().toUpperCase()));
+    const storedCodes = new Set(cleanStored.map((r: any) => (r.code || r.metadata?.code || '').trim().toUpperCase()));
+    const newItems = base.filter((r: any) => !storedCodes.has((r.code || r.metadata?.code || '').trim().toUpperCase()));
+    const merged = [...newItems, ...cleanStored];
+    setStored('regai_mock_regulations_v3', merged);
+    return merged;
 }
 
 function saveRegulationsStore(regs: any[]): void {
-    setStored('regai_mock_regulations', regs);
+    setStored('regai_mock_regulations_v3', regs);
 }
 
 const MOCK_PREDEFINED_SECTIONS = [
     { id: "all", name: "Все разделы", name_en: "All Sections", category: "ALL" },
-    { id: "tax", name: "Налогообложение и аудит", name_en: "Taxation & Audit", category: "Tax" },
-    { id: "ifrs", name: "МСФО и финансовая отчетность", name_en: "IFRS & Financial Reporting", category: "IFRS" },
-    { id: "banking", name: "Банковское дело & Финтех", name_en: "Banking & FinTech", category: "Banking" },
-    { id: "aml", name: "AML / ПОД/ФТ & Финансовый мониторинг", name_en: "AML / CFT & Financial Crime", category: "AML" },
-    { id: "cybersecurity", name: "Кибербезопасность, Данные & Крипта", name_en: "Cybersecurity, Privacy & Crypto", category: "Cybersecurity" },
-    { id: "customs", name: "Таможенное регулирование & ВЭД", name_en: "Customs & Foreign Trade", category: "Customs" },
-    { id: "labor", name: "Трудовое право & Охрана труда", name_en: "Labor Law & HR Compliance", category: "Labor" },
-    { id: "esg", name: "ESG, Климат & Зеленая экономика", name_en: "ESG, Climate & Green Economy", category: "ESG" },
-    { id: "pharma", name: "Фармацевтика & Здравоохранение", name_en: "Pharma, Healthcare & GMP", category: "Healthcare" },
-    { id: "procurement", name: "Госзакупки & Антимонополия", name_en: "Public Procurement & Antitrust", category: "Procurement" },
-    { id: "construction", name: "Строительство & Недвижимость", name_en: "Construction & Real Estate", category: "Construction" },
+    { id: "ifrs", name: "МСФО и международная отчетность", name_en: "IFRS & Financial Reporting", category: "IFRS" },
+    { id: "nas", name: "НСБУ и национальный бухучет", name_en: "NAS & Local Accounting", category: "НСБУ" },
+    { id: "tax", name: "Налогообложение и трансфертное ценообразование", name_en: "Taxation & Transfer Pricing", category: "Tax" },
+    { id: "audit", name: "Аудит и стандарты МСА (ISA)", name_en: "Audit & ISA Standards", category: "Audit" },
+    { id: "finance", name: "Корпоративные финансы & Рынок капитала", name_en: "Corporate Finance & Capital Markets", category: "Finance" },
+    { id: "banking", name: "Банковское регулирование & Базель III", name_en: "Banking Regulation & Basel III", category: "Banking" }
 ];
 
 function getCustomSectionsStore(): any[] {
@@ -425,54 +419,7 @@ const MOCK_CRAWLER_SOURCES = [
         crawl_interval_hours: 12,
         description: "Таможенные тарифы, классификатор ТН ВЭД, зеленый коридор и электронное декларирование."
     },
-    {
-        id: "mehnat_uz",
-        name: "Министерство занятости и сокращения бедности РУз",
-        name_en: "Ministry of Employment and Poverty Reduction of Uzbekistan",
-        jurisdiction: "UZ",
-        category: "Labor / HR",
-        base_url: "https://mehnat.uz",
-        type: "ministry",
-        status: "active",
-        crawl_interval_hours: 24,
-        description: "Трудовой кодекс РУз, электронные трудовые книжки (my.mehnat.uz), охрана труда и нормативы занятости."
-    },
-    {
-        id: "pharm_uz",
-        name: "Центр безопасности фармацевтической продукции РУз",
-        name_en: "Center for Pharmaceutical Products Safety",
-        jurisdiction: "UZ",
-        category: "Pharma / GMP",
-        base_url: "https://uzpharm-control.uz",
-        type: "regulator",
-        status: "active",
-        crawl_interval_hours: 24,
-        description: "Стандарты надлежащей производственной практики (GMP), маркировка «Asl Belgisi» и регистрация ЛС."
-    },
-    {
-        id: "antimon_uz",
-        name: "Комитет по развитию конкуренции и защите прав потребителей",
-        name_en: "Competition Promotion and Consumer Protection Committee",
-        jurisdiction: "UZ",
-        category: "Procurement / Antitrust",
-        base_url: "https://antimon.gov.uz",
-        type: "regulator",
-        status: "active",
-        crawl_interval_hours: 24,
-        description: "Антимонопольный комплаенс, контроль государственных закупок (xarid.uz) и пресечение картельных сговоров."
-    },
-    {
-        id: "cert_uz",
-        name: "Служба кибербезопасности РУз (CERT.UZ)",
-        name_en: "Cybersecurity Center of Uzbekistan (CERT.UZ)",
-        jurisdiction: "UZ",
-        category: "Cybersecurity",
-        base_url: "https://cert.uz",
-        type: "cybersecurity_agency",
-        status: "active",
-        crawl_interval_hours: 12,
-        description: "Национальные стандарты защиты информации, локализация персональных данных и защита критических объектов."
-    },
+
     {
         id: "ifrs_org",
         name: "IFRS Foundation & IASB / ISSB",
@@ -866,14 +813,14 @@ const MOCK_WEB_DISCOVERIES = [
         ]
     },
 
-    // ── 5. CYBERSECURITY, PRIVACY & CRYPTO ─────────────────────────────────────
+    // ── 5. DIGITAL ASSETS & CAPITAL MARKETS ─────────────────────────────────
     {
         code: "NAPP-UZ-CRYPTO-2026",
         title: "Приказ НАПП РУз № 88: Порядок лицензирования крипто-бирж, майнинг-пулов и депозитариев крипто-активов",
         title_en: "NAPP Order No. 88: Licensing Procedure for Crypto Exchanges, Mining Pools and Digital Custodians",
         jurisdiction: "UZ",
-        category: "Cybersecurity",
-        section_id: "cybersecurity",
+        category: "Finance",
+        section_id: "finance",
         authority: "Национальное агентство перспективных проектов РУз",
         source_name: "НАПП (napp.uz)",
         source_url: "https://napp.uz/ru/pages/crypto-licensing-2026",
@@ -886,73 +833,6 @@ const MOCK_WEB_DISCOVERIES = [
             "Арендовать стойки в сертифицированном национальном дата-центре (Tier III) на территории РУз",
             "Сформировать уставный капитал в национальной валюте на специальном счете",
             "Пройти аудит информационной безопасности в ГУП «Центр кибербезопасности»"
-        ]
-    },
-    {
-        code: "DATA-PRIVACY-ZRU-547-REV",
-        title: "Закон РУз «О персональных данных» (Новая редакция): Обязательное назначение DPO и штрафы за утечку данных",
-        title_en: "Law of Uzbekistan on Personal Data (Revised): Mandatory DPO Appointment and Data Breach Sanctions",
-        jurisdiction: "UZ",
-        category: "Cybersecurity",
-        section_id: "cybersecurity",
-        authority: "Олий Мажлис Республики Узбекистан",
-        source_name: "Lex.uz",
-        source_url: "https://lex.uz/docs/547-privacy-amendments-2026",
-        effective_date: "2026-05-01",
-        impact_level: "HIGH",
-        match_score: 97.8,
-        summary: "Обязанность компаний, обрабатывающих персональные данные более чем 10 000 граждан, назначить офицера по защите данных (DPO) и уведомлять регулятора об инцидентах в течение 48 часов.",
-        content: "В Закон Республики Узбекистан «О персональных данных» внесены изменения, ужесточающие ответственность за трансграничную передачу данных без предварительного аудита уровня защиты в стране назначения.",
-        workflow_steps: [
-            "Назначить штатного или внешнего ответственного за защиту персональных данных (DPO)",
-            "Провести классификацию информационных систем обработки персональных данных (ИСПДн)",
-            "Разработать регламент реагирования на утечки и уведомления регулятора в срок до 48 часов"
-        ]
-    },
-
-    // ── 6. CUSTOMS & FOREIGN TRADE ────────────────────────────────────────────
-    {
-        code: "CUSTOMS-UZ-E-DECL-2026",
-        title: "Постановление ГТК РУз № 319: Автоматический выпуск товаров в режиме «Зеленый коридор» без участия инспектора",
-        title_en: "State Customs Committee Resolution No. 319: Automated Customs Clearance in 'Green Corridor' Mode",
-        jurisdiction: "UZ",
-        category: "Customs",
-        section_id: "customs",
-        authority: "Таможенный комитет при Минэкономфине РУз",
-        source_name: "Таможенный комитет (customs.uz)",
-        source_url: "https://customs.uz/ru/news/green-corridor-automation-2026",
-        effective_date: "2026-03-01",
-        impact_level: "MEDIUM",
-        match_score: 98.3,
-        summary: "Внедрение искусственного интеллекта для автоматического анализа грузовых таможенных деклараций (ГТД) и выпуска товаров с низким уровнем риска за 5 минут.",
-        content: "Автоматизированная система управления рисками таможенных органов переводится на режим автовыпуска деклараций участников ВЭД категории низкого риска без физического досмотра и ручной проверки документов.",
-        workflow_steps: [
-            "Проверить статус компании в реестре уполномоченных экономических операторов (УЭО)",
-            "Исключить задолженность по таможенным платежам и пеням на едином лицевом счете",
-            "Подавать электронную ГТД с корректным кодом ТН ВЭД и цифровым сертификатом происхождения"
-        ]
-    },
-
-    // ── 7. LABOR & HR COMPLIANCE ──────────────────────────────────────────────
-    {
-        code: "LABOR-UZ-REMOTE-2026",
-        title: "Приказ Минзанятости РУз: Правила оформления дистанционной и комбинированной работы в системе my.mehnat.uz",
-        title_en: "Ministry of Employment Order: Regulations on Remote and Hybrid Work Registration in my.mehnat.uz",
-        jurisdiction: "UZ",
-        category: "Labor",
-        section_id: "labor",
-        authority: "Министерство занятости и сокращения бедности РУз",
-        source_name: "Минзанятости (mehnat.uz)",
-        source_url: "https://mehnat.uz/ru/news/remote-work-guidelines-2026",
-        effective_date: "2026-02-01",
-        impact_level: "MEDIUM",
-        match_score: 97.6,
-        summary: "Обязательная регистрация дополнительных соглашений о дистанционном формате труда в ЕНСТ, компенсация расходов сотрудника на интернет и электроэнергию.",
-        content: "Работодатели обязаны фиксировать режим удаленной работы в Единой национальной системе труда и производить ежемесячную компенсацию подтвержденных расходов сотрудников на средства связи и программное обеспечение.",
-        workflow_steps: [
-            "Заключить дополнительное соглашение к трудовому договору с указанием графика удаленной работы",
-            "Зарегистрировать статус «Дистанционная работа» в личном кабинете my.mehnat.uz",
-            "Утвердить в учетной политике порядок начисления необлагаемой компенсации за использование личного оборудования"
         ]
     },
 
@@ -1000,51 +880,7 @@ const MOCK_WEB_DISCOVERIES = [
         ]
     },
 
-    // ── 9. PHARMA & HEALTHCARE ────────────────────────────────────────────────
-    {
-        code: "PHARM-UZ-ASL-BELGISI-2026",
-        title: "Постановление КМ РУз № 174: Обязательная поштучная цифровая маркировка всех групп медикаментов («Asl Belgisi»)",
-        title_en: "Cabinet of Ministers Resolution No. 174: Mandatory Item-Level Digital Marking of All Pharmaceuticals ('Asl Belgisi')",
-        jurisdiction: "UZ",
-        category: "Healthcare",
-        section_id: "pharma",
-        authority: "Центр безопасности фармацевтической продукции РУз",
-        source_name: "Lex.uz",
-        source_url: "https://lex.uz/docs/asl-belgisi-pharma-2026",
-        effective_date: "2026-02-01",
-        impact_level: "HIGH",
-        match_score: 99.2,
-        summary: "Запрет оборота и реализации лекарственных препаратов без верифицированного кода Data Matrix национальной системы маркировки Asl Belgisi.",
-        content: "Все аптечные сети, дистрибьюторы и производители лекарственных средств обязаны осуществлять приемку и списание фармацевтической продукции с фиксацией кодов агрегации в государственной информационной системе.",
-        workflow_steps: [
-            "Оснастить складские терминалы 2D-сканерами с поддержкой считывания Data Matrix",
-            "Настроить интеграцию аптечной учетной программы с API Asl Belgisi",
-            "Проводить вывод из оборота при продаже конечному потребителю через фискальный чек"
-        ]
-    },
 
-    // ── 10. PUBLIC PROCUREMENT & ANTITRUST ─────────────────────────────────────
-    {
-        code: "ANTIMON-UZ-COMPLIANCE-2026",
-        title: "Положение Комитета по конкуренции: Обязательный антимонопольный комплаенс для участников государственных тендеров",
-        title_en: "Competition Committee Regulation: Mandatory Antitrust Compliance for Public Tender Participants",
-        jurisdiction: "UZ",
-        category: "Procurement",
-        section_id: "procurement",
-        authority: "Комитет по развитию конкуренции РУз",
-        source_name: "Антимонопольный комитет",
-        source_url: "https://antimon.gov.uz/docs/antitrust-compliance-2026",
-        effective_date: "2026-03-01",
-        impact_level: "HIGH",
-        match_score: 98.6,
-        summary: "Внедрение системы внутреннего предупреждения нарушений антимонопольного законодательства и скоринг добросовестности на электронной площадке xarid.uz.",
-        content: "Юридические лица с долей государства свыше 50% и субъекты естественных монополий обязаны внедрить сертифицированную систему антимонопольного комплаенса и проходить ежегодный аудит на отсутствие сговора на торгах.",
-        workflow_steps: [
-            "Разработать и утвердить внутреннюю политику антимонопольного комплаенса",
-            "Назначить комплаенс-контролера и провести обучение тендерного комитета",
-            "Пройти предквалификацию на портале xarid.uz с загрузкой комплаенс-сертификата"
-        ]
-    }
 ];
 
 export { createMockToken } from './authUtils';

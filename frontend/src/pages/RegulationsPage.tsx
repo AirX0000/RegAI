@@ -210,7 +210,7 @@ export default function RegulationsPage() {
         }
     };
 
-    const tabs = ["All", "Banking", "IFRS", "НСБУ", "Finance", "Tax", "Audit", "AML", "ESG", "Privacy", "Security", "Healthcare", "Labor", "Consumer"];
+    const tabs = ["All", "IFRS", "НСБУ", "Tax", "Audit", "Finance", "Banking"];
 
     useEffect(() => {
         fetchRegulations();
@@ -321,7 +321,56 @@ export default function RegulationsPage() {
                     title.includes("нсбу") ||
                     title.includes("nsbu") ||
                     title.includes("бхмс") ||
-                    title.includes("bhms")
+                    title.includes("bhms") ||
+                    title.includes("бухгалтерск")
+                );
+            }
+
+            if (tab === "Tax") {
+                return (
+                    category.includes("tax") ||
+                    category.includes("налог") ||
+                    category.includes("soliq") ||
+                    code.includes("tax") ||
+                    code.includes("vat") ||
+                    code.includes("ндс") ||
+                    code.includes("pillar") ||
+                    title.includes("налог") ||
+                    title.includes("tax") ||
+                    title.includes("soliq") ||
+                    title.includes("ндс") ||
+                    title.includes("vat") ||
+                    title.includes("тцо")
+                );
+            }
+
+            if (tab === "Audit") {
+                return (
+                    category.includes("audit") ||
+                    category.includes("аудит") ||
+                    code.includes("isa") ||
+                    code.includes("мса") ||
+                    code.includes("sox") ||
+                    title.includes("аудит") ||
+                    title.includes("audit") ||
+                    title.includes("мса") ||
+                    title.includes("isa") ||
+                    title.includes("sox")
+                );
+            }
+
+            if (tab === "Finance") {
+                return (
+                    category.includes("finan") ||
+                    category.includes("финанс") ||
+                    category.includes("moliya") ||
+                    code.includes("aifc") ||
+                    code.includes("securities") ||
+                    title.includes("финанс") ||
+                    title.includes("акционерн") ||
+                    title.includes("лизинг") ||
+                    title.includes("рынок капитала") ||
+                    title.includes("ценных бумаг")
                 );
             }
             return (
@@ -397,7 +446,53 @@ export default function RegulationsPage() {
                         title.includes("нсбу") ||
                         title.includes("nsbu") ||
                         title.includes("бхмс") ||
-                        title.includes("bhms");
+                        title.includes("bhms") ||
+                        title.includes("бухгалтерск");
+                }
+
+                if (activeTab === "Tax") {
+                    matchesTab = matchesTab ||
+                        category.includes("tax") ||
+                        category.includes("налог") ||
+                        category.includes("soliq") ||
+                        code.includes("tax") ||
+                        code.includes("vat") ||
+                        code.includes("ндс") ||
+                        code.includes("pillar") ||
+                        title.includes("налог") ||
+                        title.includes("tax") ||
+                        title.includes("soliq") ||
+                        title.includes("ндс") ||
+                        title.includes("vat") ||
+                        title.includes("тцо");
+                }
+
+                if (activeTab === "Audit") {
+                    matchesTab = matchesTab ||
+                        category.includes("audit") ||
+                        category.includes("аудит") ||
+                        code.includes("isa") ||
+                        code.includes("мса") ||
+                        code.includes("sox") ||
+                        title.includes("аудит") ||
+                        title.includes("audit") ||
+                        title.includes("мса") ||
+                        title.includes("isa") ||
+                        title.includes("sox");
+                }
+
+                if (activeTab === "Finance") {
+                    matchesTab = matchesTab ||
+                        category.includes("finan") ||
+                        category.includes("финанс") ||
+                        category.includes("moliya") ||
+                        code.includes("aifc") ||
+                        code.includes("securities") ||
+                        title.includes("финанс") ||
+                        title.includes("акционерн") ||
+                        title.includes("лизинг") ||
+                        title.includes("рынок капитала") ||
+                        title.includes("ценных бумаг");
                 }
                 if (!matchesTab) return false;
             }
@@ -1153,14 +1248,12 @@ export default function RegulationsPage() {
                 {tabs.map((tab) => {
                     let label = tab;
                     if (tab === "All") label = tr("Все", "All", "Barchasi");
-                    else if (tab === "Banking") label = tr("Банки и Финтех", "Banking & FinTech", "Banklar va FinTex");
-                    else if (tab === "Finance") label = tr("Финансы", "Finance", "Moliya");
+                    else if (tab === "IFRS") label = tr("МСФО (IFRS)", "IFRS", "MHXS (IFRS)");
+                    else if (tab === "НСБУ") label = tr("НСБУ (NAS)", "NAS (NSBU)", "BHMS (NAS)");
                     else if (tab === "Tax") label = tr("Налоги", "Tax", "Soliqlar");
-                    else if (tab === "Audit") label = tr("Аудит", "Audit", "Audit");
-                    else if (tab === "Security") label = tr("Безопасность", "Security", "Xavfsizlik");
-                    else if (tab === "Healthcare") label = tr("Здравоохранение", "Healthcare", "Sog'liqni saqlash");
-                    else if (tab === "Labor") label = tr("Труд и кадры", "Labor", "Mehnat va kadrlar");
-                    else if (tab === "Consumer") label = tr("Защита прав", "Consumer", "Iste'molchilar huquqi");
+                    else if (tab === "Audit") label = tr("Аудит (МСА)", "Audit (ISA)", "Audit (XAS)");
+                    else if (tab === "Finance") label = tr("Финансы", "Finance", "Moliya");
+                    else if (tab === "Banking") label = tr("Банки и Финтех", "Banking & FinTech", "Banklar va FinTex");
 
                     const count = getTabCount(tab);
                     const isSelected = activeTab === tab;

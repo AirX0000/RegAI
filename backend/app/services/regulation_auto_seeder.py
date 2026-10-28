@@ -41,8 +41,29 @@ class RegulationAutoSeeder:
         skipped_count = 0
         errors = []
 
+        EXCLUDED_CODES = {
+            'HIPAA', 'HITE-ACT', 'FLSA', 'OSHA', 'ADA', 'FMLA', 'UZ-LABOR-CODE',
+            'CAA', 'CWA', 'REACH', 'ROHS',
+            'FTC ACT', 'COPPA', 'CAN--ACT', 'CPSA', 'TCPA', 'DMCA',
+            'GDPR', 'CCPA', 'PIPEDA', 'ECPA', 'UK-DATA', 'FERPA', 'GDPR-ARTI', 'CALIFORNIA PRIVACY RIGHTS ACT',
+            'COOKIE LAW', 'VPPA', 'BIPA', 'APRA', 'UZ-PERSONAL-DATA',
+            'PCI DSS', 'ISO/-2700', 'NIST-CYBE', 'SERVICE ORGANIZATION CONTROL 2', 'FISMA',
+            'CRITICAL INFRASTRUCTURE PROTECTION', 'INTERNATIONAL TRAFFIC IN ARMS REGULATIONS',
+            'CYBERSECURITY MATURITY MODEL CERTIFICATION', 'SHIE-ACT',
+            'TEST-001'
+        }
+        EXCLUDED_CATEGORIES = {'Privacy', 'Healthcare', 'Labor', 'Environmental', 'Consumer', 'Security'}
+
         try:
             # Query existing regulations indexed by code
+            existing_regs = self.db.query(Regulation).all()
+            for r in existing_regs:
+                code_up = (r.code or "").strip().upper()
+                if code_up in EXCLUDED_CODES or (r.category in EXCLUDED_CATEGORIES and code_up not in ['SOX', 'UZ-SECURITIES']):
+                    self.db.delete(r)
+
+            self.db.commit()
+
             existing_regs = self.db.query(Regulation).all()
             existing_map: Dict[str, Regulation] = {
                 (r.code.strip().upper() if r.code else ""): r 
