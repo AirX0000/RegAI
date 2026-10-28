@@ -74,6 +74,7 @@ def create_company(
             website=company_in.website,
             industry=company_in.industry,
             employee_count=company_in.employee_count,
+            plan=company_in.plan or "free",
             tenant_id=current_user.tenant_id,
             is_active=True
         )

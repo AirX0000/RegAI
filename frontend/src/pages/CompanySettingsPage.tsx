@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Building2, Save, Loader2 } from 'lucide-react';
+import { Building2, Save, Loader2, Crown, Check, X as XIcon, Zap, Sparkles } from 'lucide-react';
 import { OneCConfigModal } from '../components/onec/OneCConfigModal';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { OneCSyncLogsTable } from '../components/onec/OneCSyncLogsTable';
@@ -29,7 +29,8 @@ export default function CompanySettingsPage() {
         website: '',
         industry: '',
         employee_count: '',
-        logo_url: ''
+        logo_url: '',
+        plan: 'free'
     });
 
     const companyId = (user as any)?.company_id;
@@ -61,7 +62,8 @@ export default function CompanySettingsPage() {
                         website: companyData.website || '',
                         industry: companyData.industry || '',
                         employee_count: companyData.employee_count?.toString() || '',
-                        logo_url: companyData.logo_url || ''
+                        logo_url: companyData.logo_url || '',
+                        plan: companyData.plan || 'free'
                     });
                 }
             } catch (error) {
@@ -79,6 +81,44 @@ export default function CompanySettingsPage() {
         fetchCompany();
     }, [user?.company_id, toast]);
 
+    const handleSwitchPlan = async (newPlan: string) => {
+        try {
+            setSaving(true);
+            const targetId = companyId || company?.id;
+            await api.put(`/companies/${targetId}/profile`, {
+                ...formData,
+                plan: newPlan
+            });
+            setCompany((prev: any) => ({ ...prev, plan: newPlan }));
+            setFormData((prev: any) => ({ ...prev, plan: newPlan }));
+            toast({
+                title: tr("Тариф успешно изменен", "Plan Updated"),
+                description: tr(`Организации присвоен тариф "${getPlanLabel(newPlan)}"`, `Company plan upgraded to ${newPlan}`),
+            });
+        } catch (error: any) {
+            toast({
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || tr("Не удалось изменить тариф", "Failed to change plan"),
+                variant: "destructive"
+            });
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const getPlanLabel = (plan?: string) => {
+        switch (plan?.toLowerCase()) {
+            case 'enterprise':
+                return tr('Корпоративный (Enterprise)', 'Enterprise');
+            case 'premium':
+                return tr('Премиум (Premium)', 'Premium');
+            case 'free':
+            case 'basic':
+            default:
+                return tr('Базовый (Free)', 'Basic (Free)');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -89,7 +129,8 @@ export default function CompanySettingsPage() {
                 website: formData.website || null,
                 industry: formData.industry || null,
                 employee_count: formData.employee_count ? parseInt(formData.employee_count) : null,
-                logo_url: formData.logo_url || null
+                logo_url: formData.logo_url || null,
+                plan: formData.plan || 'free'
             };
 
             await api.put(`/companies/${companyId || company?.id}/profile`, updateData);
@@ -235,6 +276,24 @@ export default function CompanySettingsPage() {
                             />
                         </div>
 
+                        {/* Subscription Plan */}
+                        <div className="space-y-2">
+                            <Label htmlFor="plan">{tr('Тарифный план организации', 'Company Subscription Plan')}</Label>
+                            <select
+                                id="plan"
+                                value={formData.plan}
+                                onChange={(e) => handleChange('plan', e.target.value)}
+                                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                            >
+                                <option value="free">{tr('Базовый (Free) — 1 юрлицо, до 3 польз.', 'Basic (Free) — 1 entity, up to 3 users')}</option>
+                                <option value="premium">{tr('Премиум (Premium) — 1С, AI аудит, до 15 польз.', 'Premium — 1C, AI Audit, up to 15 users')}</option>
+                                <option value="enterprise">{tr('Корпоративный (Enterprise) — White-Label, RAG AI, безлимит', 'Enterprise — White-Label, Unlimited')}</option>
+                            </select>
+                            <p className="text-xs text-gray-500">
+                                {tr('Вы можете выбрать тариф здесь или воспользоваться карточками тарифов ниже с подробным списком модулей.', 'You can select a plan here or use the subscription cards below.')}
+                            </p>
+                        </div>
+
                         {/* Company Corporate Logo (Upload / URL & White-Label Letterhead Preview) */}
                         <div className="pt-2">
                             <CompanyLogoUploader
@@ -256,7 +315,8 @@ export default function CompanySettingsPage() {
                                         website: company.website || '',
                                         industry: company.industry || '',
                                         employee_count: company.employee_count?.toString() || '',
-                                        logo_url: company.logo_url || ''
+                                        logo_url: company.logo_url || '',
+                                        plan: company.plan || 'free'
                                     });
                                 }}
                                 disabled={saving}
@@ -278,6 +338,275 @@ export default function CompanySettingsPage() {
                             </Button>
                         </div>
                     </form>
+                </CardContent>
+            </Card>
+
+            {/* Subscription & Tariffs Card */}
+            <Card className="border-blue-200 dark:border-blue-900 bg-gradient-to-br from-white via-blue-50/10 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-sm overflow-hidden">
+                <CardHeader className="border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg">
+                                <Crown className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                    {tr('Тарифный план организации', 'Company Subscription Plan')}
+                                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold border ${
+                                        (company.plan || 'free') === 'enterprise'
+                                            ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700'
+                                            : (company.plan || 'free') === 'premium'
+                                            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                                    }`}>
+                                        {getPlanLabel(company.plan || 'free')}
+                                    </span>
+                                </CardTitle>
+                                <CardDescription className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                    {tr('Управление уровнем доступа, функционалом трансформации и лимитами компании', 'Manage subscription tier, quotas, and transformation modules')}
+                                </CardDescription>
+                            </div>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        {/* 1. Free Plan Card */}
+                        <div className={`rounded-xl border p-5 flex flex-col justify-between transition-all ${
+                            (company.plan || 'free') === 'free'
+                                ? 'border-slate-400 bg-white dark:bg-slate-800/90 shadow-md ring-2 ring-slate-400/30'
+                                : 'border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 hover:border-slate-300'
+                        }`}>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                        {tr('Базовый', 'Basic')}
+                                    </span>
+                                    {(company.plan || 'free') === 'free' && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold">
+                                            {tr('Текущий', 'Current')}
+                                        </span>
+                                    )}
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white">$0 <span className="text-xs font-normal text-slate-500">/ {tr('мес', 'mo')}</span></div>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        {tr('Для ознакомления с платформой и базовой трансформации 1 организации', 'For testing and basic single-entity transformation')}
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                        <span>{tr('1 юридическое лицо', '1 legal entity')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                        <span>{tr('До 3 пользователей', 'Up to 3 users')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                        <span>{tr('Баланс по МСФО (IAS 1)', 'IFRS Balance Sheet (IAS 1)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                                        <span>{tr('Контроль Zero-Delta', 'Zero-Delta Equity Guard')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <XIcon className="h-4 w-4 text-slate-300 shrink-0" />
+                                        <span>{tr('Интеграция с 1С по API', '1C OData API integration')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <XIcon className="h-4 w-4 text-slate-300 shrink-0" />
+                                        <span>{tr('AI Аудитор (KAM МСА 701)', 'AI Auditor (KAM ISA 701)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <XIcon className="h-4 w-4 text-slate-300 shrink-0" />
+                                        <span>{tr('White-Label брендирование', 'White-Label Branding')}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                {(company.plan || 'free') === 'free' ? (
+                                    <Button disabled variant="outline" className="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 text-slate-500">
+                                        ✓ {tr('Активный тариф', 'Active Plan')}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => handleSwitchPlan('free')}
+                                        disabled={saving}
+                                        className="w-full text-xs font-semibold border-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    >
+                                        {tr('Перейти на Базовый', 'Switch to Free')}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 2. Premium Plan Card */}
+                        <div className={`relative rounded-xl border p-5 flex flex-col justify-between transition-all ${
+                            company.plan === 'premium'
+                                ? 'border-blue-500 bg-white dark:bg-slate-800/90 shadow-lg ring-2 ring-blue-500/30'
+                                : 'border-blue-200 dark:border-blue-900/60 bg-blue-50/20 dark:bg-blue-950/20 hover:border-blue-400'
+                        }`}>
+                            <div className="absolute -top-2.5 right-4">
+                                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs flex items-center gap-1">
+                                    <Sparkles className="h-3 w-3" />
+                                    {tr('Популярный', 'Popular')}
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                                        {tr('Премиум (Premium)', 'Premium')}
+                                    </span>
+                                    {company.plan === 'premium' && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-bold">
+                                            {tr('Текущий', 'Current')}
+                                        </span>
+                                    )}
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white">$99 <span className="text-xs font-normal text-slate-500">/ {tr('мес', 'mo')}</span></div>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        {tr('Для бухгалтеров, аудиторских отделов и растущих компаний', 'For accounting teams, audit departments, and growing entities')}
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span><strong>{tr('До 5 организаций', 'Up to 5 entities')}</strong> {tr('и филиалов', 'and branches')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span><strong>{tr('До 15 сотрудников', 'Up to 15 users')}</strong> {tr('(RBAC роли)', '(RBAC roles)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span>{tr('Полный МСФО (IFRS 16, IAS 36, IFRS 9)', 'Full IFRS (IFRS 16, IAS 36, IFRS 9)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span><strong>{tr('Прямая синхронизация с 1С', 'Direct 1C OData Sync')}</strong> (OData)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span>{tr('AI Аудитор (Меморандум МСА 700/701)', 'AI Auditor (ISA 700/701 Memos)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-blue-600 shrink-0" />
+                                        <span>{tr('Налоговый комплаенс и IAS 12', 'Tax Compliance & IAS 12')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                        <XIcon className="h-4 w-4 text-slate-300 shrink-0" />
+                                        <span>{tr('White-Label брендирование', 'White-Label Branding')}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                {company.plan === 'premium' ? (
+                                    <Button disabled className="w-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                        ✓ {tr('Активный тариф', 'Active Plan')}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        onClick={() => handleSwitchPlan('premium')}
+                                        disabled={saving}
+                                        className="w-full text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                                    >
+                                        <Zap className="h-3.5 w-3.5 mr-1" />
+                                        {tr('Подключить Премиум', 'Switch to Premium')}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 3. Enterprise Plan Card */}
+                        <div className={`relative rounded-xl border p-5 flex flex-col justify-between transition-all ${
+                            company.plan === 'enterprise'
+                                ? 'border-purple-500 bg-white dark:bg-slate-800/90 shadow-lg ring-2 ring-purple-500/30'
+                                : 'border-purple-200 dark:border-purple-900/60 bg-purple-50/20 dark:bg-purple-950/20 hover:border-purple-400'
+                        }`}>
+                            <div className="absolute -top-2.5 right-4">
+                                <span className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs flex items-center gap-1">
+                                    <Crown className="h-3 w-3" />
+                                    VIP
+                                </span>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                                        {tr('Корпоративный (Enterprise)', 'Enterprise')}
+                                    </span>
+                                    {company.plan === 'enterprise' && (
+                                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-bold">
+                                            {tr('Текущий', 'Current')}
+                                        </span>
+                                    )}
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-black text-slate-900 dark:text-white">$299 <span className="text-xs font-normal text-slate-500">/ {tr('мес', 'mo')}</span></div>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        {tr('Для холдингов, финансовых групп, банков и аудиторских фирм', 'For holdings, banking groups, and international audit practices')}
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span><strong>{tr('Безлимит юрлиц', 'Unlimited entities')}</strong> {tr('(Холдинги)', '(Holdings)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span><strong>{tr('Безлимит пользователей', 'Unlimited users')}</strong> + SSO / SAML</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span><strong>{tr('White-Label брендирование', 'White-Label Branding')}</strong> ({tr('свой логотип', 'custom logo')})</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span>{tr('Полный пакет раскрытий МСФО (4 стр.)', 'Full 4-page IFRS Disclosure Package')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span>{tr('Глобальный RAG AI по нормативам (IFRS/ISA)', 'Global RAG AI Regulations (IFRS/ISA)')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span>{tr('Мультивалютная трансформация', 'Multi-currency transformation')} (UZS/USD/EUR)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 text-purple-600 shrink-0" />
+                                        <span>{tr('Неизменяемый след AuditLog & SLA 99.9%', 'Immutable AuditLog trail & 99.9% SLA')}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-5 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                {company.plan === 'enterprise' ? (
+                                    <Button disabled className="w-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                        ✓ {tr('Активный тариф', 'Active Plan')}
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        type="button"
+                                        onClick={() => handleSwitchPlan('enterprise')}
+                                        disabled={saving}
+                                        className="w-full text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white shadow-xs"
+                                    >
+                                        <Crown className="h-3.5 w-3.5 mr-1" />
+                                        {tr('Подключить Enterprise', 'Switch to Enterprise')}
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
 

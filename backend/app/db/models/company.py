@@ -18,6 +18,7 @@ class Company(Base):
     industry = Column(String(100), index=True)
     employee_count = Column(Integer)
     is_active = Column(Boolean, default=True, index=True)
+    plan = Column(String(50), default="free", index=True)  # 'free', 'premium', 'enterprise'
     
     # Ownership tracking
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)  # Company owner

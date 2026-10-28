@@ -42,6 +42,49 @@ export default function CompaniesManagementPage() {
         }
     };
 
+    const handlePlanChange = async (companyId: string, companyName: string, newPlan: string) => {
+        try {
+            await api.put(`/companies/${companyId}`, { plan: newPlan });
+            toast({
+                title: tr("Успешно", "Success"),
+                description: tr(`Тариф компании "${companyName}" изменен на ${getPlanLabel(newPlan)}`, `Company plan updated to ${newPlan}`),
+            });
+            fetchCompanies();
+        } catch (error: any) {
+            toast({
+                variant: "destructive",
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || tr("Не удалось изменить тариф компании", "Failed to change company plan"),
+            });
+        }
+    };
+
+    const getPlanBadgeColor = (plan?: string) => {
+        switch (plan?.toLowerCase()) {
+            case 'enterprise':
+                return 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-700';
+            case 'premium':
+                return 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700';
+            case 'free':
+            case 'basic':
+            default:
+                return 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700';
+        }
+    };
+
+    const getPlanLabel = (plan?: string) => {
+        switch (plan?.toLowerCase()) {
+            case 'enterprise':
+                return tr('Корпоративный (Enterprise)', 'Enterprise');
+            case 'premium':
+                return tr('Премиум (Premium)', 'Premium');
+            case 'free':
+            case 'basic':
+            default:
+                return tr('Базовый (Free)', 'Basic (Free)');
+        }
+    };
+
     const handleCreate = () => {
         setSelectedCompany(null);
         setIsFormOpen(true);
@@ -153,6 +196,7 @@ export default function CompaniesManagementPage() {
                             <th className="p-4 text-left">{tr('Отрасль', 'Industry')}</th>
                             <th className="p-4 text-left">{tr('Веб-сайт', 'Website')}</th>
                             <th className="p-4 text-left">{tr('Сотрудники', 'Employees')}</th>
+                            <th className="p-4 text-left">{tr('Тарифный план', 'Plan')}</th>
                             <th className="p-4 text-left">{tr('Статус', 'Status')}</th>
                             <th className="p-4 text-left">{tr('Действия', 'Actions')}</th>
                         </tr>
@@ -198,6 +242,18 @@ export default function CompaniesManagementPage() {
                                     ) : '-'}
                                 </td>
                                 <td className="p-4 text-slate-600 dark:text-slate-400">{company.employee_count || '-'}</td>
+                                <td className="p-4">
+                                    <select
+                                        value={company.plan || 'free'}
+                                        onChange={(e) => handlePlanChange(company.id, company.name, e.target.value)}
+                                        className={`text-xs font-semibold rounded-lg border px-2.5 py-1 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 ${getPlanBadgeColor(company.plan)}`}
+                                        title={tr('Нажмите для изменения тарифа организации', 'Click to change company plan')}
+                                    >
+                                        <option value="free" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">{tr('Базовый (Free)', 'Free')}</option>
+                                        <option value="premium" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">{tr('Премиум (Premium)', 'Premium')}</option>
+                                        <option value="enterprise" className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">{tr('Корпоративный (Enterprise)', 'Enterprise')}</option>
+                                    </select>
+                                </td>
                                 <td className="p-4">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${company.is_active
                                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60'

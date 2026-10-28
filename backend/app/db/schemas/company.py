@@ -11,6 +11,7 @@ class CompanyBase(BaseModel):
     website: Optional[str] = None
     industry: Optional[str] = None
     employee_count: Optional[int] = None
+    plan: Optional[str] = "free"
 
 # Properties to receive on company creation
 class CompanyCreate(CompanyBase):
@@ -26,6 +27,7 @@ class CompanyUpdate(BaseModel):
     industry: Optional[str] = None
     employee_count: Optional[int] = None
     is_active: Optional[bool] = None
+    plan: Optional[str] = None
 
 # Properties shared by models stored in DB
 class CompanyInDBBase(CompanyBase):
@@ -51,6 +53,7 @@ class CompanyProfile(BaseModel):
     website: Optional[str] = None
     industry: Optional[str] = None
     employee_count: Optional[int] = None
+    plan: Optional[str] = "free"
     created_at: datetime
     
     class Config:

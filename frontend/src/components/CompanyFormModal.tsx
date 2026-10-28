@@ -26,6 +26,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
         industry: '',
         employee_count: '',
         logo_url: '',
+        plan: 'free',
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -39,6 +40,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 industry: company.industry || '',
                 employee_count: company.employee_count?.toString() || '',
                 logo_url: company.logo_url || '',
+                plan: company.plan || 'free',
             });
         }
     }, [company]);
@@ -55,6 +57,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
             industry: formData.industry || null,
             logo_url: formData.logo_url || null,
             domain: formData.domain || null,
+            plan: formData.plan || 'free',
         };
 
         try {
@@ -114,17 +117,34 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            {tr('Домен', 'Domain')}
-                        </label>
-                        <Input
-                            type="text"
-                            value={formData.domain}
-                            onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
-                            placeholder="company.uz"
-                            className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {tr('Домен', 'Domain')}
+                            </label>
+                            <Input
+                                type="text"
+                                value={formData.domain}
+                                onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                                placeholder="company.uz"
+                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {tr('Тарифный план', 'Plan')}
+                            </label>
+                            <select
+                                value={formData.plan}
+                                onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
+                                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            >
+                                <option value="free">{tr('Базовый (Free)', 'Basic (Free)')}</option>
+                                <option value="premium">{tr('Премиум (Premium)', 'Premium')}</option>
+                                <option value="enterprise">{tr('Корпоративный (Enterprise)', 'Enterprise')}</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div>
