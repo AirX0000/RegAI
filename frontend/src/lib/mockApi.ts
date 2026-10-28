@@ -307,25 +307,46 @@ function saveDocumentsStore(docs: any[]): void {
     setStored('regai_mock_documents', docs);
 }
 
+const EXCLUDED_NON_WORK_CODES = new Set([
+    'HIPAA', 'HITE-ACT', 'FLSA', 'OSHA', 'ADA', 'FMLA', 'UZ-LABOR-CODE',
+    'CAA', 'CWA', 'REACH', 'ROHS',
+    'FTC ACT', 'COPPA', 'CAN--ACT', 'CPSA', 'TCPA', 'DMCA',
+    'GDPR', 'CCPA', 'PIPEDA', 'ECPA', 'UK-DATA', 'FERPA', 'GDPR-ARTI', 'CALIFORNIA PRIVACY RIGHTS ACT',
+    'COOKIE LAW', 'VPPA', 'BIPA', 'APRA', 'UZ-PERSONAL-DATA',
+    'PCI DSS', 'ISO/-2700', 'NIST-CYBE', 'SERVICE ORGANIZATION CONTROL 2', 'FISMA',
+    'CRITICAL INFRASTRUCTURE PROTECTION', 'INTERNATIONAL TRAFFIC IN ARMS REGULATIONS',
+    'CYBERSECURITY MATURITY MODEL CERTIFICATION', 'SHIE-ACT',
+    'TEST-001'
+]);
+const EXCLUDED_NON_WORK_CATS = new Set(['healthcare', 'labor', 'environmental', 'consumer', 'privacy', 'security']);
+
+function isWorkRelatedRegulation(r: any): boolean {
+    if (!r) return false;
+    const code = (r.code || r.metadata?.code || '').trim().toUpperCase();
+    if (EXCLUDED_NON_WORK_CODES.has(code)) return false;
+    const cat = (r.category || r.metadata?.category || '').toLowerCase();
+    if (EXCLUDED_NON_WORK_CATS.has(cat) && code !== 'SOX' && code !== 'UZ-SECURITIES') return false;
+    return true;
+}
+
 function getRegulationsStore(): any[] {
     const base = (seedData.regulations || []) as any[];
-    const stored = getStored<any[]>('regai_mock_regulations_v3', null as any);
+    const stored = getStored<any[]>('regai_mock_regulations_v4', null as any);
     if (!stored || !Array.isArray(stored) || stored.length === 0) {
-        setStored('regai_mock_regulations_v3', base);
+        setStored('regai_mock_regulations_v4', base);
         return base;
     }
-    const baseCodes = new Set(base.map((r: any) => (r.code || r.metadata?.code || '').trim().toUpperCase()));
-    // Filter out obsolete non-work regulations that were removed from seed
-    const cleanStored = stored.filter((r: any) => baseCodes.has((r.code || r.metadata?.code || '').trim().toUpperCase()));
+    // Filter out only obsolete non-work items, but KEEP all newly imported crawler regulations!
+    const cleanStored = stored.filter(isWorkRelatedRegulation);
     const storedCodes = new Set(cleanStored.map((r: any) => (r.code || r.metadata?.code || '').trim().toUpperCase()));
-    const newItems = base.filter((r: any) => !storedCodes.has((r.code || r.metadata?.code || '').trim().toUpperCase()));
-    const merged = [...newItems, ...cleanStored];
-    setStored('regai_mock_regulations_v3', merged);
+    const newBaseItems = base.filter((r: any) => !storedCodes.has((r.code || r.metadata?.code || '').trim().toUpperCase()));
+    const merged = [...cleanStored, ...newBaseItems];
+    setStored('regai_mock_regulations_v4', merged);
     return merged;
 }
 
 function saveRegulationsStore(regs: any[]): void {
-    setStored('regai_mock_regulations_v3', regs);
+    setStored('regai_mock_regulations_v4', regs);
 }
 
 const MOCK_PREDEFINED_SECTIONS = [
@@ -1979,7 +2000,8 @@ export async function handleMockApiRequest(config: any): Promise<any> {
 
         let importedCount = 0;
         MOCK_WEB_DISCOVERIES.forEach(item => {
-            if (codesToImport.has(item.code.toUpperCase()) && !existingCodes.has(item.code.toUpperCase())) {
+            const itemCode = (item.code || '').trim().toUpperCase();
+            if (codesToImport.has(itemCode) && !existingCodes.has(itemCode)) {
                 regs.unshift({
                     id: 'reg-' + Math.random().toString(36).substring(2, 9),
                     code: item.code,
@@ -1993,6 +2015,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                     is_new: true,
                     created_at: new Date().toISOString()
                 });
+                existingCodes.add(itemCode);
                 importedCount++;
             }
         });

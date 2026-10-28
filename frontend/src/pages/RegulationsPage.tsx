@@ -230,7 +230,7 @@ export default function RegulationsPage() {
         setIsLoading(true);
         try {
             setSearchQuery("");
-            const res = await api.get('/regulations/search', { params: { query: "", limit: 200 } });
+            const res = await api.get('/regulations/search', { params: { query: "", limit: 500 } });
             const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
             setResults(data.map(normalizeRegulation).filter(Boolean));
         } catch (error) {
@@ -1071,10 +1071,14 @@ export default function RegulationsPage() {
     const handleImportRegulation = async (code: string) => {
         setIsImporting(code);
         try {
-            await api.post('/regulations/crawler/import', { codes: [code] });
+            const res = await api.post('/regulations/crawler/import', { codes: [code] });
+            const totalInDb = res.data?.total_in_db;
             toast({
                 title: t('success'),
-                description: tr(`Норматив ${code} успешно добавлен в официальный реестр!`, `Regulation ${code} added to registry!`),
+                description: tr(
+                    `Норматив ${code} успешно добавлен в официальный реестр! ${totalInDb ? `Всего нормативов в базе: ${totalInDb}.` : ''}`,
+                    `Regulation ${code} added to registry! ${totalInDb ? `Total regulations in registry: ${totalInDb}.` : ''}`
+                ),
             });
             setDiscoveredRegulations(prev => prev.map(d => d.code === code ? { ...d, is_imported: true } : d));
             await fetchRegulations();
@@ -1101,9 +1105,13 @@ export default function RegulationsPage() {
                 return;
             }
             const res = await api.post('/regulations/crawler/import', { codes: pendingCodes });
+            const totalInDb = res.data?.total_in_db;
             toast({
                 title: t('success'),
-                description: tr(`Все найденные нормативы (${res.data?.imported ?? pendingCodes.length}) успешно импортированы в базу!`, `Successfully imported ${res.data?.imported ?? pendingCodes.length} regulations!`),
+                description: tr(
+                    `Успешно импортировано ${res.data?.imported ?? pendingCodes.length} новых нормативов в базу! ${totalInDb ? `Всего в реестре: ${totalInDb}.` : ''}`,
+                    `Successfully imported ${res.data?.imported ?? pendingCodes.length} regulations! ${totalInDb ? `Total in registry: ${totalInDb}.` : ''}`
+                ),
             });
             setDiscoveredRegulations(prev => prev.map(d => ({ ...d, is_imported: true })));
             await fetchRegulations();

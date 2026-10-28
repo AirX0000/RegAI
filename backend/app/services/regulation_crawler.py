@@ -14,17 +14,12 @@ logger = logging.getLogger(__name__)
 # Predefined standard sections / domains for regulatory intelligence
 PREDEFINED_SECTIONS = [
     {"id": "all", "name": "Все разделы", "name_en": "All Sections", "category": "ALL"},
-    {"id": "tax", "name": "Налогообложение и аудит", "name_en": "Taxation & Audit", "category": "Tax"},
     {"id": "ifrs", "name": "МСФО и финансовая отчетность", "name_en": "IFRS & Financial Reporting", "category": "IFRS"},
+    {"id": "nas", "name": "НСБУ и национальный бухучет", "name_en": "NAS & Local Accounting", "category": "НСБУ"},
+    {"id": "tax", "name": "Налогообложение и трансфертное ценообразование", "name_en": "Taxation & Transfer Pricing", "category": "Tax"},
+    {"id": "audit", "name": "Аудит и стандарты МСА (ISA)", "name_en": "Audit & ISA Standards", "category": "Audit"},
+    {"id": "finance", "name": "Корпоративные финансы & Рынок капитала", "name_en": "Corporate Finance & Capital Markets", "category": "Finance"},
     {"id": "banking", "name": "Банковское дело & Финтех", "name_en": "Banking & FinTech", "category": "Banking"},
-    {"id": "aml", "name": "AML / ПОД/ФТ & Финансовый мониторинг", "name_en": "AML / CFT & Financial Crime", "category": "AML"},
-    {"id": "cybersecurity", "name": "Кибербезопасность, Данные & Крипта", "name_en": "Cybersecurity, Privacy & Crypto", "category": "Cybersecurity"},
-    {"id": "customs", "name": "Таможенное регулирование & ВЭД", "name_en": "Customs & Foreign Trade", "category": "Customs"},
-    {"id": "labor", "name": "Трудовое право & Охрана труда", "name_en": "Labor Law & HR Compliance", "category": "Labor"},
-    {"id": "esg", "name": "ESG, Климат & Зеленая экономика", "name_en": "ESG, Climate & Green Economy", "category": "ESG"},
-    {"id": "pharma", "name": "Фармацевтика & Здравоохранение", "name_en": "Pharma, Healthcare & GMP", "category": "Healthcare"},
-    {"id": "procurement", "name": "Госзакупки & Антимонополия", "name_en": "Public Procurement & Antitrust", "category": "Procurement"},
-    {"id": "construction", "name": "Строительство & Недвижимость", "name_en": "Construction & Real Estate", "category": "Construction"},
 ]
 
 # Monitored official legal gazettes, ministries, central banks, and standard setters
