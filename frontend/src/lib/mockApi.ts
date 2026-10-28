@@ -4,7 +4,7 @@ import { createMockToken, safeBase64Decode } from './authUtils';
 import * as XLSX from 'xlsx';
 
 // ── Persistence Helpers ──────────────────────────────────────────────────────
-const CURRENT_MOCK_STORAGE_VERSION = 'v7_zero_delta_ifrs_fix_2026';
+const CURRENT_MOCK_STORAGE_VERSION = 'v8_agroprom_finserve_rich_seed_2026';
 function ensureStorageIsolation() {
     try {
         if (localStorage.getItem('regai_storage_version') !== CURRENT_MOCK_STORAGE_VERSION) {
@@ -13,6 +13,10 @@ function ensureStorageIsolation() {
             localStorage.removeItem('regai_mock_balance_sheets');
             localStorage.removeItem('regai_mock_documents');
             localStorage.removeItem('regai_mock_alerts');
+            localStorage.removeItem('regai_mock_companies');
+            localStorage.removeItem('regai_mock_users');
+            localStorage.removeItem('regai_mock_tax_rates');
+            localStorage.removeItem('regai_mock_tenants');
             localStorage.setItem('regai_storage_version', CURRENT_MOCK_STORAGE_VERSION);
         }
     } catch (e) {

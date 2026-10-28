@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -94,6 +94,18 @@ export default function DashboardPage() {
         if (user?.full_name && user.full_name !== 'User') return user.full_name;
         if (user?.role === 'superadmin') return tr('Главный администратор', 'System Administrator');
         if (user?.email) {
+            if (user.email.includes('agroprom')) {
+                if (user.email.includes('owner')) return 'Азиз Мирзаев';
+                if (user.email.includes('accountant')) return 'Зарина Юсупова';
+                if (user.email.includes('admin')) return 'Тимур Саттаров';
+                if (user.email.includes('auditor')) return 'Анвар Касымов';
+            }
+            if (user.email.includes('finserve')) {
+                if (user.email.includes('owner')) return 'Жасур Махмудов';
+                if (user.email.includes('accountant')) return 'Наргиза Саидова';
+                if (user.email.includes('admin')) return 'Бахром Алиев';
+                if (user.email.includes('auditor')) return 'Олег Новиков';
+            }
             const prefix = user.email.split('@')[0];
             if (prefix === 'superadmin') return tr('Главный администратор', 'System Administrator');
             if (prefix === 'owner') return 'Сардор Рахимов';
@@ -104,6 +116,57 @@ export default function DashboardPage() {
             return prefix;
         }
         return tr('Администратор', 'Administrator');
+    };
+
+    const getTaxDetails = () => {
+        if (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd') {
+            return tr(
+                "IAS 12 ОНО по переоценке биоактивов (IAS 41): -2.15M UZS",
+                "IAS 12 Deferred Tax on Biological Assets (IAS 41): -2.15M UZS"
+            );
+        }
+        if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') {
+            return tr(
+                "IAS 12 ОНА по резервам ECL (IFRS 9): +4.20M UZS",
+                "IAS 12 Deferred Tax on ECL Allowance (IFRS 9): +4.20M UZS"
+            );
+        }
+        return tr(
+            "IAS 12 Отложенный налоговый актив: +1.45M UZS",
+            "IAS 12 Deferred Tax Asset: +1.45M UZS"
+        );
+    };
+
+    const getStandardsScope = () => {
+        if (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd') {
+            return "IAS 41, 2, IFRS 16, 9";
+        }
+        if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') {
+            return "IFRS 9, 7, 16, IAS 1";
+        }
+        return "IFRS 16, 9, IAS 36, 12";
+    };
+
+    const getChartBadges = () => {
+        if (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd') {
+            return [
+                { label: tr('IAS 41 (Биоактивы)', 'IAS 41 (Biological Assets)', 'IAS 41 (Biologik aktivlar)'), value: '68.4M UZS', color: 'text-purple-600 dark:text-purple-400' },
+                { label: tr('IAS 2 (Запасы FMCG)', 'IAS 2 (Inventories)', 'IAS 2 (Zaxiralar)'), value: '42.1M UZS', color: 'text-emerald-600 dark:text-emerald-400' },
+                { label: tr('IFRS 16 (Аренда элеваторов)', 'IFRS 16 (Elevator Leases)', 'IFRS 16 (Ijara)'), value: '28.5M UZS', color: 'text-blue-600 dark:text-blue-400' },
+            ];
+        }
+        if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') {
+            return [
+                { label: tr('IFRS 9 (Резервы ECL)', 'IFRS 9 (ECL Allowance)', 'IFRS 9 (ECL zaxirasi)'), value: '54.2M UZS', color: 'text-purple-600 dark:text-purple-400' },
+                { label: tr('IFRS 7 (Фин. инструменты)', 'IFRS 7 (Financial Instruments)', 'IFRS 7 (Moliyaviy vositalar)'), value: '38.0M UZS', color: 'text-emerald-600 dark:text-emerald-400' },
+                { label: tr('IFRS 16 (Аренда офисов)', 'IFRS 16 (Office Leases)', 'IFRS 16 (Ijara)'), value: '16.5M UZS', color: 'text-blue-600 dark:text-blue-400' },
+            ];
+        }
+        return [
+            { label: tr('IFRS 16 (Аренда)', 'IFRS 16 (Leases)', 'IFRS 16 (Ijara)'), value: '45.0M UZS', color: 'text-purple-600 dark:text-purple-400' },
+            { label: tr('IFRS 9 (Резервы ECL)', 'IFRS 9 (ECL Reserves)', 'IFRS 9 (ECL zaxiralari)'), value: '15.6M UZS', color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: tr('IAS 36 (Тест обесценения)', 'IAS 36 (Impairment Test)', 'IAS 36 (Qadrsizlanish testi)'), value: '8.2M UZS', color: 'text-blue-600 dark:text-blue-400' },
+        ];
     };
 
     const getCompanyDisplay = () => {
@@ -155,15 +218,37 @@ export default function DashboardPage() {
     const transformedCount = balanceSheets.filter(s => (s.status || '').toUpperCase() === 'TRANSFORMED').length;
     const pendingCount = totalSheets - transformedCount;
 
-    // Monthly volume data for the transformation dynamics chart
-    const chartData = [
-        { month: tr("Май", "May"), volume: 48, ifrs16: 12, ifrs9: 3.5 },
-        { month: tr("Июн", "Jun"), volume: 82, ifrs16: 18.5, ifrs9: 6.2 },
-        { month: tr("Июл", "Jul"), volume: 115, ifrs16: 24, ifrs9: 8.1 },
-        { month: tr("Авг", "Aug"), volume: 152, ifrs16: 31, ifrs9: 10.4 },
-        { month: tr("Сен", "Sep"), volume: 198, ifrs16: 38, ifrs9: 12.8 },
-        { month: tr("Окт", "Oct"), volume: 248.2, ifrs16: 45, ifrs9: 15.6 },
-    ];
+    // Monthly volume data for the transformation dynamics chart (tailored per company profile)
+    const chartData = useMemo(() => {
+        if (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd') {
+            return [
+                { month: tr("Май", "May"), volume: 75, ifrs16: 14, ifrs9: 8.2 },
+                { month: tr("Июн", "Jun"), volume: 112, ifrs16: 19, ifrs9: 12.5 },
+                { month: tr("Июл", "Jul"), volume: 168, ifrs16: 22, ifrs9: 18.0 },
+                { month: tr("Авг", "Aug"), volume: 220, ifrs16: 25, ifrs9: 24.3 },
+                { month: tr("Сен", "Sep"), volume: 285, ifrs16: 27, ifrs9: 32.1 },
+                { month: tr("Окт", "Oct"), volume: 342.5, ifrs16: 28.5, ifrs9: 42.0 },
+            ];
+        }
+        if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') {
+            return [
+                { month: tr("Май", "May"), volume: 120, ifrs16: 8, ifrs9: 22 },
+                { month: tr("Июн", "Jun"), volume: 195, ifrs16: 11, ifrs9: 31 },
+                { month: tr("Июл", "Jul"), volume: 260, ifrs16: 13, ifrs9: 39 },
+                { month: tr("Авг", "Aug"), volume: 340, ifrs16: 15, ifrs9: 46 },
+                { month: tr("Сен", "Sep"), volume: 430, ifrs16: 16, ifrs9: 50 },
+                { month: tr("Окт", "Oct"), volume: 512.0, ifrs16: 16.5, ifrs9: 54.2 },
+            ];
+        }
+        return [
+            { month: tr("Май", "May"), volume: 48, ifrs16: 12, ifrs9: 3.5 },
+            { month: tr("Июн", "Jun"), volume: 82, ifrs16: 18.5, ifrs9: 6.2 },
+            { month: tr("Июл", "Jul"), volume: 115, ifrs16: 24, ifrs9: 8.1 },
+            { month: tr("Авг", "Aug"), volume: 152, ifrs16: 31, ifrs9: 10.4 },
+            { month: tr("Сен", "Sep"), volume: 198, ifrs16: 38, ifrs9: 12.8 },
+            { month: tr("Окт", "Oct"), volume: 248.2, ifrs16: 45, ifrs9: 15.6 },
+        ];
+    }, [user?.company_id, i18n.language]);
 
     const getActionBadge = (action: string) => {
         const act = (action || '').toLowerCase();
@@ -295,9 +380,11 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {pendingCount > 0 
-                                ? (tr(`${pendingCount} отчетов на согласовании`, `${pendingCount} statements in review / draft`)) 
-                                : (tr("Все отчеты трансформированы по МСФО", "All statements transformed under IFRS"))}
+                            {totalSheets === 0
+                                ? tr("Ожидается импорт ОСВ через 1С или Excel", "Awaiting trial balance import via 1C or Excel")
+                                : pendingCount > 0 
+                                    ? tr(`${pendingCount} отчетов на согласовании`, `${pendingCount} statements in review / draft`) 
+                                    : tr("Все отчеты трансформированы по МСФО", "All statements transformed under IFRS")}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
@@ -406,7 +493,7 @@ export default function DashboardPage() {
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {tr("IAS 12 Отложенный налоговый актив: +1.45M UZS", "IAS 12 Deferred Tax Asset: +1.45M UZS")}
+                            {getTaxDetails()}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
@@ -434,18 +521,20 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="flex items-baseline justify-between">
                             <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                {tr("Безоговорочное", "Unmodified")}
+                                {totalSheets === 0 ? tr("В процессе", "In Progress") : tr("Безоговорочное", "Unmodified")}
                             </div>
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                                4 {tr("стр", "pages")}
+                                {totalSheets === 0 ? 0 : 4} {tr("стр", "pages")}
                             </span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {tr("Полный пакет раскрытий со всеми примечаниями", "Full IFRS Convergence & Audit Booklet")}
+                            {totalSheets === 0 
+                                ? tr("Ожидает трансформации баланса для выпуска заключения", "Awaiting balance transformation to issue opinion")
+                                : tr("Полный пакет раскрытий со всеми примечаниями", "Full IFRS Convergence & Audit Booklet")}
                         </p>
                         <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
-                                {tr("IFRS 16, 9, IAS 36, 12", "IFRS 16, 9, IAS 36, 12")}
+                                {getStandardsScope()}
                             </span>
                             <button
                                 onClick={() => navigate('/reports')}
@@ -555,18 +644,12 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-border/50 text-center">
-                            <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IFRS 16 (Аренда)', 'IFRS 16 (Leases)', 'IFRS 16 (Ijara)')}</span>
-                                <span className="text-sm font-bold text-purple-600 dark:text-purple-400">45.0M UZS</span>
-                            </div>
-                            <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IFRS 9 (Резервы ECL)', 'IFRS 9 (ECL Reserves)', 'IFRS 9 (ECL zaxiralari)')}</span>
-                                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">15.6M UZS</span>
-                            </div>
-                            <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
-                                <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{tr('IAS 36 (Тест обесценения)', 'IAS 36 (Impairment Test)', 'IAS 36 (Qadrsizlanish testi)')}</span>
-                                <span className="text-sm font-bold text-blue-600 dark:text-blue-400">8.2M UZS</span>
-                            </div>
+                            {getChartBadges().map((badge, idx) => (
+                                <div key={idx} className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900/60 border border-slate-200/50 dark:border-slate-800">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-semibold block">{badge.label}</span>
+                                    <span className={`text-sm font-bold ${badge.color}`}>{badge.value}</span>
+                                </div>
+                            ))}
                         </div>
                     </CardContent>
                 </Card>
