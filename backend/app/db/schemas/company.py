@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, UUID4
 from datetime import datetime
 
@@ -12,6 +12,7 @@ class CompanyBase(BaseModel):
     industry: Optional[str] = None
     employee_count: Optional[int] = None
     plan: Optional[str] = "free"
+    custom_features: Optional[List[str]] = []
 
 # Properties to receive on company creation
 class CompanyCreate(CompanyBase):
@@ -28,6 +29,7 @@ class CompanyUpdate(BaseModel):
     employee_count: Optional[int] = None
     is_active: Optional[bool] = None
     plan: Optional[str] = None
+    custom_features: Optional[List[str]] = None
 
 # Properties shared by models stored in DB
 class CompanyInDBBase(CompanyBase):
@@ -54,6 +56,7 @@ class CompanyProfile(BaseModel):
     industry: Optional[str] = None
     employee_count: Optional[int] = None
     plan: Optional[str] = "free"
+    custom_features: Optional[List[str]] = []
     created_at: datetime
     
     class Config:

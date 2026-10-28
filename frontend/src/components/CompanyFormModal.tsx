@@ -3,10 +3,11 @@ import { tr } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { X } from 'lucide-react';
+import { X, Sparkles, Check } from 'lucide-react';
 import api from '../lib/api';
 import { CompanyLogoUploader } from './CompanyLogoUploader';
 import { useTranslation } from 'react-i18next';
+import { AVAILABLE_CUSTOM_FEATURES } from '../lib/customFeatures';
 
 interface CompanyFormModalProps {
     company: any | null;
@@ -17,6 +18,7 @@ interface CompanyFormModalProps {
 export default function CompanyFormModal({ company, onClose, onSuccess }: CompanyFormModalProps) {
     const { toast } = useToast();
     const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'ru';
     void i18n.language;
     const [formData, setFormData] = useState({
         name: '',
@@ -27,6 +29,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
         employee_count: '',
         logo_url: '',
         plan: 'free',
+        custom_features: [] as string[],
     });
     const [submitting, setSubmitting] = useState(false);
 
@@ -41,9 +44,19 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                 employee_count: company.employee_count?.toString() || '',
                 logo_url: company.logo_url || '',
                 plan: company.plan || 'free',
+                custom_features: Array.isArray(company.custom_features) ? company.custom_features : [],
             });
         }
     }, [company]);
+
+    const toggleFeature = (featureKey: string) => {
+        const cur = formData.custom_features || [];
+        if (cur.includes(featureKey)) {
+            setFormData({ ...formData, custom_features: cur.filter(k => k !== featureKey) });
+        } else {
+            setFormData({ ...formData, custom_features: [...cur, featureKey] });
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +71,7 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
             logo_url: formData.logo_url || null,
             domain: formData.domain || null,
             plan: formData.plan || 'free',
+            custom_features: formData.custom_features || [],
         };
 
         try {
@@ -157,6 +171,56 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                             className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5 min-h-[100px] text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             placeholder={tr("Краткое описание профиля компании...", "Brief description about the company...")}
                         />
+                    </div>
+
+                    {/* Standalone Features / Add-ons outside Tariff */}
+                    <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900/60 bg-purple-50/30 dark:bg-purple-950/20 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                <Sparkles className="h-4 w-4 text-purple-600" />
+                                {tr('Функции и модули вне тарифа (Add-ons)', 'Features Outside Plan (Add-ons)')}
+                            </label>
+                            <span className="text-xs text-purple-700 dark:text-purple-300 font-semibold">
+                                {formData.custom_features?.length || 0} {tr('активно', 'selected')}
+                            </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {tr('Отметьте модули, которые необходимо предоставить организации независимо от выбранного тарифа:', 'Select standalone modules to activate for this company regardless of base plan:')}
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 max-h-48 overflow-y-auto pr-1">
+                            {AVAILABLE_CUSTOM_FEATURES.map((feat) => {
+                                const isSelected = (formData.custom_features || []).includes(feat.key);
+                                return (
+                                    <button
+                                        type="button"
+                                        key={feat.key}
+                                        onClick={() => toggleFeature(feat.key)}
+                                        className={`p-2.5 rounded-lg border text-left transition-all flex items-start gap-2.5 ${
+                                            isSelected
+                                                ? 'bg-purple-100/70 dark:bg-purple-900/40 border-purple-400 dark:border-purple-700 shadow-2xs'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <div className={`w-4 h-4 rounded mt-0.5 flex items-center justify-center shrink-0 border transition-colors ${
+                                            isSelected
+                                                ? 'bg-purple-600 border-purple-600 text-white'
+                                                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                        }`}>
+                                            {isSelected && <Check className="h-3 w-3" />}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                                {currentLang === 'en' ? feat.nameEn : feat.nameRu}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1">
+                                                {feat.key}
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { X, Building2, Globe, Users, Briefcase, Calendar } from 'lucide-react';
+import { X, Building2, Globe, Users, Briefcase, Calendar, Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { tr } from '../lib/i18n';
+import { getFeatureTitle } from '../lib/customFeatures';
 
 interface CompanyProfileCardProps {
     company: any;
@@ -9,7 +10,8 @@ interface CompanyProfileCardProps {
 }
 
 export default function CompanyProfileCard({ company, onClose }: CompanyProfileCardProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const currentLang = i18n.language || 'ru';
     return (
         <div>
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-slate-100 dark:border-slate-800">
@@ -94,7 +96,7 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
             </div>
 
             {/* Status & Plan */}
-            <div className="mb-6 flex items-center gap-3 flex-wrap">
+            <div className="mb-4 flex items-center gap-3 flex-wrap">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${company.is_active
                     ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60'
                     : 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/60'
@@ -116,6 +118,29 @@ export default function CompanyProfileCard({ company, onClose }: CompanyProfileC
                         : tr('Тариф: Базовый (Free)', 'Plan: Free')}
                 </span>
             </div>
+
+            {/* Custom Features Outside Plan */}
+            {Array.isArray(company.custom_features) && company.custom_features.length > 0 && (
+                <div className="mb-6 p-3.5 rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/40 dark:bg-purple-950/20">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300 mb-2 flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {tr('Модули и функции вне тарифа (Add-ons)', 'Custom Standalone Add-ons')}
+                        <span className="text-[10px] px-1.5 py-0.2 bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full font-mono">
+                            {company.custom_features.length}
+                        </span>
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                        {company.custom_features.map((featKey: string) => (
+                            <span
+                                key={featKey}
+                                className="px-2 py-0.5 rounded-md text-xs font-medium bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 shadow-2xs"
+                            >
+                                {getFeatureTitle(featKey, currentLang)}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Actions */}
             <div className="flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-4">

@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { Plus, Edit, Trash2, Building2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Building2, Sparkles } from 'lucide-react';
 import api from '../lib/api';
 import CompanyFormModal from '../components/CompanyFormModal';
 import CompanyProfileCard from '../components/CompanyProfileCard';
+import { CompanyCustomFeaturesModal } from '../components/CompanyCustomFeaturesModal';
 import { useTranslation } from 'react-i18next';
 
 export default function CompaniesManagementPage() {
@@ -18,6 +19,7 @@ export default function CompaniesManagementPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedCompany, setSelectedCompany] = useState<any>(null);
     const [viewProfile, setViewProfile] = useState<any>(null);
+    const [featuresModalCompany, setFeaturesModalCompany] = useState<any>(null);
     const { user } = useAuth();
     const { toast } = useToast();
 
@@ -197,6 +199,7 @@ export default function CompaniesManagementPage() {
                             <th className="p-4 text-left">{tr('Веб-сайт', 'Website')}</th>
                             <th className="p-4 text-left">{tr('Сотрудники', 'Employees')}</th>
                             <th className="p-4 text-left">{tr('Тарифный план', 'Plan')}</th>
+                            <th className="p-4 text-left">{tr('Функции вне тарифа', 'Custom Add-ons')}</th>
                             <th className="p-4 text-left">{tr('Статус', 'Status')}</th>
                             <th className="p-4 text-left">{tr('Действия', 'Actions')}</th>
                         </tr>
@@ -255,6 +258,31 @@ export default function CompaniesManagementPage() {
                                     </select>
                                 </td>
                                 <td className="p-4">
+                                    <div className="flex items-center gap-1.5">
+                                        {Array.isArray(company.custom_features) && company.custom_features.length > 0 ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFeaturesModalCompany(company)}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/80 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors shadow-2xs"
+                                                title={tr('Управление функциями вне тарифа', 'Manage standalone modules')}
+                                            >
+                                                <Sparkles className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                                                <span>+{company.custom_features.length} {tr('модулей', 'add-ons')}</span>
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFeaturesModalCompany(company)}
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50/70 dark:hover:bg-purple-950/30 border border-dashed border-slate-300 dark:border-slate-700 transition-colors"
+                                                title={tr('Подключить индивидуальные функции вне тарифа', 'Add custom features outside plan')}
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                                <span>{tr('Добавить', 'Add')}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="p-4">
                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${company.is_active
                                         ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60'
                                         : 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/60'
@@ -263,7 +291,16 @@ export default function CompaniesManagementPage() {
                                     </span>
                                 </td>
                                 <td className="p-4">
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1.5">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setFeaturesModalCompany(company)}
+                                            title={tr('Настроить функции вне тарифа', 'Configure Add-on Features')}
+                                            className="dark:border-slate-700 dark:hover:bg-purple-950/40 text-purple-600 dark:text-purple-400 border-purple-200 hover:bg-purple-50"
+                                        >
+                                            <Sparkles className="h-4 w-4" />
+                                        </Button>
                                         <Button
                                             size="sm"
                                             variant="outline"
@@ -315,6 +352,18 @@ export default function CompaniesManagementPage() {
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Custom Features Modal */}
+            {featuresModalCompany && (
+                <CompanyCustomFeaturesModal
+                    company={featuresModalCompany}
+                    onClose={() => setFeaturesModalCompany(null)}
+                    onSuccess={() => {
+                        setFeaturesModalCompany(null);
+                        fetchCompanies();
+                    }}
+                />
             )}
         </div>
     );

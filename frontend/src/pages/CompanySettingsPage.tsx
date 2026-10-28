@@ -7,30 +7,35 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { Building2, Save, Loader2, Crown, Check, X as XIcon, Zap, Sparkles } from 'lucide-react';
+import { Building2, Save, Loader2, Crown, Check, X as XIcon, Zap, Sparkles, Sliders } from 'lucide-react';
 import { OneCConfigModal } from '../components/onec/OneCConfigModal';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { OneCSyncLogsTable } from '../components/onec/OneCSyncLogsTable';
 import { CompanyLogoUploader } from '../components/CompanyLogoUploader';
+import { CompanyCustomFeaturesModal } from '../components/CompanyCustomFeaturesModal';
+import { AVAILABLE_CUSTOM_FEATURES, getFeatureTitle, getFeatureCategoryLabel } from '../lib/customFeatures';
 import { useTranslation } from 'react-i18next';
 
 export default function CompanySettingsPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const { i18n } = useTranslation();
+    const currentLang = i18n.language || 'ru';
     void i18n.language;
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [company, setCompany] = useState<any>(null);
     const [oneCConfigOpen, setOneCConfigOpen] = useState(false);
     const [oneCSyncOpen, setOneCSyncOpen] = useState(false);
+    const [featuresModalOpen, setFeaturesModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         description: '',
         website: '',
         industry: '',
         employee_count: '',
         logo_url: '',
-        plan: 'free'
+        plan: 'free',
+        custom_features: [] as string[]
     });
 
     const companyId = (user as any)?.company_id;
@@ -63,7 +68,8 @@ export default function CompanySettingsPage() {
                         industry: companyData.industry || '',
                         employee_count: companyData.employee_count?.toString() || '',
                         logo_url: companyData.logo_url || '',
-                        plan: companyData.plan || 'free'
+                        plan: companyData.plan || 'free',
+                        custom_features: Array.isArray(companyData.custom_features) ? companyData.custom_features : []
                     });
                 }
             } catch (error) {
@@ -80,6 +86,56 @@ export default function CompanySettingsPage() {
 
         fetchCompany();
     }, [user?.company_id, toast]);
+
+    const handleToggleAddon = async (featureKey: string) => {
+        try {
+            const currentFeatures: string[] = Array.isArray(company?.custom_features)
+                ? [...company.custom_features]
+                : [];
+            
+            let updatedFeatures: string[];
+            if (currentFeatures.includes(featureKey)) {
+                updatedFeatures = currentFeatures.filter(k => k !== featureKey);
+            } else {
+                updatedFeatures = [...currentFeatures, featureKey];
+            }
+
+            const targetId = (user as any)?.company_id || company?.id;
+            await api.put(`/companies/${targetId}/profile`, {
+                ...formData,
+                custom_features: updatedFeatures
+            });
+
+            // Also synchronize mock store
+            try {
+                const storedRaw = localStorage.getItem('regai_mock_companies');
+                if (storedRaw) {
+                    const comps = JSON.parse(storedRaw);
+                    const idx = comps.findIndex((c: any) => c.id === targetId);
+                    if (idx !== -1) {
+                        comps[idx] = { ...comps[idx], custom_features: updatedFeatures };
+                        localStorage.setItem('regai_mock_companies', JSON.stringify(comps));
+                    }
+                }
+            } catch {}
+
+            setCompany((prev: any) => ({ ...prev, custom_features: updatedFeatures }));
+            setFormData((prev: any) => ({ ...prev, custom_features: updatedFeatures }));
+            toast({
+                title: tr("Модули обновлены", "Modules Updated"),
+                description: tr(
+                    `Функция "${getFeatureTitle(featureKey, currentLang)}" ${updatedFeatures.includes(featureKey) ? 'активирована вне тарифа' : 'отключена'}`,
+                    `Feature "${featureKey}" status updated`
+                ),
+            });
+        } catch (error: any) {
+            toast({
+                title: tr("Ошибка", "Error"),
+                description: error.response?.data?.detail || tr("Не удалось обновить функцию", "Failed to update feature"),
+                variant: "destructive"
+            });
+        }
+    };
 
     const handleSwitchPlan = async (newPlan: string) => {
         try {
@@ -316,7 +372,8 @@ export default function CompanySettingsPage() {
                                         industry: company.industry || '',
                                         employee_count: company.employee_count?.toString() || '',
                                         logo_url: company.logo_url || '',
-                                        plan: company.plan || 'free'
+                                        plan: company.plan || 'free',
+                                        custom_features: Array.isArray(company.custom_features) ? company.custom_features : []
                                     });
                                 }}
                                 disabled={saving}
@@ -609,6 +666,143 @@ export default function CompanySettingsPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Standalone Feature Add-ons Outside Plan */}
+            <Card className="border-purple-200 dark:border-purple-900/50 bg-gradient-to-br from-white via-purple-50/15 to-slate-50/50 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-900 shadow-sm">
+                <CardHeader className="border-b border-purple-100 dark:border-purple-900/40 pb-4">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-purple-100 dark:bg-purple-950/80 text-purple-900 dark:text-purple-300 rounded-xl border border-purple-200 dark:border-purple-800">
+                                <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div>
+                                <CardTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
+                                    {tr('Функции и модули вне тарифа (Add-on Modules)', 'Standalone Modules Outside Plan')}
+                                    <span className="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-700">
+                                        {Array.isArray(company.custom_features) ? company.custom_features.length : 0} {tr('активных доп. опций', 'active add-ons')}
+                                    </span>
+                                </CardTitle>
+                                <CardDescription className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                    {tr(
+                                        'Подключайте индивидуальные возможности и расширения платформы без обязательного перехода на старший тарифный план',
+                                        'Activate bespoke capabilities and individual features independently of your base subscription'
+                                    )}
+                                </CardDescription>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setFeaturesModalOpen(true)}
+                                className="border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-xs font-semibold shadow-2xs"
+                            >
+                                <Sliders className="h-4 w-4 mr-1.5" />
+                                {tr('Каталог и кастомные ключи', 'Open Feature Hub')}
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="pt-6 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {AVAILABLE_CUSTOM_FEATURES.map((feat) => {
+                            const isIncludedByTariff = (company.plan === 'enterprise') || 
+                                (company.plan === 'premium' && ['ai_auditor', 'onec_sync', 'ias12_tax', 'custom_reports'].includes(feat.key));
+                            const isAddonActive = Array.isArray(company.custom_features) && company.custom_features.includes(feat.key);
+
+                            return (
+                                <div
+                                    key={feat.key}
+                                    className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between ${
+                                        isAddonActive
+                                            ? 'bg-purple-50/80 dark:bg-purple-950/30 border-purple-300 dark:border-purple-800 shadow-2xs'
+                                            : isIncludedByTariff
+                                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40'
+                                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+                                    }`}
+                                >
+                                    <div>
+                                        <div className="flex items-start justify-between gap-1.5 mb-1.5">
+                                            <h4 className="text-xs font-bold text-slate-900 dark:text-white leading-tight">
+                                                {currentLang === 'en' ? feat.nameEn : feat.nameRu}
+                                            </h4>
+                                            <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${feat.badgeColor}`}>
+                                                {getFeatureCategoryLabel(feat.category, currentLang)}
+                                            </span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                                            {currentLang === 'en' ? feat.descriptionEn : feat.descriptionRu}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                                        <div className="text-[10px]">
+                                            {isIncludedByTariff ? (
+                                                <span className="text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                                    ✓ {tr('Входит в тариф', 'In plan')}
+                                                </span>
+                                            ) : isAddonActive ? (
+                                                <span className="text-purple-700 dark:text-purple-300 font-semibold flex items-center gap-1">
+                                                    ★ {tr('Подключено вне тарифа', 'Active add-on')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400">
+                                                    {tr('Не активно', 'Disabled')}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {!isIncludedByTariff && (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant={isAddonActive ? "outline" : "default"}
+                                                onClick={() => handleToggleAddon(feat.key)}
+                                                className={`h-7 px-2.5 text-[11px] font-semibold ${
+                                                    isAddonActive
+                                                        ? 'border-purple-300 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/50'
+                                                        : 'bg-purple-600 hover:bg-purple-700 text-white shadow-2xs'
+                                                }`}
+                                            >
+                                                {isAddonActive ? tr('Отключить', 'Disable') : tr('Включить', 'Enable')}
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Modal for Custom Features Outside Plan */}
+            {featuresModalOpen && company && (
+                <CompanyCustomFeaturesModal
+                    company={company}
+                    onClose={() => setFeaturesModalOpen(false)}
+                    onSuccess={() => {
+                        setFeaturesModalOpen(false);
+                        // refresh
+                        try {
+                            const raw = localStorage.getItem('regai_mock_companies');
+                            if (raw) {
+                                const list = JSON.parse(raw);
+                                const found = list.find((c: any) => c.id === company.id);
+                                if (found) {
+                                    setCompany(found);
+                                    setFormData((prev: any) => ({
+                                        ...prev,
+                                        custom_features: found.custom_features || []
+                                    }));
+                                }
+                            }
+                        } catch {}
+                    }}
+                />
+            )}
 
             {/* 1C:Enterprise 8.3 Integration Hub */}
             <Card className="border-amber-200 bg-gradient-to-br from-white to-amber-50/20 shadow-sm">

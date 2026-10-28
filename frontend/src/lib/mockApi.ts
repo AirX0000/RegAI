@@ -1198,6 +1198,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             name: body?.name || 'Новая организация',
             domain: body?.domain || '',
             plan: body?.plan || 'free',
+            custom_features: Array.isArray(body?.custom_features) ? body.custom_features : [],
             logo_url: body?.logo_url || null,
             inn: body?.inn || '123456789',
             industry: body?.industry || 'IT & Fintech',

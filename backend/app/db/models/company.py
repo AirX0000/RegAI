@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, ForeignKey, DateTime, func, Text, Integer, Boolean
+from sqlalchemy import Column, String, ForeignKey, DateTime, func, Text, Integer, Boolean, JSON
 from sqlalchemy import Uuid as UUID
 from sqlalchemy.orm import relationship
 from app.db.session import Base
@@ -19,6 +19,7 @@ class Company(Base):
     employee_count = Column(Integer)
     is_active = Column(Boolean, default=True, index=True)
     plan = Column(String(50), default="free", index=True)  # 'free', 'premium', 'enterprise'
+    custom_features = Column(JSON, default=list)  # List of extra feature keys enabled outside the tariff plan
     
     # Ownership tracking
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True)  # Company owner
