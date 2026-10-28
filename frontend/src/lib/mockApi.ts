@@ -2247,38 +2247,146 @@ export async function handleMockApiRequest(config: any): Promise<any> {
 
     if (cleanPath.includes('/regulations/search') || cleanPath === '/regulations' || cleanPath === '/regulations/') {
         const regs = getRegulationsStore();
-        const q = (config?.params?.query || '').toLowerCase().trim();
-        let filtered = regs;
-        if (q) {
-            filtered = regs.filter((r: any) => {
-                const title = (r.title || '').toLowerCase();
-                const code = (r.code || '').toLowerCase();
-                const content = (r.content || '').toLowerCase();
-                const jur = (r.jurisdiction || '').toLowerCase();
-                return title.includes(q) || code.includes(q) || content.includes(q) || jur.includes(q);
+        const rawQ = (config?.params?.query || '').trim();
+        const q = rawQ.toLowerCase();
+        const terms: string[] = q.split(/\s+/).filter(Boolean);
+
+        let scoredList: any[] = [];
+
+        if (terms.length > 0) {
+            regs.forEach((r: any) => {
+                const title = (r.title || r.metadata?.title || '').toLowerCase();
+                const code = (r.code || r.metadata?.code || '').toLowerCase();
+                const content = (r.content || r.metadata?.content || '').toLowerCase();
+                const jur = (r.jurisdiction || r.metadata?.jurisdiction || '').toLowerCase();
+                const cat = (r.category || r.metadata?.category || '').toLowerCase();
+                const workflowStr = typeof r.workflow_steps === 'string'
+                    ? r.workflow_steps.toLowerCase()
+                    : JSON.stringify(r.workflow_steps || []).toLowerCase();
+
+                let score = 0;
+                const matchedFields: string[] = [];
+
+                // Exact phrase bonuses
+                if (q && code.includes(q)) score += 40;
+                if (q && title.includes(q)) score += 30;
+
+                let termsMatched = 0;
+                terms.forEach((t: string) => {
+                    let termHit = false;
+                    if (code.includes(t)) {
+                        score += 15;
+                        termHit = true;
+                        if (!matchedFields.includes('code')) matchedFields.push('code');
+                    }
+                    if (title.includes(t)) {
+                        score += 12;
+                        termHit = true;
+                        if (!matchedFields.includes('title')) matchedFields.push('title');
+                    }
+                    if (cat.includes(t)) {
+                        score += 8;
+                        termHit = true;
+                        if (!matchedFields.includes('category')) matchedFields.push('category');
+                    }
+                    if (jur.includes(t)) {
+                        score += 8;
+                        termHit = true;
+                        if (!matchedFields.includes('jurisdiction')) matchedFields.push('jurisdiction');
+                    }
+                    if (workflowStr.includes(t)) {
+                        score += 10;
+                        termHit = true;
+                        if (!matchedFields.includes('workflow')) matchedFields.push('workflow');
+                    }
+                    if (content.includes(t)) {
+                        termHit = true;
+                        const occurrences = (content.match(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+                        score += Math.min(occurrences * 3, 20);
+                        if (!matchedFields.includes('content')) matchedFields.push('content');
+                    }
+                    if (termHit) {
+                        termsMatched++;
+                    }
+                });
+
+                // Bonus if all words matched
+                if (termsMatched === terms.length) {
+                    score += 25;
+                }
+
+                if (score > 0) {
+                    // Extract contextual snippet
+                    const rawContent = r.content || r.metadata?.content || '';
+                    let snippet = '';
+                    let bestIdx = -1;
+
+                    for (const t of terms) {
+                        const idx = rawContent.toLowerCase().indexOf(t);
+                        if (idx !== -1) {
+                            bestIdx = idx;
+                            break;
+                        }
+                    }
+
+                    if (bestIdx !== -1) {
+                        const start = Math.max(0, bestIdx - 60);
+                        const end = Math.min(rawContent.length, bestIdx + 180);
+                        snippet = (start > 0 ? '...' : '') + rawContent.substring(start, end).trim() + (end < rawContent.length ? '...' : '');
+                    } else if (rawContent) {
+                        snippet = rawContent.substring(0, 220).trim() + (rawContent.length > 220 ? '...' : '');
+                    }
+
+                    scoredList.push({
+                        ...r,
+                        score,
+                        snippet,
+                        matched_fields: matchedFields
+                    });
+                }
             });
+
+            // Sort by score descending
+            scoredList.sort((a, b) => b.score - a.score);
+        } else {
+            scoredList = regs.map((r: any) => ({
+                ...r,
+                score: 0,
+                snippet: (r.content || r.metadata?.content || '').substring(0, 220) + '...',
+                matched_fields: []
+            }));
         }
-        return filtered.map((r: any) => ({
-            ...r,
-            title: r.title || 'Untitled Regulation',
-            code: r.code || 'REG',
-            category: r.category || 'General',
-            jurisdiction: r.jurisdiction || 'GLOBAL',
-            effective_date: r.effective_date || '',
-            source_url: r.source_url || '',
-            content: r.content || '',
-            workflow_steps: r.workflow_steps || [],
-            metadata: {
-                title: r.title || 'Untitled Regulation',
-                code: r.code || 'REG',
-                category: r.category || 'General',
-                jurisdiction: r.jurisdiction || 'GLOBAL',
-                effective_date: r.effective_date || '',
-                source_url: r.source_url || '',
-                content: r.content || '',
-                workflow_steps: r.workflow_steps || [],
-            },
-        }));
+
+        return scoredList.map((r: any) => {
+            const meta = r.metadata || {};
+            return {
+                ...r,
+                title: r.title || meta.title || 'Untitled Regulation',
+                code: r.code || meta.code || 'REG',
+                category: r.category || meta.category || 'General',
+                jurisdiction: r.jurisdiction || meta.jurisdiction || 'GLOBAL',
+                effective_date: r.effective_date || meta.effective_date || '',
+                source_url: r.source_url || meta.source_url || '',
+                content: r.content || meta.content || '',
+                workflow_steps: r.workflow_steps || meta.workflow_steps || [],
+                snippet: r.snippet || '',
+                matched_fields: r.matched_fields || [],
+                score: r.score || 0,
+                metadata: {
+                    title: r.title || meta.title || 'Untitled Regulation',
+                    code: r.code || meta.code || 'REG',
+                    category: r.category || meta.category || 'General',
+                    jurisdiction: r.jurisdiction || meta.jurisdiction || 'GLOBAL',
+                    effective_date: r.effective_date || meta.effective_date || '',
+                    source_url: r.source_url || meta.source_url || '',
+                    content: r.content || meta.content || '',
+                    workflow_steps: r.workflow_steps || meta.workflow_steps || [],
+                    snippet: r.snippet || '',
+                    matched_fields: r.matched_fields || [],
+                    ...meta,
+                },
+            };
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────

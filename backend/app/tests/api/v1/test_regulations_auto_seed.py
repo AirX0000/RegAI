@@ -68,6 +68,24 @@ def test_search_regulations_includes_new_standards(client: TestClient, db: Sessi
     assert len(results_basel) > 0
 
 
+def test_detailed_regulations_multi_word_search_and_snippet(client: TestClient, db: Session, normal_user_token_headers: dict):
+    """
+    Verify multi-word deep search finds regulations across title, content, code,
+    and returns contextual snippets and matched fields.
+    """
+    RegulationAutoSeeder(db).seed_if_missing()
+
+    # Multi-word search (non-adjacent terms: e.g. "налог кодекс")
+    response = client.get("/api/v1/regulations/search?query=налог кодекс", headers=normal_user_token_headers)
+    assert response.status_code == 200
+    results = response.json()
+    assert len(results) > 0
+    top = results[0]
+    meta = top.get("metadata", {})
+    assert "snippet" in top or "snippet" in meta
+    assert "matched_fields" in top or "matched_fields" in meta
+
+
 def test_export_regulations_pdf_with_cyrillic(client: TestClient, db: Session, normal_user_token_headers: dict):
     """
     Verify PDF export does not crash on Cyrillic / Uzbek characters and returns valid PDF bytes.

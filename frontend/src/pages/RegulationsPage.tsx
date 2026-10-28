@@ -28,7 +28,8 @@ import {
     ChevronDown,
     FileSpreadsheet,
     FileText,
-    FileCode
+    FileCode,
+    Search
 } from 'lucide-react';
 import {
     Dialog,
@@ -41,6 +42,35 @@ import {
 type SortOption = 'relevance' | 'title-asc' | 'title-desc' | 'date-newest' | 'date-oldest' | 'jurisdiction-asc' | 'jurisdiction-desc' | 'code-asc' | 'code-desc';
 
 import { useTranslation } from 'react-i18next';
+
+function HighlightedText({ text, query }: { text: string; query?: string }) {
+    if (!text) return null;
+    if (!query || !query.trim()) return <>{text}</>;
+
+    const words = query.trim().split(/\s+/).filter(w => w.length >= 2);
+    if (words.length === 0) return <>{text}</>;
+
+    const pattern = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+    const parts = text.split(pattern);
+
+    return (
+        <>
+            {parts.map((part, i) => {
+                const isMatch = words.some(w => w.toLowerCase() === part.toLowerCase());
+                return isMatch ? (
+                    <mark
+                        key={i}
+                        className="bg-amber-200/90 dark:bg-amber-900/70 text-amber-950 dark:text-amber-100 font-semibold px-1 py-0.5 rounded-sm"
+                    >
+                        {part}
+                    </mark>
+                ) : (
+                    part
+                );
+            })}
+        </>
+    );
+}
 
 export default function RegulationsPage() {
     const { t, i18n } = useTranslation();
@@ -85,10 +115,23 @@ export default function RegulationsPage() {
     const [newSectionJurisdiction, setNewSectionJurisdiction] = useState('UZ');
     const [isSubmittingSection, setIsSubmittingSection] = useState(false);
 
-    const { register, handleSubmit } = useForm();
+    const { register, handleSubmit, setValue, watch } = useForm();
+    const watchQuery = watch('query', '');
     const { toast } = useToast();
 
-    // ... existing code ...
+    const clearSearch = () => {
+        setValue('query', '');
+        setSearchQuery('');
+        fetchRegulations();
+    };
+
+    // Auto-reset when user clears search box with Backspace
+    useEffect(() => {
+        if (searchQuery && watchQuery === '') {
+            setSearchQuery('');
+            fetchRegulations();
+        }
+    }, [watchQuery]);
 
     const normalizeRegulation = (item: any) => {
         if (!item) return null;
@@ -100,6 +143,9 @@ export default function RegulationsPage() {
         const effective_date = meta.effective_date || item.effective_date || '';
         const source_url = meta.source_url || item.source_url || '';
         const content = meta.content || item.content || '';
+        const snippet = meta.snippet || item.snippet || '';
+        const matched_fields = meta.matched_fields || item.matched_fields || [];
+        const score = meta.score || item.score || 0;
 
         return {
             ...item,
@@ -110,6 +156,9 @@ export default function RegulationsPage() {
             effective_date,
             source_url,
             content,
+            snippet,
+            matched_fields,
+            score,
             metadata: {
                 title,
                 code,
@@ -118,6 +167,9 @@ export default function RegulationsPage() {
                 effective_date,
                 source_url,
                 content,
+                snippet,
+                matched_fields,
+                score,
                 ...meta,
             }
         };
@@ -190,10 +242,11 @@ export default function RegulationsPage() {
     };
 
     const onSearch = async (data: any) => {
+        const q = (data.query || '').trim();
         setIsLoading(true);
         try {
-            setSearchQuery(data.query);
-            const res = await api.get('/regulations/search', { params: { query: data.query } });
+            setSearchQuery(q);
+            const res = await api.get('/regulations/search', { params: { query: q, limit: 200 } });
             const dataResults = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
             setResults(dataResults.map(normalizeRegulation).filter(Boolean));
         } catch (error) {
@@ -206,6 +259,47 @@ export default function RegulationsPage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // Calculate count of regulations in each domain tab
+    const getTabCount = (tab: string) => {
+        if (!Array.isArray(results)) return 0;
+        if (tab === "All") return results.length;
+        return results.filter(item => {
+            if (!item) return false;
+            const meta = item.metadata || item || {};
+            const category = (meta.category || item.category || "").toLowerCase();
+            const code = (meta.code || item.code || "").toLowerCase();
+            const title = (meta.title || item.title || "").toLowerCase();
+            const tabLower = tab.toLowerCase();
+
+            if (tab === "Banking") {
+                return (
+                    category.includes("bank") ||
+                    category.includes("банк") ||
+                    code.includes("cbu") ||
+                    code.includes("bank") ||
+                    code.includes("bis") ||
+                    code.includes("basel") ||
+                    title.includes("банк") ||
+                    title.includes("bank") ||
+                    title.includes("центробанк") ||
+                    title.includes("центральн") ||
+                    title.includes("цб р") ||
+                    title.includes("cbu") ||
+                    title.includes("пруденциальн") ||
+                    title.includes("рвпз") ||
+                    title.includes("lcr") ||
+                    title.includes("платеж")
+                );
+            }
+            return (
+                category === tabLower ||
+                category.includes(tabLower) ||
+                code.includes(tabLower) ||
+                title.includes(tabLower)
+            );
+        }).length;
     };
 
     // Apply filters and sorting
@@ -994,32 +1088,40 @@ export default function RegulationsPage() {
                 </div>
             </div>
 
-            {/* Categorized Tabs Bar */}
+            {/* Categorized Tabs Bar with Live Dynamic Item Counts */}
             <div className="flex gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2.5 overflow-x-auto scrollbar-thin">
                 {tabs.map((tab) => {
                     let label = tab;
-                    if (tab === "All") label = tr("Все", "All");
-                    else if (tab === "Banking") label = tr("Банки и Финтех", "Banking & FinTech");
-                    else if (tab === "Finance") label = tr("Финансы", "Finance");
-                    else if (tab === "Tax") label = tr("Налоги", "Tax");
-                    else if (tab === "Audit") label = tr("Аудит", "Audit");
-                    else if (tab === "Security") label = tr("Безопасность", "Security");
-                    else if (tab === "Healthcare") label = tr("Здравоохранение", "Healthcare");
-                    else if (tab === "Labor") label = tr("Труд и кадры", "Labor");
-                    else if (tab === "Consumer") label = tr("Защита прав", "Consumer");
+                    if (tab === "All") label = tr("Все", "All", "Barchasi");
+                    else if (tab === "Banking") label = tr("Банки и Финтех", "Banking & FinTech", "Banklar va FinTex");
+                    else if (tab === "Finance") label = tr("Финансы", "Finance", "Moliya");
+                    else if (tab === "Tax") label = tr("Налоги", "Tax", "Soliqlar");
+                    else if (tab === "Audit") label = tr("Аудит", "Audit", "Audit");
+                    else if (tab === "Security") label = tr("Безопасность", "Security", "Xavfsizlik");
+                    else if (tab === "Healthcare") label = tr("Здравоохранение", "Healthcare", "Sog'liqni saqlash");
+                    else if (tab === "Labor") label = tr("Труд и кадры", "Labor", "Mehnat va kadrlar");
+                    else if (tab === "Consumer") label = tr("Защита прав", "Consumer", "Iste'molchilar huquqi");
 
+                    const count = getTabCount(tab);
                     const isSelected = activeTab === tab;
                     return (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
-                            className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap ${
+                            className={`px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center gap-1.5 ${
                                 isSelected
                                     ? "bg-blue-600 text-white shadow-xs font-semibold"
                                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                             }`}
                         >
-                            {label}
+                            <span>{label}</span>
+                            <span className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
+                                isSelected 
+                                    ? "bg-white/20 text-white" 
+                                    : "bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                            }`}>
+                                {count}
+                            </span>
                         </button>
                     );
                 })}
@@ -1099,16 +1201,56 @@ export default function RegulationsPage() {
             {/* Search and Sort Card */}
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-5 bg-white dark:bg-slate-900 shadow-xs space-y-4">
                 <form onSubmit={handleSubmit(onSearch)} className="flex gap-3">
-                    <Input 
-                        {...register('query')} 
-                        placeholder={tr("Поиск по названию, коду, ключевым словам или тексту норматива...", "Search by title, code, keywords, or regulation content...")} 
-                        className="flex-1 bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11 text-sm focus-visible:ring-blue-500" 
-                    />
-                    <Button type="submit" disabled={isLoading} className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm gap-2">
+                    <div className="relative flex-1">
+                        <Input 
+                            {...register('query')} 
+                            placeholder={tr(
+                                "Глубокий поиск: по названию, кодексу, тексту статей, юрисдикции и чеклистам...", 
+                                "Deep search: by title, code, article text, jurisdiction, and checklists...",
+                                "Chuqur qidiruv: nomi, kodi, moddalar matni, yurisdiksiya va talablar bo'yicha..."
+                            )} 
+                            className="w-full bg-slate-50 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 h-11 text-sm focus-visible:ring-blue-500 pr-10" 
+                        />
+                        {watchQuery && (
+                            <button
+                                type="button"
+                                onClick={clearSearch}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full transition-colors"
+                                title={tr("Очистить поиск", "Clear search", "Qidiruvni tozalash")}
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                    <Button type="submit" disabled={isLoading} className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm gap-2 shrink-0">
                         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <SearchCheck className="h-4 w-4" />}
-                        <span>{tr("Найти", "Search")}</span>
+                        <span>{tr("Найти", "Search", "Qidirish")}</span>
                     </Button>
                 </form>
+
+                {searchQuery && (
+                    <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 text-xs sm:text-sm text-blue-900 dark:text-blue-200 animate-in fade-in">
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <Search className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                            <span>
+                                {tr(
+                                    `Результаты глубокого поиска по запросу «${searchQuery}»: найдено ${filteredResults.length} актов`,
+                                    `Deep search results for "${searchQuery}": ${filteredResults.length} regulations found`,
+                                    `"${searchQuery}" so'rovi bo'yicha chuqur qidiruv natijalari: ${filteredResults.length} hujjat topildi`
+                                )}
+                            </span>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearSearch}
+                            className="h-7 text-xs text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 gap-1"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            {tr("Сбросить", "Reset", "Bekor qilish")}
+                        </Button>
+                    </div>
+                )}
 
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-slate-800/60">
                     <div className="flex items-center gap-2.5">
@@ -1219,10 +1361,10 @@ export default function RegulationsPage() {
                                                 <div className="space-y-1.5 flex-1">
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <h3 className="font-semibold text-base sm:text-lg text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug">
-                                                            {meta.title || item.title || 'Untitled'}
+                                                            <HighlightedText text={meta.title || item.title || 'Untitled'} query={searchQuery} />
                                                         </h3>
                                                         <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 font-mono">
-                                                            {code}
+                                                            <HighlightedText text={code} query={searchQuery} />
                                                         </span>
                                                         {meta.jurisdiction && (
                                                             <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -1234,6 +1376,48 @@ export default function RegulationsPage() {
                                                             {category}
                                                         </span>
                                                     </div>
+
+                                                    {/* Matched Fields Badges */}
+                                                    {searchQuery && Array.isArray(item.matched_fields) && item.matched_fields.length > 0 && (
+                                                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                                                                {tr('Совпадение в:', 'Matched in:', 'Moslik joyi:')}
+                                                            </span>
+                                                            {item.matched_fields.includes('content') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                                                    <FileText className="h-3 w-3" />
+                                                                    {tr('Тексте статей', 'Article body', 'Moddalar matnida')}
+                                                                </span>
+                                                            )}
+                                                            {item.matched_fields.includes('title') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                                                    {tr('Названии', 'Title', 'Nomida')}
+                                                                </span>
+                                                            )}
+                                                            {item.matched_fields.includes('code') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                                    {tr('Кодексе / Коде', 'Code', 'Kodida')}
+                                                                </span>
+                                                            )}
+                                                            {item.matched_fields.includes('workflow') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                                                    <CheckCircle2 className="h-3 w-3" />
+                                                                    {tr('Чеклисте требований', 'Requirements checklist', 'Talablar ro‘yxatida')}
+                                                                </span>
+                                                            )}
+                                                            {item.matched_fields.includes('category') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                                                    {tr('Категории', 'Category', 'Kategoriyada')}
+                                                                </span>
+                                                            )}
+                                                            {item.matched_fields.includes('jurisdiction') && (
+                                                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                                                    {tr('Юрисдикции', 'Jurisdiction', 'Yurisdiksiyada')}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                                         <Calendar className="h-3.5 w-3.5 text-slate-400" />
                                                         <span>{t('effective')}: <strong>{meta.effective_date ? new Date(meta.effective_date).toLocaleDateString() : 'N/A'}</strong></span>
@@ -1281,9 +1465,23 @@ export default function RegulationsPage() {
                                             </div>
                                         );
                                     })()}
-                                    <p className="mt-2.5 text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
-                                        {formatPreview(item.content)}
-                                    </p>
+
+                                    {/* Snippet / Content Preview with Highlighted Words */}
+                                    {searchQuery && (item.snippet || item.metadata?.snippet) ? (
+                                        <div className="mt-2.5 p-2.5 rounded-lg bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/50 text-xs sm:text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
+                                            <div className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1">
+                                                <Search className="h-3 w-3" />
+                                                <span>{tr('Фрагмент совпадения из текста акта:', 'Matched context from regulation text:', 'Hujjat matnidan mos kelgan parcha:')}</span>
+                                            </div>
+                                            <p className="line-clamp-3">
+                                                <HighlightedText text={formatPreview(item.snippet || item.metadata?.snippet)} query={searchQuery} />
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-2.5 text-sm text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
+                                            <HighlightedText text={formatPreview(item.content)} query={searchQuery} />
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1302,12 +1500,12 @@ export default function RegulationsPage() {
                             <>
                                 <DialogHeader>
                                     <DialogTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
-                                        {selMeta.title || 'Untitled'}
+                                        <HighlightedText text={selMeta.title || 'Untitled'} query={searchQuery} />
                                     </DialogTitle>
                                     <DialogDescription className="text-slate-500 dark:text-slate-400">
                                         <div className="flex items-center gap-2 flex-wrap mt-2">
                                             <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 font-mono">
-                                                {code}
+                                                <HighlightedText text={code} query={searchQuery} />
                                             </span>
                                             {selMeta.jurisdiction && (
                                                 <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -1371,9 +1569,74 @@ export default function RegulationsPage() {
                                             </Button>
                                         </div>
                                         <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm leading-relaxed max-h-96 overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-line font-normal">
-                                            {selectedRegulation.content}
+                                            <HighlightedText text={selectedRegulation.content} query={searchQuery} />
                                         </div>
                                     </div>
+
+                                    {/* Compliance Workflow Steps & Checklists with Search Highlighting */}
+                                    {(() => {
+                                        let stepsList: any[] = [];
+                                        try {
+                                            const rawSteps = selMeta.workflow_steps || selectedRegulation.workflow_steps;
+                                            if (typeof rawSteps === 'string') {
+                                                const parsed = JSON.parse(rawSteps);
+                                                stepsList = Array.isArray(parsed?.steps) ? parsed.steps : (Array.isArray(parsed) ? parsed : []);
+                                            } else if (Array.isArray(rawSteps)) {
+                                                stepsList = rawSteps;
+                                            } else if (Array.isArray(rawSteps?.steps)) {
+                                                stepsList = rawSteps.steps;
+                                            }
+                                        } catch {}
+
+                                        if (!stepsList || stepsList.length === 0) return null;
+
+                                        return (
+                                            <div className="space-y-2.5 pt-2">
+                                                <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                    <span>{tr("Чеклист требований и этапы соответствия", "Compliance Requirements Checklist", "Muvofiqlik talablari va bosqichlari")}</span>
+                                                </h4>
+                                                <div className="space-y-2">
+                                                    {stepsList.map((step: any, sIdx: number) => {
+                                                        const sTitle = typeof step === 'string' ? step : (step?.title || `Этап ${step?.step || sIdx + 1}`);
+                                                        const sDesc = step?.description;
+                                                        const sResp = step?.responsible;
+                                                        const checklists: string[] = Array.isArray(step?.checklist) ? step.checklist : [];
+
+                                                        return (
+                                                            <div key={sIdx} className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 text-xs sm:text-sm space-y-1.5">
+                                                                <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-between gap-2">
+                                                                    <span>
+                                                                        {sIdx + 1}. <HighlightedText text={sTitle} query={searchQuery} />
+                                                                    </span>
+                                                                    {sResp && (
+                                                                        <span className="text-[11px] px-2 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-normal shrink-0">
+                                                                            {sResp}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {sDesc && (
+                                                                    <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+                                                                        <HighlightedText text={sDesc} query={searchQuery} />
+                                                                    </p>
+                                                                )}
+                                                                {checklists.length > 0 && (
+                                                                    <div className="pt-1.5 space-y-1">
+                                                                        {checklists.map((checkItem, cIdx) => (
+                                                                            <div key={cIdx} className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                                                                                <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                                                                                <span><HighlightedText text={checkItem} query={searchQuery} /></span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
 
                                     {isLoadingRelated ? (
                                         <div className="text-xs text-slate-500 dark:text-slate-400 animate-pulse py-2">Loading related regulations...</div>
@@ -1680,7 +1943,7 @@ export default function RegulationsPage() {
                                         className={`px-2.5 py-1 rounded-full text-xs font-medium shrink-0 transition-colors flex items-center gap-1 ${
                                             isSelected
                                                 ? 'bg-violet-600 text-white shadow-xs'
-                                                : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-200'
+                                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                                         }`}
                                     >
                                         {sec.is_custom && <span className="text-amber-400 text-[10px]">⭐</span>}
@@ -1857,7 +2120,9 @@ export default function RegulationsPage() {
 
                                                 {item.workflow_steps && item.workflow_steps.length > 0 && (
                                                     <div className="mb-2.5 p-2 rounded bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300">
-                                                        <strong className="text-slate-700 dark:text-slate-200 block mb-0.5">Шаги комплаенс-контроля:</strong>
+                                                        <strong className="text-slate-700 dark:text-slate-200 block mb-0.5">
+                                                            {tr('Шаги комплаенс-контроля:', 'Compliance Workflow Steps:', 'Muvofiqlik nazorati bosqichlari:')}
+                                                        </strong>
                                                         <ul className="list-disc list-inside space-y-0.5">
                                                             {item.workflow_steps.slice(0, 2).map((step: string, sIdx: number) => (
                                                                 <li key={sIdx}>{step}</li>

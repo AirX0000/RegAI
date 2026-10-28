@@ -2,7 +2,7 @@ from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, desc, asc
+from sqlalchemy import or_, and_, desc, asc
 import io
 import uuid
 from datetime import datetime
@@ -99,35 +99,129 @@ def search_regulations(
                         Regulation.tenant_id == None
                     )
                 )
+
+            query_clean = query.strip() if query else ""
+            words = [w for w in query_clean.split() if len(w) >= 2]
+
             if not is_empty_query:
-                q_like = f"%{query.strip()}%"
-                sql_query = sql_query.filter(
-                    or_(
-                        Regulation.title.ilike(q_like),
-                        Regulation.code.ilike(q_like),
-                        Regulation.category.ilike(q_like),
-                        Regulation.content.ilike(q_like)
-                    )
-                )
-            regs = sql_query.order_by(Regulation.code.asc()).limit(limit).all()
-            results = []
+                # 1. Try multi-word AND match first if multiple terms are present
+                if len(words) > 1:
+                    term_filters = []
+                    for w in words:
+                        w_like = f"%{w}%"
+                        term_filters.append(
+                            or_(
+                                Regulation.title.ilike(w_like),
+                                Regulation.code.ilike(w_like),
+                                Regulation.category.ilike(w_like),
+                                Regulation.jurisdiction.ilike(w_like),
+                                Regulation.content.ilike(w_like)
+                            )
+                        )
+                    matched_regs = sql_query.filter(and_(*term_filters)).all()
+                    if matched_regs:
+                        regs = matched_regs
+                    else:
+                        regs = sql_query.filter(or_(*term_filters)).all()
+                else:
+                    q_like = f"%{query_clean}%"
+                    regs = sql_query.filter(
+                        or_(
+                            Regulation.title.ilike(q_like),
+                            Regulation.code.ilike(q_like),
+                            Regulation.category.ilike(q_like),
+                            Regulation.jurisdiction.ilike(q_like),
+                            Regulation.content.ilike(q_like)
+                        )
+                    ).all()
+            else:
+                regs = sql_query.order_by(Regulation.code.asc()).limit(limit).all()
+
+            # Rank and enrich with snippets and matched_fields
+            scored_items = []
             for r in regs:
-                results.append({
-                    "id": str(r.id),
-                    "content": r.content or r.title or "",
-                    "metadata": {
+                content = r.content or r.title or ""
+                content_lower = content.lower()
+                title_lower = (r.title or "").lower()
+                code_lower = (r.code or "").lower()
+                cat_lower = (r.category or "").lower()
+                jur_lower = (r.jurisdiction or "").lower()
+
+                score = 0
+                matched_fields = []
+                check_terms = words if words else ([query_clean.lower()] if query_clean else [])
+
+                if query_clean.lower() in code_lower:
+                    score += 35
+                if query_clean.lower() in title_lower:
+                    score += 30
+
+                for t in check_terms:
+                    tl = t.lower()
+                    if tl in code_lower:
+                        score += 15
+                        if "code" not in matched_fields:
+                            matched_fields.append("code")
+                    if tl in title_lower:
+                        score += 10
+                        if "title" not in matched_fields:
+                            matched_fields.append("title")
+                    if tl in cat_lower:
+                        score += 8
+                        if "category" not in matched_fields:
+                            matched_fields.append("category")
+                    if tl in jur_lower:
+                        score += 7
+                        if "jurisdiction" not in matched_fields:
+                            matched_fields.append("jurisdiction")
+                    if tl in content_lower:
+                        score += min(content_lower.count(tl), 5) * 3
+                        if "content" not in matched_fields:
+                            matched_fields.append("content")
+
+                # Extract context snippet around match
+                snippet = ""
+                best_pos = -1
+                for t in check_terms:
+                    pos = content_lower.find(t.lower())
+                    if pos != -1:
+                        best_pos = pos
+                        break
+
+                if best_pos != -1:
+                    start = max(0, best_pos - 60)
+                    end = min(len(content), best_pos + 180)
+                    snippet = ("..." if start > 0 else "") + content[start:end].strip() + ("..." if end < len(content) else "")
+                else:
+                    snippet = content[:250].strip() + ("..." if len(content) > 250 else "")
+
+                scored_items.append({
+                    "score": score,
+                    "item": {
                         "id": str(r.id),
-                        "code": r.code or "",
-                        "title": r.title or "",
-                        "category": r.category or "General",
-                        "jurisdiction": r.jurisdiction or "Global",
-                        "effective_date": r.effective_date.strftime("%Y-%m-%d") if r.effective_date else "",
-                        "source_url": r.source_url or "",
-                        "summary": r.content[:300] if r.content else (r.title or ""),
-                        "description": r.content or r.title or "",
-                        "workflow_steps": r.workflow_steps or []
+                        "content": content,
+                        "snippet": snippet,
+                        "matched_fields": matched_fields,
+                        "metadata": {
+                            "id": str(r.id),
+                            "code": r.code or "",
+                            "title": r.title or "",
+                            "category": r.category or "General",
+                            "jurisdiction": r.jurisdiction or "Global",
+                            "effective_date": r.effective_date.strftime("%Y-%m-%d") if r.effective_date else "",
+                            "source_url": r.source_url or "",
+                            "snippet": snippet,
+                            "matched_fields": matched_fields,
+                            "summary": snippet or (r.content[:300] if r.content else (r.title or "")),
+                            "description": r.content or r.title or "",
+                            "workflow_steps": r.workflow_steps or []
+                        }
                     }
                 })
+
+            if not is_empty_query:
+                scored_items.sort(key=lambda x: x["score"], reverse=True)
+            results = [s["item"] for s in scored_items[:limit]]
 
         # Enrich with subscription status if user has a company
         if current_user.company_id and results:
