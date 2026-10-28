@@ -155,8 +155,8 @@ export default function ReportsPage() {
             });
 
             toast({
-                title: "Success",
-                description: "Report created successfully",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Отчет успешно создан" : "Report created successfully",
             });
 
             setIsSubmitOpen(false);
@@ -166,8 +166,8 @@ export default function ReportsPage() {
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to create report",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось создать отчет" : "Failed to create report"),
             });
         }
     };
@@ -176,8 +176,8 @@ export default function ReportsPage() {
         try {
             await api.post(`/reports/${selectedReport.id}/review`, reviewData);
             toast({
-                title: "Success",
-                description: "Review submitted successfully",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Решение по отчету сохранено" : "Review submitted successfully",
             });
             setIsReviewOpen(false);
             setReviewData({ status: 'approved', reviewer_comments: '' });
@@ -185,8 +185,8 @@ export default function ReportsPage() {
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to submit review",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось сохранить рецензию" : "Failed to submit review"),
             });
         }
     };
@@ -200,16 +200,16 @@ export default function ReportsPage() {
         try {
             await api.post(`/reports/${checklistReportId}/submit`);
             toast({
-                title: "Success",
-                description: "Report submitted for review",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Отчет отправлен на проверку" : "Report submitted for review",
             });
             setIsChecklistOpen(false);
             fetchReports();
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to submit report",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось отправить отчет" : "Failed to submit report"),
             });
         }
     };
@@ -227,14 +227,14 @@ export default function ReportsPage() {
             link.click();
             link.remove();
             toast({
-                title: "Success",
-                description: "Reports exported to Excel",
+                title: isRu ? "Успешно" : "Success",
+                description: isRu ? "Реестр отчетов выгружен в Excel" : "Reports exported to Excel",
             });
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: "Failed to export reports",
+                title: isRu ? "Ошибка" : "Error",
+                description: isRu ? "Не удалось выгрузить отчеты в Excel" : "Failed to export reports",
             });
         }
     };
@@ -269,7 +269,10 @@ export default function ReportsPage() {
 
     const handleValidate = async (reportId: string) => {
         try {
-            toast({ title: "Processing", description: "Validating report... This may take a moment." });
+            toast({
+                title: isRu ? "Проверка" : "Processing",
+                description: isRu ? "Выполняется валидация отчета..." : "Validating report... This may take a moment."
+            });
             await api.post(`/reports/${reportId}/validate`);
 
             // Fetch results
@@ -278,28 +281,116 @@ export default function ReportsPage() {
                 setValidationResult(res.data[0]); // Get latest
                 setIsValidationOpen(true);
             } else {
-                toast({ title: "Info", description: "Validation completed but no results found." });
+                toast({
+                    title: isRu ? "Информация" : "Info",
+                    description: isRu ? "Валидация завершена, замечаний не найдено." : "Validation completed but no results found."
+                });
             }
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Error",
-                description: error.response?.data?.detail || "Failed to validate report",
+                title: isRu ? "Ошибка" : "Error",
+                description: error.response?.data?.detail || (isRu ? "Не удалось проверить отчет" : "Failed to validate report"),
             });
         }
     };
 
+    const getReportTypeLabel = (type?: string) => {
+        const key = (type || '').toLowerCase().trim();
+        if (!isRu) {
+            const enLabels: Record<string, string> = {
+                financial: 'Financial',
+                compliance: 'Compliance',
+                audit: 'Audit',
+                risk_assessment: 'Risk Assessment',
+                tax: 'Tax',
+                ifrs: 'IFRS',
+                other: 'Other',
+            };
+            return enLabels[key] || (type ? type.replace(/_/g, ' ') : '-');
+        }
+        const ruLabels: Record<string, string> = {
+            financial: 'Финансовый',
+            compliance: 'Комплаенс',
+            audit: 'Аудит',
+            risk_assessment: 'Оценка рисков',
+            tax: 'Налоговый',
+            ifrs: 'МСФО (IFRS)',
+            other: 'Прочее',
+        };
+        return ruLabels[key] || (type ? type.replace(/_/g, ' ') : '-');
+    };
+
+    const getLocalizedReportTitle = (title?: string) => {
+        if (!title || !isRu) return title || '';
+        const trimmed = title.trim();
+        const titleMap: Record<string, string> = {
+            'Amazon-2024-Annual-Report': 'Годовой финансовый отчет за 2024 год (Amazon)',
+            'Tax Analysis Report': 'Отчет по налоговому анализу и сверке',
+            'Q4 2024 Compliance Report': 'Отчет о регуляторном комплаенсе за 4 кв. 2024 г.',
+            'Annual Financial Audit 2024': 'Годовой финансовый аудит за 2024 год',
+            'Tax Filing Report - Q3 2024': 'Налоговая декларация за 3 кв. 2024 г.',
+            'Risk Assessment - Cybersecurity': 'Оценка рисков — Кибербезопасность',
+            'GDPR Compliance Audit': 'Аудит защиты персональных данных (GDPR)',
+            'Q3 2026 IFRS Compliance Report': 'Отчет о соответствии МСФО за 3 кв. 2026 г.',
+            'AML Annual Risk Assessment 2026': 'Годовая оценка рисков ПОД/ФТ (AML) за 2026 год',
+            'HIPAA Annual Compliance Assessment 2026': 'Годовая оценка соответствия HIPAA за 2026 год',
+            'GDPR Data Processing Audit': 'Аудит обработки персональных данных (GDPR)',
+            'GDPR Readiness Assessment Q3 2026': 'Оценка готовности по защите данных (GDPR) за 3 кв. 2026 г.',
+        };
+        return titleMap[trimmed] || title;
+    };
+
+    const getLocalizedReportDescription = (desc?: string) => {
+        if (!desc || !isRu) return desc || '';
+        const trimmed = desc.trim();
+        const descMap: Record<string, string> = {
+            'Quarterly compliance': 'Ежеквартальная проверка соблюдения регуляторных требований',
+            'Uploaded for AI analysis': 'Загружено для автоматического анализа ИИ и налоговой сверки',
+            'Quarterly compliance assessment covering GDPR, CCPA, and HIPAA regulations': 'Ежеквартальная оценка соблюдения нормативов GDPR, CCPA и HIPAA',
+            'Comprehensive financial audit for fiscal year 2024': 'Комплексный финансовый аудит за 2024 финансовый год',
+            'Quarterly tax filing documentation and calculations': 'Квартальная налоговая документация и расчеты по налогам',
+            'Assessment of cybersecurity risks and mitigation strategies': 'Оценка кибер-рисков и стратегий их минимизации',
+            'Detailed audit of GDPR compliance measures and data protection practices': 'Детальный аудит мер соответствия GDPR и практик защиты данных',
+        };
+        return descMap[trimmed] || desc;
+    };
+
     const getStatusBadge = (status: string) => {
-        const colors = {
+        const key = (status || 'draft').toLowerCase().trim();
+        const colors: Record<string, string> = {
             draft: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
             submitted: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60',
             under_review: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60',
+            in_progress: 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60',
             approved: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60',
+            completed: 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60',
             rejected: 'bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-900/60'
         };
+        const ruStatusLabels: Record<string, string> = {
+            draft: 'ЧЕРНОВИК',
+            submitted: 'ОТПРАВЛЕН',
+            under_review: 'НА ПРОВЕРКЕ',
+            in_progress: 'В РАБОТЕ',
+            approved: 'УТВЕРЖДЕН',
+            completed: 'ЗАВЕРШЕН',
+            rejected: 'ОТКЛОНЕН',
+        };
+        const enStatusLabels: Record<string, string> = {
+            draft: 'DRAFT',
+            submitted: 'SUBMITTED',
+            under_review: 'UNDER REVIEW',
+            in_progress: 'IN PROGRESS',
+            approved: 'APPROVED',
+            completed: 'COMPLETED',
+            rejected: 'REJECTED',
+        };
+        const label = isRu
+            ? (ruStatusLabels[key] || status.replace(/_/g, ' ').toUpperCase())
+            : (enStatusLabels[key] || status.replace(/_/g, ' ').toUpperCase());
         return (
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[status as keyof typeof colors] || 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'}`}>
-                {status.replace('_', ' ').toUpperCase()}
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[key] || 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200'}`}>
+                {label}
             </span>
         );
     };
@@ -439,7 +530,7 @@ export default function ReportsPage() {
                             value={selectedCompany}
                             onChange={(e) => handleCompanyFilter(e.target.value)}
                         >
-                            <option value="">All Companies ({Array.isArray(allReports) ? allReports.length : 0})</option>
+                            <option value="">{isRu ? 'Все компании' : 'All Companies'} ({Array.isArray(allReports) ? allReports.length : 0})</option>
                             {companies.map((company: any) => (
                                 <option key={company.id} value={company.id}>
                                     {company.name} ({Array.isArray(allReports) ? allReports.filter((r: any) => r.company_id === company.id).length : 0})
@@ -509,13 +600,19 @@ export default function ReportsPage() {
             )}
 
             {/* Reports Table */}
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden">
+            <div
+                tabIndex={0}
+                role="region"
+                aria-label={isRu ? 'Таблица регуляторных и финансовых отчетов' : 'Regulatory and financial reports table'}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-x-auto"
+            >
                 <table className="w-full">
-                    <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                    <thead className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
                         <tr>
                             <th className="p-3 text-left">
                                 <input
                                     type="checkbox"
+                                    aria-label={isRu ? 'Выбрать все отчеты' : 'Select all reports'}
                                     checked={Array.isArray(reports) && reports.length > 0 && selectedReports.length === reports.length}
                                     onChange={toggleSelectAll}
                                     className="rounded border-slate-300 dark:border-slate-700 cursor-pointer"
@@ -539,16 +636,17 @@ export default function ReportsPage() {
                                 <td className="p-3">
                                     <input
                                         type="checkbox"
+                                        aria-label={getLocalizedReportTitle(report.title)}
                                         checked={selectedReports.includes(report.id)}
                                         onChange={() => toggleSelectReport(report.id)}
                                         className="rounded border-slate-300 dark:border-slate-700 cursor-pointer"
                                     />
                                 </td>
                                 <td className="p-4 font-medium text-slate-900 dark:text-white">
-                                    {report.title}
+                                    {getLocalizedReportTitle(report.title)}
                                 </td>
-                                <td className="p-4 capitalize text-slate-600 dark:text-slate-400">
-                                    {report.report_type.replace('_', ' ')}
+                                <td className="p-4 text-slate-600 dark:text-slate-400">
+                                    {getReportTypeLabel(report.report_type)}
                                 </td>
                                 <td className="p-4">{getStatusBadge(report.status)}</td>
                                 <td className="p-4 text-slate-600 dark:text-slate-400">
@@ -568,7 +666,7 @@ export default function ReportsPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                onClick={() => handleDownload(report.id, report.title)}
+                                                onClick={() => handleDownload(report.id, getLocalizedReportTitle(report.title))}
                                                 title={isRu ? "Скачать PDF отчет" : "Download PDF Report"}
                                                 className="text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
                                             >
@@ -582,7 +680,7 @@ export default function ReportsPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleValidate(report.id)}
-                                                title="Validate Report"
+                                                title={isRu ? "Проверить отчет" : "Validate Report"}
                                                 className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
                                             >
                                                 <FileCheck className="h-4 w-4" />
@@ -622,12 +720,15 @@ export default function ReportsPage() {
                                                             report_type: report.report_type,
                                                             company_id: report.company_id
                                                         });
-                                                        toast({ title: "Edit", description: "Edit functionality coming in next update" });
+                                                        toast({
+                                                            title: isRu ? "Редактирование" : "Edit",
+                                                            description: isRu ? "Редактирование черновика будет доступно в следующем обновлении" : "Edit functionality coming in next update"
+                                                        });
                                                     }}
                                                     className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                                                    title="Edit Draft"
+                                                    title={isRu ? "Редактировать черновик" : "Edit Draft"}
                                                 >
-                                                    <span className="sr-only">Edit</span>
+                                                    <span className="sr-only">{isRu ? 'Редактировать' : 'Edit'}</span>
                                                     ✏️
                                                 </Button>
 
@@ -636,7 +737,7 @@ export default function ReportsPage() {
                                                     className="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow-2xs transition-all"
                                                     onClick={() => handleSubmitReport(report.id)}
                                                 >
-                                                    Submit
+                                                    {isRu ? 'Отправить' : 'Submit'}
                                                 </Button>
                                             </>
                                         )}
@@ -652,9 +753,12 @@ export default function ReportsPage() {
                                                         try {
                                                             await api.post(`/reports/${report.id}/review`, {
                                                                 status: 'approved',
-                                                                reviewer_comments: 'Approved via quick action'
+                                                                reviewer_comments: isRu ? 'Утверждено через быстрое действие' : 'Approved via quick action'
                                                             });
-                                                            toast({ title: "Success", description: "Report approved" });
+                                                            toast({
+                                                                title: isRu ? "Успешно" : "Success",
+                                                                description: isRu ? "Отчет утвержден" : "Report approved"
+                                                            });
 
                                                             // Update local state immediately
                                                             setReports(prev => prev.map(r =>
@@ -664,25 +768,32 @@ export default function ReportsPage() {
                                                                 r.id === report.id ? { ...r, status: 'approved' } : r
                                                             ));
                                                         } catch (e) {
-                                                            toast({ variant: "destructive", title: "Error", description: "Failed to approve report" });
+                                                            toast({
+                                                                variant: "destructive",
+                                                                title: isRu ? "Ошибка" : "Error",
+                                                                description: isRu ? "Не удалось утвердить отчет" : "Failed to approve report"
+                                                            });
                                                         }
                                                     }}
                                                 >
-                                                    Approve
+                                                    {isRu ? 'Утвердить' : 'Approve'}
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
                                                     className="text-red-600 border-red-200 dark:border-red-800 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 active:scale-95 transition-all"
                                                     onClick={async () => {
-                                                        const reason = prompt("Please enter rejection reason:");
+                                                        const reason = prompt(isRu ? "Укажите причину отклонения отчета:" : "Please enter rejection reason:");
                                                         if (reason) {
                                                             try {
                                                                 await api.post(`/reports/${report.id}/review`, {
                                                                     status: 'rejected',
                                                                     reviewer_comments: reason
                                                                 });
-                                                                toast({ title: "Success", description: "Report rejected" });
+                                                                toast({
+                                                                    title: isRu ? "Успешно" : "Success",
+                                                                    description: isRu ? "Отчет отклонен" : "Report rejected"
+                                                                });
 
                                                                 // Update local state immediately
                                                                 setReports(prev => prev.map(r =>
@@ -692,12 +803,16 @@ export default function ReportsPage() {
                                                                     r.id === report.id ? { ...r, status: 'rejected' } : r
                                                                 ));
                                                             } catch (e) {
-                                                                toast({ variant: "destructive", title: "Error", description: "Failed to reject report" });
+                                                                toast({
+                                                                    variant: "destructive",
+                                                                    title: isRu ? "Ошибка" : "Error",
+                                                                    description: isRu ? "Не удалось отклонить отчет" : "Failed to reject report"
+                                                                });
                                                             }
                                                         }
                                                     }}
                                                 >
-                                                    Reject
+                                                    {isRu ? 'Отклонить' : 'Reject'}
                                                 </Button>
                                             </>
                                         )}
@@ -776,51 +891,65 @@ export default function ReportsPage() {
                         </div>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">Title</label>
+                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Название отчета' : 'Title'}
+                                </label>
                                 <Input
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="Report title"
+                                    placeholder={isRu ? 'Введите название отчета' : 'Report title'}
                                     className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">Type</label>
+                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Тип отчета' : 'Type'}
+                                </label>
                                 <select
                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5"
                                     value={formData.report_type}
                                     onChange={(e) => setFormData({ ...formData, report_type: e.target.value })}
                                 >
-                                    <option value="compliance">Compliance Report</option>
-                                    <option value="audit">Audit Report</option>
-                                    <option value="financial">Financial Report</option>
-                                    <option value="risk_assessment">Risk Assessment</option>
+                                    <option value="compliance">{isRu ? 'Комплаенс-отчет' : 'Compliance Report'}</option>
+                                    <option value="audit">{isRu ? 'Аудиторский отчет' : 'Audit Report'}</option>
+                                    <option value="financial">{isRu ? 'Финансовый отчет' : 'Financial Report'}</option>
+                                    <option value="risk_assessment">{isRu ? 'Оценка рисков' : 'Risk Assessment'}</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">Description</label>
+                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Описание' : 'Description'}
+                                </label>
                                 <textarea
                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 p-2.5"
                                     rows={3}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Report description"
+                                    placeholder={isRu ? 'Краткое описание отчета' : 'Report description'}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">File</label>
+                                <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
+                                    {isRu ? 'Файл отчета' : 'File'}
+                                </label>
                                 <input
                                     type="file"
                                     accept=".pdf,.docx,.xlsx,.csv,.txt"
                                     onChange={(e) => setFile(e.target.files?.[0] || null)}
                                     className="w-full text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/40 dark:file:text-blue-300"
                                 />
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Max 10MB. Allowed: PDF, DOCX, XLSX, CSV, TXT</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    {isRu ? 'Макс. 10 МБ. Разрешены: PDF, DOCX, XLSX, CSV, TXT' : 'Max 10MB. Allowed: PDF, DOCX, XLSX, CSV, TXT'}
+                                </p>
                             </div>
                         </div>
                         <div className="flex gap-2 mt-6">
-                            <Button onClick={handleSubmit} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">Submit</Button>
-                            <Button onClick={() => setIsSubmitOpen(false)} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800">Cancel</Button>
+                            <Button onClick={handleSubmit} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                                {isRu ? 'Отправить' : 'Submit'}
+                            </Button>
+                            <Button onClick={() => setIsSubmitOpen(false)} variant="outline" className="flex-1 dark:border-slate-700 dark:hover:bg-slate-800">
+                                {isRu ? 'Отмена' : 'Cancel'}
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -840,7 +969,7 @@ export default function ReportsPage() {
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">
-                                            {selectedReport.title}
+                                            {getLocalizedReportTitle(selectedReport.title)}
                                         </h2>
                                         {getStatusBadge(selectedReport.status)}
                                         <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
@@ -848,8 +977,8 @@ export default function ReportsPage() {
                                         </span>
                                     </div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
-                                        <span className="capitalize font-medium text-slate-700 dark:text-slate-300">
-                                            {selectedReport.report_type?.replace('_', ' ')}
+                                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                                            {getReportTypeLabel(selectedReport.report_type)}
                                         </span>
                                         <span>•</span>
                                         <span>{isRu ? 'Официальный регуляторный отчет' : 'Official Regulatory Report'}</span>
@@ -1105,7 +1234,7 @@ export default function ReportsPage() {
                                                     {isRu ? 'Исполнительное резюме (Executive Summary)' : 'Executive Summary'}
                                                 </h3>
                                                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-300 leading-relaxed shadow-2xs">
-                                                    {selectedReport.description || (isRu 
+                                                    {getLocalizedReportDescription(selectedReport.description) || (isRu 
                                                         ? 'Официальный регуляторный отчет компании, подготовленный в соответствии с требованиями национального законодательства и международных стандартов финансовой отчетности (МСФО / IFRS).'
                                                         : 'Official regulatory filing document compiled in accordance with standard compliance guidelines and statutory reporting obligations.')}
                                                 </div>
@@ -1447,8 +1576,12 @@ export default function ReportsPage() {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl text-slate-900 dark:text-slate-100 animate-scale-in">
                         <div className="flex justify-between items-center mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Validation Results</h2>
-                            <Button variant="ghost" size="sm" onClick={() => setIsValidationOpen(false)} className="dark:hover:bg-slate-800">Close</Button>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                                {isRu ? 'Результаты проверки' : 'Validation Results'}
+                            </h2>
+                            <Button variant="ghost" size="sm" onClick={() => setIsValidationOpen(false)} className="dark:hover:bg-slate-800">
+                                {isRu ? 'Закрыть' : 'Close'}
+                            </Button>
                         </div>
 
                         <div className="space-y-6">
@@ -1460,7 +1593,9 @@ export default function ReportsPage() {
                                     {validationResult.overall_score}%
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-slate-900 dark:text-white">Overall Compliance Score</h3>
+                                    <h3 className="font-semibold text-slate-900 dark:text-white">
+                                        {isRu ? 'Общая оценка соответствия' : 'Overall Compliance Score'}
+                                    </h3>
                                     <p className="text-sm text-slate-600 dark:text-slate-300">{validationResult.summary}</p>
                                 </div>
                             </div>
@@ -1469,21 +1604,23 @@ export default function ReportsPage() {
                             <div className="grid grid-cols-3 gap-4">
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{validationResult.passed_checks}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">Passed Checks</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Успешные проверки' : 'Passed Checks'}</div>
                                 </div>
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{validationResult.warnings}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">Warnings</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Предупреждения' : 'Warnings'}</div>
                                 </div>
                                 <div className="p-3 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 rounded-xl text-center">
                                     <div className="text-2xl font-bold text-red-600 dark:text-red-400">{validationResult.errors}</div>
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">Critical Errors</div>
+                                    <div className="text-xs text-slate-500 dark:text-slate-400">{isRu ? 'Критические ошибки' : 'Critical Errors'}</div>
                                 </div>
                             </div>
 
                             {/* Detailed Errors */}
                             <div>
-                                <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">Detailed Findings</h3>
+                                <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
+                                    {isRu ? 'Детальные замечания' : 'Detailed Findings'}
+                                </h3>
                                 {Array.isArray(validationResult?.error_details) && validationResult.error_details.length > 0 ? (
                                     <div className="space-y-2">
                                         {validationResult.error_details.map((error: any, idx: number) => (
@@ -1498,11 +1635,13 @@ export default function ReportsPage() {
                                                     <p className="font-medium text-sm text-slate-900 dark:text-white">{error.type.replace('_', ' ').toUpperCase()}</p>
                                                     <p className="text-sm mt-1 text-slate-700 dark:text-slate-300">{error.recommendation || error.message}</p>
                                                     {error.location && (
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Location: {error.location}</p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                            {isRu ? 'Расположение' : 'Location'}: {error.location}
+                                                        </p>
                                                     )}
                                                     {error.expected !== undefined && error.found !== undefined && (
                                                         <p className="text-xs font-mono mt-1 text-slate-600 dark:text-slate-400">
-                                                            Expected: {error.expected} | Found: {error.found}
+                                                            {isRu ? 'Ожидалось' : 'Expected'}: {error.expected} | {isRu ? 'Найдено' : 'Found'}: {error.found}
                                                         </p>
                                                     )}
                                                 </div>
@@ -1512,7 +1651,9 @@ export default function ReportsPage() {
                                 ) : (
                                     <div className="p-8 text-center border border-emerald-200 dark:border-emerald-900/40 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/30">
                                         <CheckCircle className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-                                        <p className="text-emerald-800 dark:text-emerald-200 font-medium">No issues found!</p>
+                                        <p className="text-emerald-800 dark:text-emerald-200 font-medium">
+                                            {isRu ? 'Ошибок и замечаний не обнаружено!' : 'No issues found!'}
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -1541,12 +1682,12 @@ export default function ReportsPage() {
 
                         <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 text-xs space-y-1">
                             <div className="font-semibold text-slate-900 dark:text-white truncate">
-                                {reportToDelete.title}
+                                {getLocalizedReportTitle(reportToDelete.title)}
                             </div>
                             <div className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                                <span className="capitalize">{reportToDelete.report_type?.replace('_', ' ')}</span>
+                                <span>{getReportTypeLabel(reportToDelete.report_type)}</span>
                                 <span>•</span>
-                                <span className="capitalize">{reportToDelete.status}</span>
+                                <span>{getStatusBadge(reportToDelete.status)}</span>
                             </div>
                         </div>
 

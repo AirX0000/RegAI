@@ -156,6 +156,28 @@ export default function AuditLogPage() {
         }
     };
 
+    const getResourceLabel = (resType?: string) => {
+        if (!resType) return 'N/A';
+        if (!isRu) return resType;
+        const map: Record<string, string> = {
+            report: 'Отчет',
+            reports: 'Отчеты',
+            balance_sheet: 'Баланс МСФО',
+            balance_sheets: 'Балансы МСФО',
+            user: 'Пользователь',
+            users: 'Пользователи',
+            company: 'Компания',
+            companies: 'Компании',
+            tax_rate: 'Налоговая ставка',
+            onec_sync: 'Синхронизация 1С',
+            regulation: 'Норматив',
+            alert: 'Уведомление комплаенс',
+            auth: 'Аутентификация',
+            system: 'Система',
+        };
+        return map[resType.toLowerCase()] || resType;
+    };
+
     const formatDate = (dateString: string) => {
         if (!dateString) return '-';
         const date = new Date(dateString);
@@ -344,7 +366,7 @@ export default function AuditLogPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm">
-                                                <div className="font-medium text-slate-900 dark:text-white">{log.resource_type || 'N/A'}</div>
+                                                <div className="font-medium text-slate-900 dark:text-white">{getResourceLabel(log.resource_type)}</div>
                                                 {log.resource_id && (
                                                     <div className="text-slate-500 dark:text-slate-400 font-mono text-xs">
                                                         {log.resource_id.substring(0, 8)}...

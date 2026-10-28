@@ -473,9 +473,9 @@ export default function CompliancePage() {
                                             <div className="flex items-center gap-4 mt-1 text-sm text-slate-500 dark:text-slate-400">
                                                 <span className="flex items-center gap-1 font-medium capitalize">
                                                     {getStatusIcon(alert.status)}
-                                                    {alert.status.replace('_', ' ')}
+                                                    {t(alert.status) || alert.status.replace('_', ' ')}
                                                 </span>
-                                                <span className="capitalize">{alert.severity}</span>
+                                                <span className="capitalize">{t(alert.severity) || alert.severity}</span>
                                                 {alert.regulation && <span className="font-mono text-xs">• {alert.regulation}</span>}
                                                 <span>• {new Date(alert.created_at).toLocaleDateString()}</span>
                                             </div>
@@ -551,7 +551,7 @@ export default function CompliancePage() {
                                                 selectedAlert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-300' :
                                                     'bg-green-100 text-green-800 dark:bg-green-950/60 dark:text-green-300'
                                             }`}>
-                                            {selectedAlert.severity}
+                                            {t(selectedAlert.severity) || selectedAlert.severity}
                                         </span>
                                     </p>
                                 </div>
@@ -559,7 +559,7 @@ export default function CompliancePage() {
                                     <label className="text-sm font-medium text-slate-500 dark:text-slate-400">{t('status')}</label>
                                     <p className="mt-1 capitalize flex items-center gap-1">
                                         {getStatusIcon(selectedAlert.status)}
-                                        <span className="font-medium text-slate-900 dark:text-slate-100">{selectedAlert.status.replace('_', ' ')}</span>
+                                        <span className="font-medium text-slate-900 dark:text-slate-100">{t(selectedAlert.status) || selectedAlert.status.replace('_', ' ')}</span>
                                     </p>
                                 </div>
                             </div>

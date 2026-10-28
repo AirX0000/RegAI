@@ -440,6 +440,55 @@ export default function TransformationResults() {
     const ifrsWorkingCapital = currentAssets - currentLiabilities;
     const nasWorkingCapital = statutoryCurrentAssets - statutoryCurrentLiab;
 
+    const getLocalizedAccountName = (rawName?: string, code?: string) => {
+        const name = (rawName || '').trim();
+        if (!isRu || !name) return name;
+        const map: Record<string, string> = {
+            'Cash on Hand': 'Наличные денежные средства в кассе',
+            'Cash in Hand': 'Наличные денежные средства в кассе',
+            'Cash and Cash Equivalents': 'Денежные средства и эквиваленты',
+            'Bank Account': 'Расчетные счета в банке',
+            'Accounts Receivable': 'Торговая дебиторская задолженность',
+            'Trade Receivables': 'Торговая дебиторская задолженность',
+            'Prepaid Expenses': 'Авансы выданные и расходы будущих периодов',
+            'Inventory': 'Товарно-материальные запасы (ТМЗ)',
+            'Property and Equipment': 'Основные средства и оборудование',
+            'Property, Plant and Equipment': 'Основные средства (Здания и оборудование)',
+            'Intangible Assets': 'Нематериальные активы (НМА)',
+            'Intangible Assets – Software': 'Нематериальные активы (Программное обеспечение)',
+            'Intellectual Property Rights': 'Исключительные права на интеллектуальную собственность',
+            'Accounts Payable': 'Кредиторская задолженность поставщикам',
+            'Trade Payables': 'Торговая кредиторская задолженность',
+            'Obligations to Suppliers': 'Задолженность перед поставщиками и подрядчиками',
+            'Accrued Expenses': 'Начисленные обязательства и резервы',
+            'Short-term Borrowings': 'Краткосрочные кредиты и займы',
+            'Current Portion of Bank Loan': 'Текущая часть долгосрочных банковских кредитов',
+            'Long-term Loan': 'Долгосрочные банковские кредиты',
+            'Bank Loan – Non-current Portion': 'Долгосрочные банковские займы',
+            'Share Capital': 'Уставный капитал',
+            "Owner's Initial Investment": 'Первоначальный капитал собственников',
+            'Equity': 'Собственный капитал',
+            'Retained Earnings': 'Нераспределенная прибыль',
+            'Right-of-Use Asset (ROU) - IFRS 16': 'Актив в форме права пользования (ROU) — МСФО (IFRS) 16',
+            'Lease Liability - IFRS 16': 'Обязательства по долгосрочной аренде — МСФО (IFRS) 16',
+            'Transitional Convergence Reserve (IAS 8 / IFRS 1)': 'Резерв переходной конвергенции (IAS 8 / IFRS 1)',
+        };
+        if (map[name]) return map[name];
+        const codeStr = (code || '').trim();
+        if (codeStr === '1010') return 'Наличные денежные средства в кассе';
+        if (codeStr === '1020') return 'Расчетные счета в банке';
+        if (codeStr === '1030') return 'Торговая дебиторская задолженность';
+        if (codeStr === '1040') return 'Товарно-материальные запасы (ТМЗ)';
+        if (codeStr === '1510') return 'Основные средства и оборудование';
+        if (codeStr === '1520') return 'Нематериальные активы (НМА)';
+        if (codeStr === '2010') return 'Кредиторская задолженность поставщикам';
+        if (codeStr === '2020') return 'Краткосрочные кредиты и займы';
+        if (codeStr === '2510') return 'Долгосрочные банковские кредиты';
+        if (codeStr === '3010') return 'Уставный капитал';
+        if (codeStr === '3020') return 'Нераспределенная прибыль';
+        return name;
+    };
+
     const renderItemGroup = (title: string, items: any[]) => {
         if (!items || items.length === 0) return null;
         return (
@@ -459,7 +508,9 @@ export default function TransformationResults() {
                                         {item.code}
                                     </span>
                                 )}
-                                <span className="text-foreground font-medium truncate">{item.name || item.account_name}</span>
+                                <span className="text-foreground font-medium truncate">
+                                    {getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}
+                                </span>
                             </div>
                             <span className={`font-mono font-semibold shrink-0 ${item.amount < 0 ? 'text-rose-500' : 'text-foreground'}`}>
                                 {formatMoney(item.amount)}
@@ -1584,7 +1635,7 @@ export default function TransformationResults() {
                                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                     {mcfoData.assets?.current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
-                                            <span className="text-foreground font-medium">{item.name || item.account_name}</span>
+                                            <span className="text-foreground font-medium">{getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}</span>
                                             <span className="font-mono font-semibold text-foreground">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
@@ -1595,7 +1646,7 @@ export default function TransformationResults() {
                                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                     {mcfoData.assets?.non_current?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
-                                            <span className="text-foreground font-medium">{item.name || item.account_name}</span>
+                                            <span className="text-foreground font-medium">{getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}</span>
                                             <span className="font-mono font-semibold text-foreground">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
@@ -1622,7 +1673,7 @@ export default function TransformationResults() {
                                 <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                     {mcfoData.equity?.items?.map((item: any, idx: number) => (
                                         <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
-                                            <span className="text-foreground font-medium">{item.name || item.account_name}</span>
+                                            <span className="text-foreground font-medium">{getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}</span>
                                             <span className="font-mono font-semibold text-foreground">{formatMoney(item.amount)}</span>
                                         </div>
                                     ))}
@@ -1648,7 +1699,7 @@ export default function TransformationResults() {
                                     <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                         {mcfoData.liabilities?.current?.map((item: any, idx: number) => (
                                             <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
-                                                <span className="text-foreground font-medium">{item.name || item.account_name}</span>
+                                                <span className="text-foreground font-medium">{getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}</span>
                                                 <span className="font-mono font-semibold text-foreground">{formatMoney(item.amount)}</span>
                                             </div>
                                         ))}
@@ -1659,7 +1710,7 @@ export default function TransformationResults() {
                                     <div className="space-y-1.5 pl-3 border-l-2 border-border/60">
                                         {mcfoData.liabilities?.non_current?.map((item: any, idx: number) => (
                                             <div key={idx} className="flex justify-between items-center text-sm py-2 border-b border-border/30 hover:bg-muted/40 px-2 rounded-md transition-colors">
-                                                <span className="text-foreground font-medium">{item.name || item.account_name}</span>
+                                                <span className="text-foreground font-medium">{getLocalizedAccountName(item.name || item.account_name, item.code || item.account_code)}</span>
                                                 <span className="font-mono font-semibold text-foreground">{formatMoney(item.amount)}</span>
                                             </div>
                                         ))}
