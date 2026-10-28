@@ -1114,7 +1114,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             }
         }
         const users = getUsersStore();
-        const fallback = users.find((u: any) => u.email === 'superadmin@regai.ai') || users[0];
+        const fallback = users.find((u: any) => u.email === 'superadmin@axiaris.ai') || users[0];
         const comp = companies.find((c: any) => c.id === fallback.company_id);
         return {
             ...fallback,
@@ -1143,7 +1143,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
 
         const newUser = {
             id: 'usr-' + Math.random().toString(36).substring(2, 9),
-            email: body?.email || 'newuser@regai.ai',
+            email: body?.email || 'newuser@axiaris.ai',
             full_name: body?.full_name || 'Новый сотрудник',
             role: targetRole,
             company_id: targetCompanyId,

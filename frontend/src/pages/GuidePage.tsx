@@ -195,20 +195,20 @@ export default function GuidePage() {
                                     </p>
                                     <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs font-mono">
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500 dark:text-slate-400">Owner:</span>
-                                            <span className="font-semibold text-slate-800 dark:text-slate-200">owner@regai.ai</span>
+                                            <span className="text-slate-500 dark:text-slate-400">TechCorp Owner:</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">owner@axiaris.ai</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500 dark:text-slate-400">Accountant:</span>
-                                            <span className="font-semibold text-slate-800 dark:text-slate-200">accountant@regai.ai</span>
+                                            <span className="text-slate-500 dark:text-slate-400">Chief Accountant:</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">accountant@axiaris.ai</span>
                                         </div>
                                         <div className="flex justify-between">
-                                            <span className="text-slate-500 dark:text-slate-400">Auditor:</span>
-                                            <span className="font-semibold text-slate-800 dark:text-slate-200">auditor@regai.ai</span>
+                                            <span className="text-slate-500 dark:text-slate-400">FinServe / AgroProm:</span>
+                                            <span className="font-semibold text-slate-800 dark:text-slate-200">owner@finserve.com / owner@agroprom.uz</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-slate-500 dark:text-slate-400">Demo Password:</span>
-                                            <span className="font-semibold text-blue-600 dark:text-blue-400">RegAI2026! / FinBridge2026!</span>
+                                            <span className="font-semibold text-blue-600 dark:text-blue-400">FinBridge2026!</span>
                                         </div>
                                     </div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">
