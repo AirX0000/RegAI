@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { X } from 'lucide-react';
 import api from '../lib/api';
+import { CompanyLogoUploader } from './CompanyLogoUploader';
 import { useTranslation } from 'react-i18next';
 
 interface CompanyFormModalProps {
@@ -172,33 +173,27 @@ export default function CompanyFormModal({ company, onClose, onSuccess }: Compan
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {tr('Количество сотрудников', 'Employee Count')}
-                            </label>
-                            <Input
-                                type="number"
-                                value={formData.employee_count}
-                                onChange={(e) => setFormData({ ...formData, employee_count: e.target.value })}
-                                placeholder={tr("например, 150", "e.g., 100")}
-                                min="1"
-                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
-                            />
-                        </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {tr('Количество сотрудников', 'Employee Count')}
+                        </label>
+                        <Input
+                            type="number"
+                            value={formData.employee_count}
+                            onChange={(e) => setFormData({ ...formData, employee_count: e.target.value })}
+                            placeholder={tr("например, 150", "e.g., 100")}
+                            min="1"
+                            className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
+                        />
+                    </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                {tr('Ссылка на логотип (URL)', 'Logo URL')}
-                            </label>
-                            <Input
-                                type="url"
-                                value={formData.logo_url}
-                                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                                placeholder="https://..."
-                                className="bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
-                            />
-                        </div>
+                    <div className="pt-2">
+                        <CompanyLogoUploader
+                            value={formData.logo_url}
+                            onChange={(val) => setFormData({ ...formData, logo_url: val })}
+                            companyName={formData.name || 'Организация'}
+                            showLetterheadMockup={false}
+                        />
                     </div>
 
                     <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">

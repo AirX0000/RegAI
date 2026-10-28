@@ -287,7 +287,7 @@ export default function TransformationResults() {
                     is_balanced: aiAuditResult.is_balanced
                 }
             };
-            await downloadReportAsPdf(memoReport, balanceSheet?.company_name);
+            await downloadReportAsPdf(memoReport, balanceSheet?.company_name, balanceSheet?.logo_url);
             toast({
                 title: auditLang === 'ru' ? "Успешно" : "Success",
                 description: auditLang === 'ru' ? "Меморандум аудита сохранен в PDF" : "Audit memorandum saved as PDF"
@@ -324,7 +324,7 @@ export default function TransformationResults() {
                     adjustments: balanceSheet?.adjustments || []
                 }
             };
-            await downloadReportAsPdf(reportData, balanceSheet?.company_name);
+            await downloadReportAsPdf(reportData, balanceSheet?.company_name, balanceSheet?.logo_url);
             toast({
                 title: tr("PDF успешно сохранен", "PDF Saved"),
                 description: tr("Официальный аудиторский отчет скачан", "Official audit report downloaded")
@@ -350,7 +350,8 @@ export default function TransformationResults() {
                     total_equity: statutoryEquity,
                 },
                 balanceSheet?.adjustments || [],
-                aiAuditResult?.findings || []
+                aiAuditResult?.findings || [],
+                balanceSheet?.logo_url
             );
             toast({
                 title: tr("Пакет МСФО сохранен", "IFRS Package Saved"),

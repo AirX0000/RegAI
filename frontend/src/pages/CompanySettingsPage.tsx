@@ -11,6 +11,7 @@ import { Building2, Save, Loader2 } from 'lucide-react';
 import { OneCConfigModal } from '../components/onec/OneCConfigModal';
 import { OneCSyncDrawer } from '../components/onec/OneCSyncDrawer';
 import { OneCSyncLogsTable } from '../components/onec/OneCSyncLogsTable';
+import { CompanyLogoUploader } from '../components/CompanyLogoUploader';
 import { useTranslation } from 'react-i18next';
 
 export default function CompanySettingsPage() {
@@ -234,29 +235,14 @@ export default function CompanySettingsPage() {
                             />
                         </div>
 
-                        {/* Logo URL */}
-                        <div className="space-y-2">
-                            <Label htmlFor="logo_url">{tr('URL логотипа', 'Logo URL')}</Label>
-                            <Input
-                                id="logo_url"
-                                type="url"
+                        {/* Company Corporate Logo (Upload / URL & White-Label Letterhead Preview) */}
+                        <div className="pt-2">
+                            <CompanyLogoUploader
                                 value={formData.logo_url}
-                                onChange={(e) => handleChange('logo_url', e.target.value)}
-                                placeholder="https://example.com/logo.png"
+                                onChange={(val) => handleChange('logo_url', val)}
+                                companyName={company.name}
+                                showLetterheadMockup={true}
                             />
-                            {formData.logo_url && (
-                                <div className="mt-2">
-                                    <p className="text-xs text-gray-500 mb-2">{tr('Предпросмотр логотипа:', 'Logo Preview:')}</p>
-                                    <img
-                                        src={formData.logo_url}
-                                        alt="Company logo preview"
-                                        className="h-16 w-auto border rounded p-1"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).style.display = 'none';
-                                        }}
-                                    />
-                                </div>
-                            )}
                         </div>
 
                         {/* Submit Button */}

@@ -7,11 +7,12 @@ import {
     FileSpreadsheet, Sparkles, Copy, Check, Layers
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { generateReportPdfUrl, downloadReportAsPdf } from '../lib/pdfReportGenerator';
+import { generateReportPdfUrl, downloadReportAsPdf, getStoredCompanyLogo } from '../lib/pdfReportGenerator';
 
 export interface DocumentPreviewerProps {
     report: any;
     companyName?: string;
+    companyLogo?: string;
     isRu?: boolean;
     onDownload?: () => void;
     isFullscreenModal?: boolean;
@@ -22,12 +23,14 @@ export interface DocumentPreviewerProps {
 export const DocumentPreviewer: React.FC<DocumentPreviewerProps> = ({
     report,
     companyName = 'FinBridge Capital',
+    companyLogo,
     isRu = true,
     onDownload,
     isFullscreenModal = false,
     onCloseFullscreen,
     onOpenFullscreen,
 }) => {
+    const activeLogo = companyLogo || getStoredCompanyLogo(report?.company_id, companyName);
     const [viewMode, setViewMode] = useState<'sheet' | 'pdf' | 'table' | 'text'>('sheet');
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [zoomLevel, setZoomLevel] = useState<number>(100);
@@ -46,7 +49,7 @@ export const DocumentPreviewer: React.FC<DocumentPreviewerProps> = ({
         async function createPdf() {
             try {
                 setIsLoadingPdf(true);
-                const url = await generateReportPdfUrl(report, companyName);
+                const url = await generateReportPdfUrl(report, companyName, activeLogo || undefined);
                 if (isMounted) {
                     objectUrl = url;
                     setPdfBlobUrl(url);
@@ -68,7 +71,7 @@ export const DocumentPreviewer: React.FC<DocumentPreviewerProps> = ({
                 URL.revokeObjectURL(objectUrl);
             }
         };
-    }, [report, companyName]);
+    }, [report, companyName, activeLogo]);
 
     const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 15, 160));
     const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 15, 70));
@@ -120,7 +123,7 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
         if (onDownload) {
             onDownload();
         } else {
-            downloadReportAsPdf(report, companyName);
+            downloadReportAsPdf(report, companyName, activeLogo || undefined);
         }
     };
 
@@ -142,7 +145,16 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-4">
                 <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900">AXIARIS / RegAI</span>
+                        {activeLogo && (
+                            <img
+                                src={activeLogo}
+                                alt={companyName}
+                                className="h-8 w-auto max-w-[130px] object-contain mr-1 border border-slate-100 rounded-sm p-0.5 bg-white shadow-2xs"
+                            />
+                        )}
+                        <span className="font-black text-lg sm:text-xl tracking-tight text-slate-900">
+                            {activeLogo ? companyName : 'AXIARIS / RegAI'}
+                        </span>
                         <span className="text-[10px] px-2 py-0.5 font-bold uppercase rounded-sm bg-purple-100 text-purple-700 border border-purple-200">
                             {tr('МСА 700 / 701', 'ISA 700 / 701', 'XAS 700 / 701')}
                         </span>
@@ -322,13 +334,22 @@ DIGITAL SIGNATURE & AUDIT TRAIL:
 
             {/* Header */}
             <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3">
-                <div>
-                    <span className="font-bold text-sm text-slate-900">
-                        {tr(
-                            'AXIARIS / RegAI — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС',
-                            'AXIARIS / RegAI — AUDIT MEMORANDUM & FINANCIAL POSITION',
-                            'AXIARIS / RegAI — AUDITORLIK MEMORANDUMI VA MOLIYAVIY BALANS'
-                        )}
+                <div className="flex items-center gap-2 min-w-0">
+                    {activeLogo && (
+                        <img
+                            src={activeLogo}
+                            alt={companyName}
+                            className="h-6 w-auto max-w-[90px] object-contain border border-slate-100 rounded-sm p-0.5 bg-white"
+                        />
+                    )}
+                    <span className="font-bold text-sm text-slate-900 truncate">
+                        {activeLogo 
+                            ? `${companyName} — ${tr('АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС', 'AUDIT MEMORANDUM & FINANCIAL POSITION', 'AUDITORLIK MEMORANDUMI VA MOLIYAVIY BALANS')}`
+                            : tr(
+                                'AXIARIS / RegAI — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС',
+                                'AXIARIS / RegAI — AUDIT MEMORANDUM & FINANCIAL POSITION',
+                                'AXIARIS / RegAI — AUDITORLIK MEMORANDUMI VA MOLIYAVIY BALANS'
+                            )}
                     </span>
                 </div>
                 <div className="text-xs text-slate-500 font-mono whitespace-nowrap shrink-0">

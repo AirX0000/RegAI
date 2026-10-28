@@ -243,9 +243,11 @@ export default function ReportsPage() {
     const handleDownload = async (reportId: string, customTitle?: string) => {
         try {
             const rep = reports.find(r => r.id === reportId) || selectedReport || { id: reportId, title: customTitle || 'Report' };
-            const companyName = companies.find(c => c.id === rep.company_id)?.name;
+            const company = companies.find(c => c.id === rep.company_id);
+            const companyName = company?.name;
+            const companyLogo = company?.logo_url;
             const { downloadReportAsPdf } = await import('../lib/pdfReportGenerator');
-            await downloadReportAsPdf(rep, companyName);
+            await downloadReportAsPdf(rep, companyName, companyLogo);
             toast({
                 title: tr("Успешно", "Success"),
                 description: tr("Отчет успешно загружен в формате PDF", "Report downloaded in PDF format"),
@@ -1370,6 +1372,7 @@ export default function ReportsPage() {
                                                 <DocumentPreviewer
                                                     report={selectedReport}
                                                     companyName={companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
+                                                    companyLogo={companies.find(c => c.id === selectedReport.company_id)?.logo_url}
                                                     isRu={isRu}
                                                     onDownload={() => handleDownload(selectedReport.id, selectedReport.title)}
                                                     onOpenFullscreen={() => setIsFullscreenPreviewOpen(true)}
@@ -1818,6 +1821,7 @@ export default function ReportsPage() {
                                 <DocumentPreviewer
                                     report={selectedReport}
                                     companyName={companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
+                                    companyLogo={companies.find(c => c.id === selectedReport.company_id)?.logo_url}
                                     isRu={isRu}
                                     onDownload={() => handleDownload(selectedReport.id, selectedReport.title)}
                                     isFullscreenModal={true}

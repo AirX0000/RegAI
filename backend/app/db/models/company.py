@@ -13,7 +13,7 @@ class Company(Base):
     
     # Profile fields
     description = Column(Text)
-    logo_url = Column(String(500))
+    logo_url = Column(Text)
     website = Column(String(255))
     industry = Column(String(100), index=True)
     employee_count = Column(Integer)

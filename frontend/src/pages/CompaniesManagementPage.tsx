@@ -161,12 +161,28 @@ export default function CompaniesManagementPage() {
                         {filteredCompanies.map((company) => (
                             <tr key={company.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                                 <td className="p-4">
-                                    <button
-                                        onClick={() => handleViewProfile(company)}
-                                        className="font-medium text-blue-600 dark:text-blue-400 hover:underline text-left"
-                                    >
-                                        {company.name}
-                                    </button>
+                                    <div className="flex items-center gap-3">
+                                        {company.logo_url ? (
+                                            <img
+                                                src={company.logo_url}
+                                                alt={company.name}
+                                                className="w-8 h-8 rounded-lg object-contain border border-slate-200 dark:border-slate-700 bg-white p-0.5 shrink-0"
+                                                onError={(e) => {
+                                                    (e.target as HTMLElement).style.display = 'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-xs border border-blue-100 dark:border-blue-800 shrink-0">
+                                                {company.name ? company.name.charAt(0).toUpperCase() : 'C'}
+                                            </div>
+                                        )}
+                                        <button
+                                            onClick={() => handleViewProfile(company)}
+                                            className="font-medium text-blue-600 dark:text-blue-400 hover:underline text-left truncate max-w-xs"
+                                        >
+                                            {company.name}
+                                        </button>
+                                    </div>
                                 </td>
                                 <td className="p-4 text-slate-600 dark:text-slate-400">{company.industry || '-'}</td>
                                 <td className="p-4">

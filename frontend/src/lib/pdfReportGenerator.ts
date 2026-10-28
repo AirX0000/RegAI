@@ -79,7 +79,109 @@ function formatSignedPdf(amount: number): string {
     return `${isNeg ? '-' : '+'}${formatMoneyPdf(Math.abs(num))}`;
 }
 
-export async function buildReportPdfDoc(report: ReportPdfData, companyName?: string): Promise<jsPDF> {
+export interface LogoImageInfo {
+    dataUrl: string;
+    width: number;
+    height: number;
+}
+
+export function getStoredCompanyLogo(companyId?: string, companyName?: string): string | null {
+    try {
+        if (typeof window === 'undefined') return null;
+
+        // 1. Session user check
+        const storedUser = localStorage.getItem('user');
+        let sessionCompId = companyId;
+        if (storedUser) {
+            try {
+                const u = JSON.parse(storedUser);
+                if (!sessionCompId && u.company_id) {
+                    sessionCompId = u.company_id;
+                }
+            } catch {}
+        }
+
+        // 2. Company store lookup
+        const companiesRaw = localStorage.getItem('regai_mock_companies');
+        if (companiesRaw) {
+            const list = JSON.parse(companiesRaw);
+            if (Array.isArray(list)) {
+                if (sessionCompId) {
+                    const found = list.find((c: any) => c.id === sessionCompId);
+                    if (found?.logo_url) return found.logo_url;
+                }
+                if (companyName) {
+                    const found = list.find((c: any) => c.name && c.name.toLowerCase() === companyName.toLowerCase());
+                    if (found?.logo_url) return found.logo_url;
+                }
+                if (sessionCompId) {
+                    const fallback = list.find((c: any) => c.logo_url);
+                    if (fallback?.logo_url) return fallback.logo_url;
+                }
+            }
+        }
+    } catch {
+        // Safe fail
+    }
+    return null;
+}
+
+export async function resolveImageInfo(urlOrData: string): Promise<LogoImageInfo | null> {
+    if (!urlOrData || typeof window === 'undefined') return null;
+
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            try {
+                const naturalW = img.naturalWidth || img.width || 100;
+                const naturalH = img.naturalHeight || img.height || 50;
+                const aspect = naturalW / naturalH;
+
+                // Scale to fit max width 36mm and max height 10.5mm
+                const maxW = 36;
+                const maxH = 10.5;
+                let w = maxW;
+                let h = w / aspect;
+                if (h > maxH) {
+                    h = maxH;
+                    w = h * aspect;
+                }
+
+                if (urlOrData.startsWith('data:image/')) {
+                    return resolve({
+                        dataUrl: urlOrData,
+                        width: Math.round(w * 10) / 10,
+                        height: Math.round(h * 10) / 10
+                    });
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = naturalW;
+                canvas.height = naturalH;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return resolve(null);
+                ctx.drawImage(img, 0, 0);
+                const pngData = canvas.toDataURL('image/png');
+                resolve({
+                    dataUrl: pngData,
+                    width: Math.round(w * 10) / 10,
+                    height: Math.round(h * 10) / 10
+                });
+            } catch {
+                resolve(null);
+            }
+        };
+        img.onerror = () => resolve(null);
+        img.src = urlOrData;
+    });
+}
+
+export async function buildReportPdfDoc(
+    report: ReportPdfData, 
+    companyName?: string, 
+    companyLogo?: string
+): Promise<jsPDF> {
     const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -118,6 +220,9 @@ export async function buildReportPdfDoc(report: ReportPdfData, companyName?: str
     const contentWidth = pageWidth - margin * 2; // 178mm
 
     const entityName = companyName || 'ООО «ТехноПром Инвест»';
+    const logoSource = companyLogo || getStoredCompanyLogo(report.company_id, entityName);
+    const logoInfo = logoSource ? await resolveImageInfo(logoSource) : null;
+
     const refId = `REF: #${(report.id || 'REP-001').substring(0, 8).toUpperCase()}`;
     const reportDate = new Date(report.submitted_at || report.created_at || Date.now()).toLocaleDateString('ru-RU', {
         year: 'numeric',
@@ -135,7 +240,7 @@ export async function buildReportPdfDoc(report: ReportPdfData, companyName?: str
         doc.setFontSize(7.5);
         doc.setTextColor(148, 163, 184);
         doc.text(
-            `Axiaris RegAI Assurance Platform • Официальный электронный отчет • sha256:${(report.id || 'f820c').substring(0, 16)}`,
+            `${entityName} • Официальный электронный отчет • Подготовлено в Axiaris Assurance • sha256:${(report.id || 'f820c').substring(0, 16)}`,
             margin,
             footerY + 2
         );
@@ -145,32 +250,32 @@ export async function buildReportPdfDoc(report: ReportPdfData, companyName?: str
     const reportType = (report.report_type || '').toLowerCase();
 
     if (reportType === 'audit') {
-        renderAuditMemoReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate);
+        renderAuditMemoReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate, logoInfo);
     } else if (reportType === 'reconciliation') {
-        renderReconciliationReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate);
+        renderReconciliationReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate, logoInfo);
     } else if (reportType === 'compliance' || reportType === 'tax' || reportType === 'risk_assessment') {
-        renderTaxComplianceReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate);
+        renderTaxComplianceReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate, logoInfo);
     } else if (reportType === 'financial') {
-        renderFinancialStatementsReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate);
+        renderFinancialStatementsReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate, logoInfo);
     } else {
-        renderDefaultReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate);
+        renderDefaultReport(doc, report, entityName, setFont, renderFooter, pageWidth, pageHeight, margin, contentWidth, refId, reportDate, logoInfo);
     }
 
     return doc;
 }
 
-export async function generateReportPdfBlob(report: ReportPdfData, companyName?: string): Promise<Blob> {
-    const doc = await buildReportPdfDoc(report, companyName);
+export async function generateReportPdfBlob(report: ReportPdfData, companyName?: string, companyLogo?: string): Promise<Blob> {
+    const doc = await buildReportPdfDoc(report, companyName, companyLogo);
     return doc.output('blob');
 }
 
-export async function generateReportPdfUrl(report: ReportPdfData, companyName?: string): Promise<string> {
-    const blob = await generateReportPdfBlob(report, companyName);
+export async function generateReportPdfUrl(report: ReportPdfData, companyName?: string, companyLogo?: string): Promise<string> {
+    const blob = await generateReportPdfBlob(report, companyName, companyLogo);
     return URL.createObjectURL(blob);
 }
 
-export async function downloadReportAsPdf(report: ReportPdfData, companyName?: string): Promise<void> {
-    const doc = await buildReportPdfDoc(report, companyName);
+export async function downloadReportAsPdf(report: ReportPdfData, companyName?: string, companyLogo?: string): Promise<void> {
+    const doc = await buildReportPdfDoc(report, companyName, companyLogo);
 
     const baseName = (report.file_name || report.title || 'Audit_Report')
         .replace(/\.txt$/i, '')
@@ -194,7 +299,8 @@ function renderAuditMemoReport(
     margin: number,
     contentWidth: number,
     refId: string,
-    reportDate: string
+    reportDate: string,
+    logoInfo?: LogoImageInfo | null
 ) {
     const fin = report.financial_data || {};
     const totalAssets = fin.total_assets || 744544.75;
@@ -213,16 +319,42 @@ function renderAuditMemoReport(
     doc.setFillColor(124, 58, 237); // Purple 600
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    // Header Branding
-    setFont('bold');
-    doc.setFontSize(15);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-Label with Company Logo if available)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('INDEPENDENT AUDITOR’S ASSURANCE & COMPLIANCE MEMORANDUM', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('INDEPENDENT AUDITOR’S ASSURANCE & COMPLIANCE MEMORANDUM', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('INDEPENDENT AUDITOR’S ASSURANCE & COMPLIANCE MEMORANDUM', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(15);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('INDEPENDENT AUDITOR’S ASSURANCE & COMPLIANCE MEMORANDUM', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
@@ -231,6 +363,11 @@ function renderAuditMemoReport(
     setFont('normal');
     doc.setTextColor(100, 116, 139);
     doc.text(`ДАТА: ${reportDate}`, pageWidth - margin, y + 4.5, { align: 'right' });
+    if (logoInfo?.dataUrl) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(124, 58, 237);
+        doc.text('Axiaris RegAI • Certified Assurance', pageWidth - margin, y + 8, { align: 'right' });
+    }
 
     y += 10;
     doc.setDrawColor(226, 232, 240);
@@ -443,7 +580,7 @@ function renderAuditMemoReport(
     setFont('bold');
     doc.setFontSize(11);
     doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС', margin, y);
+    doc.text(logoInfo ? `${entityName} — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС` : 'AXIARIS / RegAI — АУДИТОРСКИЙ МЕМОРАНДУМ И ФИНАНСОВЫЙ БАЛАНС', margin, y);
 
     setFont('normal');
     doc.setFontSize(8);
@@ -652,7 +789,8 @@ function renderReconciliationReport(
     margin: number,
     contentWidth: number,
     refId: string,
-    reportDate: string
+    reportDate: string,
+    logoInfo?: LogoImageInfo | null
 ) {
     const fin = report.financial_data || {};
     const totalAssets = fin.total_assets || 744544.75;
@@ -668,16 +806,42 @@ function renderReconciliationReport(
     doc.setFillColor(5, 150, 105); // Emerald 600
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    // Header Branding
-    setFont('bold');
-    doc.setFontSize(15);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-label with company logo)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('STATUTORY TO IFRS CONVERGENCE & RECONCILIATION PROTOCOL', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('STATUTORY TO IFRS CONVERGENCE & RECONCILIATION PROTOCOL', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('STATUTORY TO IFRS CONVERGENCE & RECONCILIATION PROTOCOL', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(15);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('STATUTORY TO IFRS CONVERGENCE & RECONCILIATION PROTOCOL', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
@@ -686,6 +850,11 @@ function renderReconciliationReport(
     setFont('normal');
     doc.setTextColor(100, 116, 139);
     doc.text(`ДАТА: ${reportDate}`, pageWidth - margin, y + 4.5, { align: 'right' });
+    if (logoInfo?.dataUrl) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(5, 150, 105);
+        doc.text('Axiaris RegAI • Certified Assurance', pageWidth - margin, y + 8, { align: 'right' });
+    }
 
     y += 10;
     doc.setDrawColor(226, 232, 240);
@@ -967,7 +1136,8 @@ function renderTaxComplianceReport(
     margin: number,
     contentWidth: number,
     refId: string,
-    reportDate: string
+    reportDate: string,
+    logoInfo?: LogoImageInfo | null
 ) {
     const fin = report.financial_data || {};
     const totalAssets = fin.total_assets || 744544.75;
@@ -985,15 +1155,42 @@ function renderTaxComplianceReport(
     doc.setFillColor(217, 119, 6); // Amber 600
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    setFont('bold');
-    doc.setFontSize(15);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-label with company logo)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('TAX & REGULATORY COMPLIANCE AUDIT PROTOCOL (НК РУз / НК РФ / OECD)', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('TAX & REGULATORY COMPLIANCE AUDIT PROTOCOL (НК РУз / НК РФ / OECD)', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('TAX & REGULATORY COMPLIANCE AUDIT PROTOCOL (НК РУз / НК РФ / OECD)', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(15);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('TAX & REGULATORY COMPLIANCE AUDIT PROTOCOL (НК РУз / НК РФ / OECD)', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
@@ -1002,6 +1199,11 @@ function renderTaxComplianceReport(
     setFont('normal');
     doc.setTextColor(100, 116, 139);
     doc.text(`ДАТА: ${reportDate}`, pageWidth - margin, y + 4.5, { align: 'right' });
+    if (logoInfo?.dataUrl) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(217, 119, 6);
+        doc.text('Axiaris RegAI • Certified Assurance', pageWidth - margin, y + 8, { align: 'right' });
+    }
 
     y += 10;
     doc.setDrawColor(226, 232, 240);
@@ -1176,7 +1378,7 @@ function renderTaxComplianceReport(
     setFont('bold');
     doc.setFontSize(11);
     doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS RegAI • Протокол налогового комплаенса (Продолжение)', margin, y);
+    doc.text(logoInfo ? `${entityName} • Протокол налогового комплаенса (Продолжение)` : 'AXIARIS RegAI • Протокол налогового комплаенса (Продолжение)', margin, y);
 
     setFont('normal');
     doc.setFontSize(8);
@@ -1339,7 +1541,8 @@ function renderFinancialStatementsReport(
     margin: number,
     contentWidth: number,
     refId: string,
-    reportDate: string
+    reportDate: string,
+    logoInfo?: LogoImageInfo | null
 ) {
     const fin = report.financial_data || {};
     const totalAssets = fin.total_assets || 744544.75;
@@ -1356,15 +1559,42 @@ function renderFinancialStatementsReport(
     doc.setFillColor(79, 70, 229); // Indigo 600
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    setFont('bold');
-    doc.setFontSize(15);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-label with company logo)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('IFRS STATEMENT OF FINANCIAL POSITION (IAS 1 PRESENTATION)', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('IFRS STATEMENT OF FINANCIAL POSITION (IAS 1 PRESENTATION)', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('IFRS STATEMENT OF FINANCIAL POSITION (IAS 1 PRESENTATION)', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(15);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('IFRS STATEMENT OF FINANCIAL POSITION (IAS 1 PRESENTATION)', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
@@ -1373,6 +1603,11 @@ function renderFinancialStatementsReport(
     setFont('normal');
     doc.setTextColor(100, 116, 139);
     doc.text(`ДАТА: ${reportDate}`, pageWidth - margin, y + 4.5, { align: 'right' });
+    if (logoInfo?.dataUrl) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(79, 70, 229);
+        doc.text('Axiaris RegAI • Certified Assurance', pageWidth - margin, y + 8, { align: 'right' });
+    }
 
     y += 10;
     doc.setDrawColor(226, 232, 240);
@@ -1535,7 +1770,7 @@ function renderFinancialStatementsReport(
     setFont('bold');
     doc.setFontSize(11);
     doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS RegAI • Финансовый отчет по МСФО (Продолжение)', margin, y);
+    doc.text(logoInfo ? `${entityName} • Финансовый отчет по МСФО (Продолжение)` : 'AXIARIS RegAI • Финансовый отчет по МСФО (Продолжение)', margin, y);
 
     setFont('normal');
     doc.setFontSize(8);
@@ -1685,22 +1920,50 @@ function renderDefaultReport(
     margin: number,
     contentWidth: number,
     refId: string,
-    reportDate: string
+    reportDate: string,
+    logoInfo?: LogoImageInfo | null
 ) {
     let y = 14;
 
     doc.setFillColor(37, 99, 235);
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    setFont('bold');
-    doc.setFontSize(16);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-label with company logo)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(100, 116, 139);
-    doc.text('REGULATORY COMPLIANCE & FINANCIAL AUDIT PLATFORM', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('REGULATORY COMPLIANCE & FINANCIAL AUDIT PLATFORM', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('REGULATORY COMPLIANCE & FINANCIAL AUDIT PLATFORM', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(16);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8.5);
+        doc.setTextColor(100, 116, 139);
+        doc.text('REGULATORY COMPLIANCE & FINANCIAL AUDIT PLATFORM', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
@@ -1709,6 +1972,11 @@ function renderDefaultReport(
     setFont('normal');
     doc.setTextColor(100, 116, 139);
     doc.text(`ДАТА: ${reportDate}`, pageWidth - margin, y + 4.5, { align: 'right' });
+    if (logoInfo?.dataUrl) {
+        doc.setFontSize(6.5);
+        doc.setTextColor(37, 99, 235);
+        doc.text('Axiaris RegAI • Certified Assurance', pageWidth - margin, y + 8, { align: 'right' });
+    }
 
     y += 10;
     doc.setDrawColor(226, 232, 240);
@@ -1928,7 +2196,7 @@ function renderDefaultReport(
         setFont('bold');
         doc.setFontSize(11);
         doc.setTextColor(15, 23, 42);
-        doc.text('AXIARIS RegAI • Заключение независимого аудитора (Лист подписей)', margin, y);
+        doc.text(logoInfo ? `${entityName} • Заключение независимого аудитора (Лист подписей)` : 'AXIARIS RegAI • Заключение независимого аудитора (Лист подписей)', margin, y);
 
         setFont('normal');
         doc.setFontSize(8);
@@ -1994,7 +2262,8 @@ function renderDefaultReport(
 export async function downloadFullDisclosurePackage(
     balanceSheet: any,
     adjustments: any[] = [],
-    findings: any[] = []
+    findings: any[] = [],
+    companyLogo?: string
 ): Promise<void> {
     const doc = new jsPDF({
         orientation: 'portrait',
@@ -2047,6 +2316,9 @@ export async function downloadFullDisclosurePackage(
     };
 
     const entityName = balanceSheet?.company_name || 'ООО «ТехноПром Инвест»';
+    const logoSource = companyLogo || getStoredCompanyLogo(balanceSheet?.company_id, entityName);
+    const logoInfo = logoSource ? await resolveImageInfo(logoSource) : null;
+
     const reportDate = new Date(balanceSheet?.period || Date.now()).toLocaleDateString('ru-RU', {
         year: 'numeric',
         month: '2-digit',
@@ -2091,15 +2363,42 @@ export async function downloadFullDisclosurePackage(
     doc.setFillColor(16, 185, 129); // Emerald 500
     doc.rect(0, 0, pageWidth, 5, 'F');
 
-    setFont('bold');
-    doc.setFontSize(16);
-    doc.setTextColor(15, 23, 42);
-    doc.text('AXIARIS / RegAI', margin, y);
+    // Header Branding (White-label with company logo)
+    if (logoInfo?.dataUrl) {
+        try {
+            doc.addImage(logoInfo.dataUrl, 'PNG', margin, y - 4, logoInfo.width, logoInfo.height);
+            const textX = margin + logoInfo.width + 4;
+            setFont('bold');
+            doc.setFontSize(12);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, textX, y + 1);
 
-    setFont('normal');
-    doc.setFontSize(8);
-    doc.setTextColor(100, 116, 139);
-    doc.text('FULL IFRS CONVERGENCE & AUDIT DISCLOSURE PACKAGE', margin, y + 4.5);
+            setFont('normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('FULL IFRS CONVERGENCE & AUDIT DISCLOSURE PACKAGE', textX, y + 5);
+        } catch {
+            setFont('bold');
+            doc.setFontSize(14);
+            doc.setTextColor(15, 23, 42);
+            doc.text(entityName, margin, y);
+
+            setFont('normal');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text('FULL IFRS CONVERGENCE & AUDIT DISCLOSURE PACKAGE', margin, y + 4.5);
+        }
+    } else {
+        setFont('bold');
+        doc.setFontSize(16);
+        doc.setTextColor(15, 23, 42);
+        doc.text('AXIARIS / RegAI', margin, y);
+
+        setFont('normal');
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text('FULL IFRS CONVERGENCE & AUDIT DISCLOSURE PACKAGE', margin, y + 4.5);
+    }
 
     setFont('bold');
     doc.setFontSize(8.5);
