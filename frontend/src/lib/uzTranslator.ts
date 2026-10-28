@@ -29,6 +29,8 @@ export const UZ_EXACT_PHRASES: Record<string, string> = {
     "TechCorp (Org. 1)": "TechCorp (1-tashkilot)",
     "FinServe (Орг. 2)": "FinServe (2-tashkilot)",
     "FinServe (Org. 2)": "FinServe (2-tashkilot)",
+    "AgroProm (Орг. 3)": "AgroProm (3-tashkilot)",
+    "AgroProm (Org. 3)": "AgroProm (3-tashkilot)",
     "✓ Готово": "✓ Tayyor",
     "✓ Ready": "✓ Tayyor",
     "Данные заполнены": "Ma'lumotlar to'ldirildi",

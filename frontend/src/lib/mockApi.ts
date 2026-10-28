@@ -975,6 +975,27 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                     (email.includes('auditor') && u.role === 'auditor') ||
                     (email.includes('owner') && (u.role === 'company_owner' || u.role === 'admin'))
                 ));
+            } else if (email.includes('agroprom')) {
+                matchedUser = users.find((u: any) => u.company_id === 'c4d5e6f789014bcdef1234567890abcd' && (
+                    (email.includes('admin') && u.role === 'admin') ||
+                    (email.includes('accountant') && u.role === 'accountant') ||
+                    (email.includes('auditor') && u.role === 'auditor') ||
+                    (email.includes('owner') && (u.role === 'company_owner' || u.role === 'admin'))
+                ));
+                if (!matchedUser) {
+                    // Synthesize demo AgroProm user if not seeded yet
+                    matchedUser = {
+                        id: 'usr-agroprom-' + (email.includes('owner') ? 'owner' : email.includes('accountant') ? 'accountant' : email.includes('admin') ? 'admin' : 'auditor'),
+                        email: email,
+                        full_name: email.includes('owner') ? 'Азиз Мирзаев' : email.includes('accountant') ? 'Зарина Юсупова' : email.includes('admin') ? 'Тимур Саттаров' : 'Анвар Касымов',
+                        role: email.includes('owner') ? 'company_owner' : email.includes('accountant') ? 'accountant' : email.includes('admin') ? 'admin' : 'auditor',
+                        company_id: 'c4d5e6f789014bcdef1234567890abcd',
+                        tenant_id: 'b4e63cbc5d5348c5bfddf1c35a9886ba',
+                        is_company_owner: email.includes('owner') ? 1 : 0,
+                        is_active: 1,
+                        is_superuser: 0
+                    };
+                }
             } else if (email.includes('owner')) {
                 matchedUser = users.find((u: any) => u.role === 'company_owner' || u.email.includes('owner'));
             } else if (email.includes('accountant')) {
@@ -996,7 +1017,11 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const comp = companies.find((c: any) => c.id === matchedUser.company_id);
         const enrichedUser = {
             ...matchedUser,
-            company_name: comp?.name || (matchedUser.role === 'superadmin' ? 'Все организации (Суперадминистратор)' : 'TechCorp')
+            company_name: comp?.name || (
+                matchedUser.role === 'superadmin' ? 'Все организации (Суперадминистратор)' :
+                matchedUser.company_id === 'c4d5e6f789014bcdef1234567890abcd' ? 'AgroProm Holding' :
+                matchedUser.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'
+            )
         };
 
         const token = createMockToken(enrichedUser);

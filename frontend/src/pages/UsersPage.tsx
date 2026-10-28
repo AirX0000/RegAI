@@ -147,7 +147,7 @@ export default function UsersPage() {
                     {user?.role !== 'superadmin' && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
-                            {user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}
+                            {user?.company_name || (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd' ? 'AgroProm Holding' : user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}
                         </span>
                     )}
                 </div>
@@ -173,7 +173,7 @@ export default function UsersPage() {
                     <UsersIcon className="h-4 w-4 text-cyan-500 shrink-0" />
                     <span>
                         {tr('Реестр сотрудников: отображаются только пользователи компании', 'Employee registry: showing only users of company', 'Xodimlar reyestri: faqat ushbu kompaniya foydalanuvchilari ko\'rsatilmoqda')}{' '}
-                        <strong className="font-semibold">{user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}</strong>.{' '}
+                        <strong className="font-semibold">{user?.company_name || (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd' ? 'AgroProm Holding' : user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd')}</strong>.{' '}
                         {tr('Новые сотрудники автоматически закрепляются за данной организацией.', 'New employees are automatically assigned to this organization.', 'Yangi xodimlar avtomatik ravishda ushbu tashkilotga biriktiriladi.')}
                     </span>
                 </div>

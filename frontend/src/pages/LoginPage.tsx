@@ -34,6 +34,7 @@ const DEMO_ORGANIZATIONS = [
         label: 'TechCorp (Орг. 1)',
         labelEn: 'TechCorp (Org. 1)',
         labelUz: 'TechCorp (1-tashkilot)',
+        niche: 'IT & Программное обеспечение',
         company_id: '2727830ea39d470c917f1a1544ed5d0f',
         accounts: [
             { role: 'company_owner', label: 'Владелец (Owner)', labelEn: 'Company Owner', labelUz: 'Biznes egasi (Owner)', name: 'Сардор Рахимов', nameLat: 'Sardor Raximov', email: 'owner@axiaris.ai', badge: 'Executive' },
@@ -48,11 +49,28 @@ const DEMO_ORGANIZATIONS = [
         label: 'FinServe (Орг. 2)',
         labelEn: 'FinServe (Org. 2)',
         labelUz: 'FinServe (2-tashkilot)',
+        niche: 'Финансовые услуги & Инвестиции',
         company_id: 'b968f7d7ffe04630a90aadde4d0d8e95',
         accounts: [
-            { role: 'admin', label: 'Администратор FinServe', labelEn: 'FinServe Admin', labelUz: 'FinServe Administratori', name: 'Бахром Алиев', nameLat: 'Baxrom Aliyev', email: 'admin@finserve.com', badge: 'Admin' },
+            { role: 'company_owner', label: 'Владелец FinServe', labelEn: 'FinServe Owner', labelUz: 'FinServe Egasi', name: 'Жасур Махмудов', nameLat: 'Jasur Maxmudov', email: 'owner@finserve.com', badge: 'Executive' },
             { role: 'accountant', label: 'Главбух FinServe', labelEn: 'FinServe Accountant', labelUz: 'FinServe Bosh buxgalteri', name: 'Наргиза Саидова', nameLat: 'Nargiza Saidova', email: 'accountant@finserve.com', badge: 'Ledger' },
+            { role: 'admin', label: 'Администратор FinServe', labelEn: 'FinServe Admin', labelUz: 'FinServe Administratori', name: 'Бахром Алиев', nameLat: 'Baxrom Aliyev', email: 'admin@finserve.com', badge: 'Admin' },
             { role: 'auditor', label: 'Аудитор FinServe', labelEn: 'FinServe Auditor', labelUz: 'FinServe Auditori', name: 'Олег Новиков', nameLat: 'Oleg Novikov', email: 'auditor@finserve.com', badge: 'Audit' },
+        ]
+    },
+    {
+        id: 'agroprom',
+        name: 'AgroProm Holding',
+        label: 'AgroProm (Орг. 3)',
+        labelEn: 'AgroProm (Org. 3)',
+        labelUz: 'AgroProm (3-tashkilot)',
+        niche: 'Агропром & FMCG производство',
+        company_id: 'c4d5e6f789014bcdef1234567890abcd',
+        accounts: [
+            { role: 'company_owner', label: 'Владелец AgroProm', labelEn: 'AgroProm Owner', labelUz: 'AgroProm Egasi', name: 'Азиз Мирзаев', nameLat: 'Aziz Mirzayev', email: 'owner@agroprom.uz', badge: 'Executive' },
+            { role: 'accountant', label: 'Главбух AgroProm', labelEn: 'AgroProm Accountant', labelUz: 'AgroProm Bosh buxgalteri', name: 'Зарина Юсупова', nameLat: 'Zarina Yusupova', email: 'accountant@agroprom.uz', badge: 'Ledger' },
+            { role: 'admin', label: 'Администратор AgroProm', labelEn: 'AgroProm Admin', labelUz: 'AgroProm Administratori', name: 'Тимур Саттаров', nameLat: 'Timur Sattarov', email: 'admin@agroprom.uz', badge: 'Admin' },
+            { role: 'auditor', label: 'Аудитор AgroProm', labelEn: 'AgroProm Auditor', labelUz: 'AgroProm Auditori', name: 'Анвар Касымов', nameLat: 'Anvar Qosimov', email: 'auditor@agroprom.uz', badge: 'Audit' },
         ]
     }
 ];
@@ -487,13 +505,13 @@ export default function LoginPage() {
                         </div>
 
                         {/* Organization Switcher Tabs */}
-                        <div className="flex items-center gap-1.5 p-1 mb-3 bg-[#050814] rounded-xl border border-[#162244]">
+                        <div className="flex items-center gap-1.5 p-1 mb-2 bg-[#050814] rounded-xl border border-[#162244]">
                             {DEMO_ORGANIZATIONS.map(org => (
                                 <button
                                     key={org.id}
                                     type="button"
                                     onClick={() => setActiveCompanyTab(org.id)}
-                                    className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition-all truncate ${
+                                    className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-semibold transition-all truncate ${
                                         activeCompanyTab === org.id
                                             ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/30 text-cyan-300 border border-cyan-500/40 shadow-xs'
                                             : 'text-slate-400 hover:text-slate-200 hover:bg-[#0b1228]'
@@ -502,6 +520,14 @@ export default function LoginPage() {
                                     {tr(org.label, org.labelEn, org.labelUz)}
                                 </button>
                             ))}
+                        </div>
+
+                        {/* Niche Badge */}
+                        <div className="mb-2.5 px-2.5 py-1 flex items-center justify-between text-[10px] text-slate-400 bg-[#050814]/70 rounded-lg border border-[#162244]/70">
+                            <span className="text-slate-400">{tr('Ниша / Отрасль:', 'Industry / Niche:', 'Soha:')}</span>
+                            <span className="font-semibold text-cyan-300 truncate">
+                                {DEMO_ORGANIZATIONS.find(o => o.id === activeCompanyTab)?.niche}
+                            </span>
                         </div>
 
                         {/* Organization Scoped Profiles Grid */}

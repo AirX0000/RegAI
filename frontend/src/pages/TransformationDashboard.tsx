@@ -344,7 +344,7 @@ export default function TransformationDashboard() {
                         </h1>
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-cyan-300 border border-blue-200 dark:border-blue-800">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" />
-                            {user?.role === 'superadmin' ? (tr('Все организации', 'All Organizations')) : (user?.company_name || (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
+                            {user?.role === 'superadmin' ? (tr('Все организации', 'All Organizations')) : (user?.company_name || (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd' ? 'AgroProm Holding' : user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95' ? 'FinServe Holdings' : 'TechCorp Ltd'))}
                         </span>
                     </div>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">{t('transform_balance_sheets')}</p>

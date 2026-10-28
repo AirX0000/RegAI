@@ -112,6 +112,7 @@ export default function DashboardPage() {
         }
         if (user?.company_name) return user.company_name;
         if (user?.company_id === 'b968f7d7ffe04630a90aadde4d0d8e95') return 'FinServe Holdings';
+        if (user?.company_id === 'c4d5e6f789014bcdef1234567890abcd') return 'AgroProm Holding';
         return 'TechCorp Ltd';
     };
 
