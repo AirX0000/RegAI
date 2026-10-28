@@ -1428,45 +1428,45 @@ export default function ReportsPage() {
                                     {/* Standards table */}
                                     <div className="space-y-2">
                                         <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                            {tr('Результаты сверки со стандартами', 'Standards Audit Breakdown')}
+                                            {tr('Результаты сверки со стандартами', 'Standards Audit Breakdown', 'Standartlar bilan solishtirish natijalari')}
                                         </h3>
                                         <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
                                             <div className="grid grid-cols-12 bg-slate-100 dark:bg-slate-800/80 p-2.5 font-semibold text-slate-600 dark:text-slate-300">
-                                                <div className="col-span-5">{tr('Регуляторный стандарт', 'Standard')}</div>
-                                                <div className="col-span-4">{tr('Требование', 'Requirement')}</div>
-                                                <div className="col-span-3 text-right">{tr('Статус', 'Status')}</div>
+                                                <div className="col-span-5">{tr('Регуляторный стандарт', 'Standard', 'Regulyator standarti')}</div>
+                                                <div className="col-span-4">{tr('Требование', 'Requirement', 'Talab')}</div>
+                                                <div className="col-span-3 text-right">{tr('Статус', 'Status', 'Holat')}</div>
                                             </div>
                                             <div className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900">
                                                 <div className="grid grid-cols-12 p-3 items-center">
-                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">МСФО 9 (IFRS 9) Financial Instruments</div>
-                                                    <div className="col-span-4 text-slate-500">Оценка резервов ECL по стадиям</div>
+                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">{tr('МСФО 9 (IFRS 9) Финансовые инструменты', 'IFRS 9 Financial Instruments', 'MHXS 9 (IFRS 9) Moliyaviy instrumentlar')}</div>
+                                                    <div className="col-span-4 text-slate-500">{tr('Оценка резервов ECL по стадиям', 'Stage-based ECL provision assessment', 'Bosqichlar bo‘yicha ECL zaxiralarini baholash')}</div>
                                                     <div className="col-span-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
                                                         <CheckCircle className="w-3.5 h-3.5" />
-                                                        <span>Соответствует</span>
+                                                        <span>{tr('Соответствует', 'Compliant', 'Mos keladi')}</span>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-12 p-3 items-center">
-                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">МСФО 16 (IFRS 16) Leases</div>
-                                                    <div className="col-span-4 text-slate-500">Признание ППУ и дисконтирование</div>
+                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">{tr('МСФО 16 (IFRS 16) Аренда', 'IFRS 16 Leases', 'MHXS 16 (IFRS 16) Ijara')}</div>
+                                                    <div className="col-span-4 text-slate-500">{tr('Признание ППУ и дисконтирование', 'ROU asset recognition & discounting', 'FHA tan olinishi va diskontlash')}</div>
                                                     <div className="col-span-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
                                                         <CheckCircle className="w-3.5 h-3.5" />
-                                                        <span>Соответствует</span>
+                                                        <span>{tr('Соответствует', 'Compliant', 'Mos keladi')}</span>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-12 p-3 items-center">
-                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">Налоговый кодекс (НДС / Прибыль)</div>
-                                                    <div className="col-span-4 text-slate-500">Сверка ставок и налоговой базы</div>
+                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">{tr('Налоговый кодекс (НДС / Прибыль)', 'Tax Code (VAT / Corporate Income Tax)', 'Soliq kodeksi (QQS / Foyda solig‘i)')}</div>
+                                                    <div className="col-span-4 text-slate-500">{tr('Сверка ставок и налоговой базы', 'Tax rate and taxable base reconciliation', 'Stavkalar va soliq bazasini solishtirish')}</div>
                                                     <div className="col-span-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
                                                         <CheckCircle className="w-3.5 h-3.5" />
-                                                        <span>Без замечаний</span>
+                                                        <span>{tr('Без замечаний', 'No Exceptions', 'E’tirozlarsiz')}</span>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-12 p-3 items-center">
-                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">AML / ПОД/ФТ Контроль операций</div>
-                                                    <div className="col-span-4 text-slate-500">Мониторинг подозрительных транзакций</div>
+                                                    <div className="col-span-5 font-medium text-slate-900 dark:text-white">{tr('AML / ПОД/ФТ Контроль операций', 'AML / CFT Transaction Monitoring', 'AML / JFD/TQQ Operatsiyalar nazorati')}</div>
+                                                    <div className="col-span-4 text-slate-500">{tr('Мониторинг подозрительных транзакций', 'Suspicious transaction screening', 'Shubhali tranzaksiyalar monitoringi')}</div>
                                                     <div className="col-span-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
                                                         <CheckCircle className="w-3.5 h-3.5" />
-                                                        <span>Верифицировано</span>
+                                                        <span>{tr('Верифицировано', 'Verified', 'Tasdiqlangan')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1488,7 +1488,7 @@ export default function ReportsPage() {
                                                     RegAI Neural Compliance Engine
                                                 </h4>
                                                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                                                    {tr('Автоматизированный аудит корректности расчетов и формул отчета', 'Automated analysis of formulas, balances and statutory rules')}
+                                                    {tr('Автоматизированный аудит корректности расчетов и формул отчета', 'Automated analysis of formulas, balances and statutory rules', 'Hisobot hisob-kitoblari va formulalari to‘g‘riligining avtomatlashtirilgan auditi')}
                                                 </p>
                                             </div>
                                         </div>
@@ -1501,14 +1501,14 @@ export default function ReportsPage() {
                                     <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 text-xs leading-relaxed text-slate-700 dark:text-slate-300">
                                         <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5 text-sm">
                                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                            <span>{tr('Заключение ИИ-инспектора', 'AI Inspector Conclusion')}</span>
+                                            <span>{tr('Заключение ИИ-инспектора', 'AI Inspector Conclusion', 'SI-inspektor xulosasi')}</span>
                                         </div>
                                         <p>
-                                            {tr('Все арифметические соотношения, валютные пересчеты и контрольные суммы отчета сошлись с эталонными балансовыми регистрами. Критических расхождений, признаков искажения финансового результата или занижения налогооблагаемой базы не зафиксировано.', 'All cross-sheet calculations, FX revaluations and control sums accurately match reference General Ledger registers. No material omissions or tax discrepancies detected.')}
+                                            {tr('Все арифметические соотношения, валютные пересчеты и контрольные суммы отчета сошлись с эталонными балансовыми регистрами. Критических расхождений, признаков искажения финансового результата или занижения налогооблагаемой базы не зафиксировано.', 'All cross-sheet calculations, FX revaluations and control sums accurately match reference General Ledger registers. No material omissions or tax discrepancies detected.', 'Hisobotning barcha arifmetik nisbatlari, valyuta qayta hisob-kitoblari va nazorat summalari etalon balans registrlari bilan mos keldi. Kritik tafovutlar yoki soliq bazasini kamaytirish belgilari aniqlanmadi.')}
                                         </p>
                                         <div className="p-3 rounded-lg bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-amber-900 dark:text-amber-200 space-y-1">
-                                            <div className="font-semibold">{tr('Рекомендация по оптимизации:', 'Optimization Advice:')}</div>
-                                            <div>{tr('Рекомендуется синхронизировать резервы по обесценению дебиторской задолженности со сроками погашения по обновленной матрице дефолтов.', 'Ensure aging buckets for Stage 2 accounts receivable reflect the latest historical loss rate updates.')}</div>
+                                            <div className="font-semibold">{tr('Рекомендация по оптимизации:', 'Optimization Advice:', 'Optimallashtirish bo‘yicha tavsiya:')}</div>
+                                            <div>{tr('Рекомендуется синхронизировать резервы по обесценению дебиторской задолженности со сроками погашения по обновленной матрице дефолтов.', 'Ensure aging buckets for Stage 2 accounts receivable reflect the latest historical loss rate updates.', 'Debitorlik qarzdorligi qadrsizlanishi bo‘yicha zaxiralarni yangilangan defolt matritsasi bo‘yicha to‘lov muddatlari bilan sinxronlashtirish tavsiya etiladi.')}</div>
                                         </div>
                                     </div>
 
@@ -1518,7 +1518,7 @@ export default function ReportsPage() {
                                             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                                         >
                                             <Sparkles className="w-4 h-4" />
-                                            <span>{tr('Открыть интерактивный AI-Анализ отчета', 'Launch Deep AI Analysis Workspace')}</span>
+                                            <span>{tr('Открыть интерактивный AI-Анализ отчета', 'Launch Deep AI Analysis Workspace', 'Hisobotning interaktiv SI-tahlilini ochish')}</span>
                                             <ChevronRight className="w-4 h-4" />
                                         </Button>
                                     </div>
