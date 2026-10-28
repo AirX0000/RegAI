@@ -31,7 +31,7 @@ async def analyze_report(
     # Check permissions
     if not (current_user.role in ["superadmin", "website_superadmin"] or current_user.is_superuser):
         if current_user.role in ["accountant", "auditor", "user"]:
-            if report.submitted_by != current_user.id:
+            if report.submitted_by != current_user.id and (not current_user.company_id or report.company_id != current_user.company_id):
                 raise HTTPException(status_code=403, detail="Not authorized")
         elif report.company_id != current_user.company_id:
             raise HTTPException(status_code=403, detail="Not authorized to analyze reports of another company")

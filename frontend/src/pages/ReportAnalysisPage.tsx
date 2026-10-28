@@ -89,8 +89,9 @@ export default function ReportAnalysisPage() {
     }, []);
 
     useEffect(() => {
-        if (location.state?.reportId && reports.length > 0) {
-            const report = reports.find((r: any) => r.id === location.state.reportId);
+        const incomingId = location.state?.report?.id || location.state?.reportId;
+        if (incomingId && reports.length > 0) {
+            const report = reports.find((r: any) => String(r.id) === String(incomingId));
             if (report) {
                 setSelectedReport(report);
             }
@@ -103,7 +104,9 @@ export default function ReportAnalysisPage() {
             const raw = Array.isArray(res?.data) ? res.data : (Array.isArray(res?.data?.items) ? res.data.items : []);
             setReports(raw);
             if (raw.length > 0 && !selectedReport) {
-                setSelectedReport(raw[0]);
+                const incomingId = location.state?.report?.id || location.state?.reportId;
+                const matched = incomingId ? raw.find((r: any) => String(r.id) === String(incomingId)) : null;
+                setSelectedReport(matched || raw[0]);
             }
         } catch (error) {
             console.error('Failed to fetch reports', error);
@@ -139,45 +142,45 @@ export default function ReportAnalysisPage() {
 
     const simulateScanningPhases = async () => {
         // Phase 1: Document Extraction
-        setScanningPhase(tr('Извлечение содержимого документа...', 'Extracting document content...'));
-        setScanProgress(10);
-        addScanLog(tr('Запуск извлечения данных из документа', 'Starting document extraction'));
-        await new Promise(resolve => setTimeout(resolve, 800));
-        addScanLog(tr('Структура документа успешно проанализирована', 'Document structure analyzed'));
-        setScanProgress(25);
+        setScanningPhase(tr('Извлечение содержимого документа...', 'Extracting document content...', 'Hujjat tarkibini ajratib olish...'));
+        setScanProgress(15);
+        addScanLog(tr('Запуск извлечения данных из документа', 'Starting document extraction', 'Hujjatdan ma’lumotlarni ajratib olish boshlandi'));
+        await new Promise(resolve => setTimeout(resolve, 450));
+        addScanLog(tr('Структура документа успешно проанализирована', 'Document structure analyzed', 'Hujjat tuzilmasi muvaffaqiyatli tahlil qilindi'));
+        setScanProgress(30);
 
         // Phase 2: Text Analysis
-        setScanningPhase(tr('Анализ финансовых данных и показателей...', 'Analyzing text and financial data...'));
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        addScanLog(tr('Извлечены финансовые показатели и налоговые метрики', 'Extracted financial figures and tax information'));
-        setScanProgress(40);
+        setScanningPhase(tr('Анализ финансовых данных и показателей...', 'Analyzing text and financial data...', 'Moliyaviy ma’lumotlar va ko‘rsatkichlar tahlili...'));
+        await new Promise(resolve => setTimeout(resolve, 500));
+        addScanLog(tr('Извлечены финансовые показатели и налоговые метрики', 'Extracted financial figures and tax information', 'Moliyaviy ko‘rsatkichlar va soliq metrikalari ajratib olindi'));
+        setScanProgress(50);
 
         // Phase 3: Regulation Matching
-        setScanningPhase(tr('Сопоставление с налоговыми нормативами...', 'Matching against tax regulations...'));
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        addScanLog(tr(`Проверка комплаенса с законодательством ${analysisConfig.country_code}`, `Checking compliance with ${analysisConfig.country_code} tax laws`));
-        addScanLog(tr(`Валидация по ${analysisConfig.tax_types.length} налогам`, `Validating ${analysisConfig.tax_types.length} tax type(s)`));
-        setScanProgress(60);
+        setScanningPhase(tr('Сопоставление с налоговыми нормативами...', 'Matching against tax regulations...', 'Soliq me’yorlari bilan solishtirish...'));
+        await new Promise(resolve => setTimeout(resolve, 550));
+        addScanLog(tr(`Проверка комплаенса с законодательством ${analysisConfig.country_code}`, `Checking compliance with ${analysisConfig.country_code} tax laws`, `${analysisConfig.country_code} soliq qonunchiligiga muvofiqlikni tekshirish`));
+        addScanLog(tr(`Валидация по выбранным налоговым режимам (${analysisConfig.tax_types.length})`, `Validating ${analysisConfig.tax_types.length} selected tax regime(s)`, `Tanlangan soliq rejimlari bo‘yicha validatsiya (${analysisConfig.tax_types.length})`));
+        setScanProgress(70);
 
         // Phase 4: Validation
-        setScanningPhase(tr('Проверка ставок и арифметических расчётов...', 'Validating calculations and rates...'));
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        addScanLog(tr('Сверка налоговых ставок с официальной базой RegAI', 'Cross-referencing tax rates with official database'));
-        setScanProgress(75);
+        setScanningPhase(tr('Проверка ставок и арифметических расчётов...', 'Validating calculations and rates...', 'Stavkalar va arifmetik hisob-kitoblarni tekshirish...'));
+        await new Promise(resolve => setTimeout(resolve, 500));
+        addScanLog(tr('Сверка налоговых ставок с официальной базой RegAI', 'Cross-referencing tax rates with official database', 'Soliq stavkalarini RegAI rasmiy bazasi bilan solishtirish'));
+        setScanProgress(85);
 
         // Phase 5: Report Generation
-        setScanningPhase(tr('Формирование отчёта о комплаенсе...', 'Generating compliance report...'));
-        await new Promise(resolve => setTimeout(resolve, 800));
-        addScanLog(tr('Агрегация замечаний и аудиторских рекомендаций', 'Compiling findings and recommendations'));
-        setScanProgress(90);
+        setScanningPhase(tr('Формирование отчёта о комплаенсе...', 'Generating compliance report...', 'Komplayens hisobotini shakllantirish...'));
+        await new Promise(resolve => setTimeout(resolve, 400));
+        addScanLog(tr('Агрегация замечаний и аудиторских рекомендаций', 'Compiling findings and recommendations', 'Xulosalar va auditorlik tavsiyalarini jamlash'));
+        setScanProgress(95);
     };
 
     const handleAnalyze = async () => {
         if (uploadMode === 'select' && !selectedReport) {
             toast({
                 variant: "destructive",
-                title: tr("Ошибка", "Error"),
-                description: tr("Пожалуйста, выберите отчет для анализа", "Please select a report to analyze"),
+                title: tr("Ошибка", "Error", "Xatolik"),
+                description: tr("Пожалуйста, выберите отчет для анализа", "Please select a report to analyze", "Tahlil uchun hisobotni tanlang"),
             });
             return;
         }
@@ -185,8 +188,17 @@ export default function ReportAnalysisPage() {
         if (uploadMode === 'upload' && !uploadFile) {
             toast({
                 variant: "destructive",
-                title: tr("Ошибка", "Error"),
-                description: tr("Пожалуйста, загрузите файл для анализа", "Please upload a file to analyze"),
+                title: tr("Ошибка", "Error", "Xatolik"),
+                description: tr("Пожалуйста, загрузите файл для анализа", "Please upload a file to analyze", "Tahlil uchun faylni yuklang"),
+            });
+            return;
+        }
+
+        if (analysisConfig.tax_types.length === 0) {
+            toast({
+                variant: "destructive",
+                title: tr("Выберите налоговый режим", "Select Tax Regime", "Soliq rejimini tanlang"),
+                description: tr("Отметьте хотя бы один налоговый режим для проверки", "Please select at least one tax regime to check", "Tekshirish uchun kamida bitta soliq rejimini belgilang"),
             });
             return;
         }
@@ -194,16 +206,16 @@ export default function ReportAnalysisPage() {
         setIsAnalyzing(true);
         setScanLog([]);
         setScanProgress(0);
-        setScanningPhase(tr('Инициализация анализа...', 'Initializing analysis...'));
-        addScanLog(tr('Анализ запущен', 'Analysis started'));
+        setScanningPhase(tr('Инициализация анализа...', 'Initializing analysis...', 'Tahlilni ishga tushirish...'));
+        addScanLog(tr('Анализ запущен', 'Analysis started', 'Tahlil boshlandi'));
 
         try {
             let reportId = selectedReport?.id;
 
             if (uploadMode === 'upload' && uploadFile) {
-                addScanLog(`${tr('Загрузка файла', 'Uploading file')}: ${uploadFile.name}`);
+                addScanLog(`${tr('Загрузка файла', 'Uploading file', 'Fayl yuklanmoqda')}: ${uploadFile.name}`);
                 const formData = new FormData();
-                formData.append('title', uploadTitle || (tr('Отчет по налоговому анализу', 'Tax Analysis Report')));
+                formData.append('title', uploadTitle || uploadFile.name.replace(/\.[^/.]+$/, '') || tr('Отчет по налоговому анализу', 'Tax Analysis Report', 'Soliq tahlili hisoboti'));
                 formData.append('description', 'Uploaded for AI analysis');
                 formData.append('report_type', 'financial');
                 formData.append('company_id', user?.company_id || '');
@@ -213,13 +225,13 @@ export default function ReportAnalysisPage() {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
                 reportId = uploadRes.data.id;
-                addScanLog(tr('Файл успешно загружен', 'File uploaded successfully'));
+                addScanLog(tr('Файл успешно загружен и разобран', 'File uploaded and parsed successfully', 'Fayl muvaffaqiyatli yuklandi va tahlilga tayyorlandi'));
             }
 
             await simulateScanningPhases();
 
-            setScanningPhase(tr('Выполнение ИИ-анализа...', 'Running AI analysis...'));
-            addScanLog(tr('Отправка данных в движок комплаенса RegAI', 'Sending data to AI compliance engine'));
+            setScanningPhase(tr('Выполнение ИИ-анализа...', 'Running AI analysis...', 'SI-tahlil bajarilmoqda...'));
+            addScanLog(tr('Отправка данных в движок комплаенса RegAI', 'Sending data to AI compliance engine', 'Ma’lumotlarni RegAI komplayens tizimiga yuborish'));
             const res = await api.post('/report-analysis/analyze', {
                 report_id: reportId,
                 country_code: analysisConfig.country_code,
@@ -227,25 +239,25 @@ export default function ReportAnalysisPage() {
             });
 
             setScanProgress(100);
-            setScanningPhase(tr('Анализ завершён', 'Analysis complete'));
-            addScanLog(tr('Анализ успешно завершен', 'Analysis completed successfully'));
+            setScanningPhase(tr('Анализ завершён', 'Analysis complete', 'Tahlil yakunlandi'));
+            addScanLog(tr('Анализ успешно завершен', 'Analysis completed successfully', 'Tahlil muvaffaqiyatli yakunlandi'));
 
             setAnalysis(res.data);
 
             const resultMessage = generateResultMessage(res.data);
-            addScanLog(tr('--- ИТОГИ АНАЛИЗА ---', '--- ANALYSIS SUMMARY ---'));
+            addScanLog(tr('--- ИТОГИ АНАЛИЗА ---', '--- ANALYSIS SUMMARY ---', '--- TAHLIL YAKUNLARI ---'));
             resultMessage.forEach(msg => addScanLog(msg));
 
             toast({
-                title: tr("✅ Анализ завершен", "✅ Analysis Complete"),
-                description: `${tr('Оценка соответствия', 'Compliance Score')}: ${res.data.overall_score}% - ${res.data.summary}`,
+                title: tr("✅ Анализ завершен", "✅ Analysis Complete", "✅ Tahlil yakunlandi"),
+                description: `${tr('Оценка соответствия', 'Compliance Score', 'Muvofiqlik bahosi')}: ${res.data.overall_score}% — ${res.data.summary}`,
             });
         } catch (error: any) {
-            addScanLog(`${tr('ОШИБКА', 'ERROR')}: ${error.response?.data?.detail || 'Analysis failed'}`);
+            addScanLog(`${tr('ОШИБКА', 'ERROR', 'XATOLIK')}: ${error.response?.data?.detail || 'Analysis failed'}`);
             toast({
                 variant: "destructive",
-                title: tr("Ошибка", "Error"),
-                description: error.response?.data?.detail || (tr("Не удалось выполнить анализ", "Analysis failed")),
+                title: tr("Ошибка", "Error", "Xatolik"),
+                description: error.response?.data?.detail || tr("Не удалось выполнить анализ", "Analysis failed", "Tahlilni bajarib bo‘lmadi"),
             });
         } finally {
             setIsAnalyzing(false);
@@ -256,29 +268,29 @@ export default function ReportAnalysisPage() {
     const generateResultMessage = (data: any): string[] => {
         const messages: string[] = [];
 
-        messages.push(`${tr('Итоговая оценка соответствия', 'Overall Compliance Score')}: ${data.overall_score}%`);
-        messages.push(`${tr('Всего проверок', 'Total Checks Performed')}: ${data.total_checks}`);
-        messages.push(`${tr('Пройдено', 'Passed')}: ${data.passed_checks} | ${tr('Ошибки', 'Errors')}: ${data.errors} | ${tr('Предупреждения', 'Warnings')}: ${data.warnings}`);
+        messages.push(`${tr('Итоговая оценка соответствия', 'Overall Compliance Score', 'Yakuniy muvofiqlik bahosi')}: ${data.overall_score}%`);
+        messages.push(`${tr('Всего проверок', 'Total Checks Performed', 'Jami tekshiruvlar')}: ${data.total_checks}`);
+        messages.push(`${tr('Пройдено', 'Passed', 'O‘tdi')}: ${data.passed_checks} | ${tr('Ошибки', 'Errors', 'Xatolar')}: ${data.errors} | ${tr('Предупреждения', 'Warnings', 'Ogohlantirishlar')}: ${data.warnings}`);
 
         if (data.overall_score >= 90) {
-            messages.push(tr('✅ ОТЛИЧНО - Отчет полностью соответствует нормативным требованиям', '✅ EXCELLENT - Report meets all compliance requirements'));
+            messages.push(tr('✅ ОТЛИЧНО — Отчет полностью соответствует нормативным требованиям', '✅ EXCELLENT — Report meets all compliance requirements', '✅ A’LO — Hisobot me’yoriy talablarga to‘liq javob beradi'));
         } else if (data.overall_score >= 70) {
-            messages.push(tr('⚠️ ХОРОШО - Обнаружены незначительные отклонения, рекомендуется проверка', '⚠️ GOOD - Minor issues detected, review recommended'));
+            messages.push(tr('⚠️ ХОРОШО — Обнаружены незначительные отклонения, рекомендуется проверка', '⚠️ GOOD — Minor issues detected, review recommended', '⚠️ YAXSHI — Kichik tafovutlar aniqlandi, tekshirish tavsiya etiladi'));
         } else {
-            messages.push(tr('❌ ТРЕБУЕТСЯ ВНИМАНИЕ - Обнаружены существенные несоответствия', '❌ ATTENTION REQUIRED - Significant compliance issues found'));
+            messages.push(tr('❌ ТРЕБУЕТСЯ ВНИМАНИЕ — Обнаружены существенные несоответствия', '❌ ATTENTION REQUIRED — Significant compliance issues found', '❌ DIQQAT TALAB ETILADI — Jiddiy nomuvofiqliklar aniqlandi'));
         }
 
         if (data.error_details && data.error_details.length > 0) {
-            messages.push(`${tr('Найдено замечаний', 'Found issue(s)')}: ${data.error_details.length}`);
+            messages.push(`${tr('Найдено замечаний', 'Found issue(s)', 'Topilgan kamchiliklar')}: ${data.error_details.length}`);
             data.error_details.slice(0, 3).forEach((error: any, idx: number) => {
-                messages.push(`  ${idx + 1}. ${error.type} - ${error.location}`);
+                messages.push(`  ${idx + 1}. ${error.type} — ${error.location}`);
             });
             if (data.error_details.length > 3) {
-                messages.push(`  ... ${tr('и еще', 'and')} ${data.error_details.length - 3}`);
+                messages.push(`  ... ${tr('и еще', 'and', 'va yana')} ${data.error_details.length - 3}`);
             }
         }
 
-        messages.push(`${tr('Страна', 'Country')}: ${analysisConfig.country_code} | ${tr('Налоги', 'Tax Types')}: ${analysisConfig.tax_types.join(', ')}`);
+        messages.push(`${tr('Страна', 'Country', 'Mamlakat')}: ${analysisConfig.country_code} | ${tr('Налоги', 'Tax Types', 'Soliqlar')}: ${analysisConfig.tax_types.join(', ')}`);
 
         return messages;
     };
@@ -290,22 +302,22 @@ export default function ReportAnalysisPage() {
     };
 
     const getSeverityIcon = (severity: string) => {
-        if (severity === 'critical') return <XCircle className="h-5 w-5 text-red-600" />;
-        if (severity === 'warning') return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
-        return <CheckCircle className="h-5 w-5 text-blue-600" />;
+        if (severity === 'critical') return <XCircle className="h-5 w-5 text-red-600 shrink-0" />;
+        if (severity === 'warning') return <AlertTriangle className="h-5 w-5 text-yellow-600 shrink-0" />;
+        return <CheckCircle className="h-5 w-5 text-blue-600 shrink-0" />;
     };
 
     return (
         <div className="space-y-6">
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-                {tr('ИИ-Анализ налогового комплаенса', 'AI Tax Compliance Analysis')}
+                {tr('ИИ-Анализ налогового комплаенса', 'AI Tax Compliance Analysis', 'Soliq komplayensining SI-tahlili')}
             </h1>
 
             <div className="grid gap-6 md:grid-cols-2">
                 {/* Configuration Panel */}
                 <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-6 bg-white dark:bg-slate-900 shadow-xs">
                     <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
-                        {tr('Параметры проверки и анализа', 'Analysis Configuration')}
+                        {tr('Параметры проверки и анализа', 'Analysis Configuration', 'Tekshiruv va tahlil parametrlari')}
                     </h2>
 
                     <div className="space-y-4">
@@ -313,28 +325,28 @@ export default function ReportAnalysisPage() {
                         <div className="flex gap-2 mb-4">
                             <button
                                 onClick={() => setUploadMode('select')}
-                                className={`flex-1 py-2 px-4 rounded-lg border font-medium text-sm transition-colors ${uploadMode === 'select'
+                                className={`flex-1 py-2 px-4 rounded-lg border font-medium text-sm transition-colors cursor-pointer ${uploadMode === 'select'
                                     ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                                     }`}
                             >
-                                {tr('Выбрать существующий отчет', 'Select Existing Report')}
+                                {tr('Выбрать существующий отчет', 'Select Existing Report', 'Mavjud hisobotni tanlash')}
                             </button>
                             <button
                                 onClick={() => setUploadMode('upload')}
-                                className={`flex-1 py-2 px-4 rounded-lg border font-medium text-sm transition-colors ${uploadMode === 'upload'
+                                className={`flex-1 py-2 px-4 rounded-lg border font-medium text-sm transition-colors cursor-pointer ${uploadMode === 'upload'
                                     ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
                                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60'
                                     }`}
                             >
-                                {tr('Загрузить новый PDF / Excel', 'Upload New PDF / Excel')}
+                                {tr('Загрузить новый PDF / Excel', 'Upload New PDF / Excel', 'Yangi PDF / Excel yuklash')}
                             </button>
                         </div>
 
                         {uploadMode === 'select' ? (
                             <div>
                                 <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                    {tr('Выберите отчет для проверки', 'Select Report')}
+                                    {tr('Выберите отчет для проверки', 'Select Report', 'Tekshirish uchun hisobotni tanlang')}
                                 </label>
                                 <select
                                     className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
@@ -345,10 +357,10 @@ export default function ReportAnalysisPage() {
                                         setAnalysis(null);
                                     }}
                                 >
-                                    <option value="">{tr('Выберите отчет из списка...', 'Choose a report from the list...')}</option>
+                                    <option value="">{tr('Выберите отчет из списка...', 'Choose a report from the list...', 'Ro‘yxatdan hisobotni tanlang...')}</option>
                                     {Array.isArray(reports) && reports.map((report) => (
                                          <option key={report.id} value={report.id}>
-                                             {report.title} ({report.report_type === 'compliance' ? tr('комплаенс', 'compliance', 'komplayens') : report.report_type === 'financial' ? tr('финансовый', 'financial', 'moliyaviy') : report.report_type})
+                                             {report.title} ({report.report_type === 'compliance' ? tr('комплаенс', 'compliance', 'komplayens') : report.report_type === 'financial' ? tr('финансовый', 'financial', 'moliyaviy') : report.report_type === 'audit' ? tr('аудит', 'audit', 'audit') : report.report_type === 'risk_assessment' ? tr('оценка рисков', 'risk assessment', 'xavflarni baholash') : report.report_type})
                                          </option>
                                      ))}
                                 </select>
@@ -357,28 +369,31 @@ export default function ReportAnalysisPage() {
                             <div className="space-y-3">
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                        {tr('Название отчета (необязательно)', 'Report Title (Optional)')}
+                                        {tr('Название отчета (необязательно)', 'Report Title (Optional)', 'Hisobot nomi (ixtiyoriy)')}
                                     </label>
                                     <input
                                         type="text"
                                         className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                                         value={uploadTitle}
                                         onChange={(e) => setUploadTitle(e.target.value)}
-                                        placeholder={tr('Налоговый отчет 2026', 'Tax Analysis Report')}
+                                        placeholder={tr('Налоговый отчет 2026', 'Tax Analysis Report', 'Soliq hisoboti 2026')}
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                        {tr('Загрузить файл документа', 'Upload File')}
+                                        {tr('Загрузить файл документа', 'Upload File', 'Hujjat faylini yuklash')}
                                     </label>
                                     <input
                                         type="file"
                                         accept=".pdf,.xlsx,.csv,.txt"
-                                        onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                                        onChange={(e) => {
+                                            setUploadFile(e.target.files?.[0] || null);
+                                            setAnalysis(null);
+                                        }}
                                         className="w-full text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/40 dark:file:text-blue-300 hover:file:bg-blue-100"
                                     />
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                                        {tr('Поддерживаются: PDF, Excel (.xlsx), CSV, TXT (макс. 10 МБ)', 'Supported: PDF, Excel, CSV, TXT (Max 10MB)')}
+                                        {tr('Поддерживаются: PDF, Excel (.xlsx), CSV, TXT (макс. 10 МБ)', 'Supported: PDF, Excel, CSV, TXT (Max 10MB)', 'Qo‘llab-quvvatlanadi: PDF, Excel (.xlsx), CSV, TXT (maks. 10 MB)')}
                                     </p>
                                     {uploadFile && (
                                         <p className="text-sm text-emerald-600 dark:text-emerald-400 mt-2 font-medium">
@@ -391,12 +406,15 @@ export default function ReportAnalysisPage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                {tr('Юрисдикция / Страна', 'Country')}
+                                {tr('Юрисдикция / Страна', 'Country', 'Yurisdiksiya / Mamlakat')}
                             </label>
                             <select
                                 className="w-full rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                                 value={analysisConfig.country_code}
-                                onChange={(e) => setAnalysisConfig({ ...analysisConfig, country_code: e.target.value })}
+                                onChange={(e) => {
+                                    setAnalysisConfig({ ...analysisConfig, country_code: e.target.value });
+                                    setAnalysis(null);
+                                }}
                             >
                                 {Array.isArray(countries) && countries.map((country) => {
                                     const enName = country.name_en || (country.code === 'UZ' ? 'Uzbekistan' : country.code === 'KZ' ? 'Kazakhstan' : country.code === 'RU' ? 'Russia' : country.code === 'AE' ? 'United Arab Emirates (UAE)' : country.code === 'TR' ? 'Turkey' : country.code === 'GLOBAL' ? 'International Standards (Global)' : country.name);
@@ -413,7 +431,7 @@ export default function ReportAnalysisPage() {
 
                         <div>
                             <label className="block text-sm font-medium mb-1.5 text-slate-700 dark:text-slate-300">
-                                {tr('Налоговые режимы для проверки', 'Tax Types to Check')}
+                                {tr('Налоговые режимы для проверки', 'Tax Types to Check', 'Tekshirish uchun soliq rejimlari')}
                             </label>
                             <div className="grid grid-cols-1 gap-1 max-h-56 overflow-y-auto p-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/70 dark:bg-slate-950/40 divide-y divide-slate-100 dark:divide-slate-800/60">
                                 {Array.isArray(taxTypes) && taxTypes.map((tItem: any, idx: number) => {
@@ -440,6 +458,7 @@ export default function ReportAnalysisPage() {
                                                             tax_types: analysisConfig.tax_types.filter(t => t !== code)
                                                         });
                                                     }
+                                                    setAnalysis(null);
                                                 }}
                                                 className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer"
                                             />
@@ -452,16 +471,16 @@ export default function ReportAnalysisPage() {
 
                         <Button
                             onClick={handleAnalyze}
-                            disabled={(uploadMode === 'select' && !selectedReport) || (uploadMode === 'upload' && !uploadFile) || isAnalyzing}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5"
+                            disabled={(uploadMode === 'select' && !selectedReport) || (uploadMode === 'upload' && !uploadFile) || analysisConfig.tax_types.length === 0 || isAnalyzing}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 cursor-pointer"
                         >
                             {isAnalyzing ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    {tr('Выполняется анализ...', 'Analyzing...')}
+                                    {tr('Выполняется анализ...', 'Analyzing...', 'Tahlil bajarilmoqda...')}
                                 </>
                             ) : (
-                                tr('Запустить ИИ-анализ комплаенса', 'Analyze Report')
+                                tr('Запустить ИИ-анализ комплаенса', 'Analyze Report', 'Komplayens SI-tahlilini ishga tushirish')
                             )}
                         </Button>
 
@@ -485,7 +504,7 @@ export default function ReportAnalysisPage() {
                         {scanLog.length > 0 && (
                             <div className="mt-4">
                                 <h3 className="text-sm font-medium mb-2 text-slate-900 dark:text-white">
-                                    {tr('Журнал сканирования и аудита:', 'Scan Log:')}
+                                    {tr('Журнал сканирования и аудита:', 'Scan Log:', 'Skanerlash va audit jurnali:')}
                                 </h3>
                                 <div className="bg-slate-950 text-emerald-400 border border-slate-800 p-3 rounded-lg text-xs font-mono max-h-48 overflow-y-auto">
                                     {scanLog.map((log, idx) => (
@@ -500,19 +519,19 @@ export default function ReportAnalysisPage() {
                 {/* Results Panel */}
                 <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-6 bg-white dark:bg-slate-900 shadow-xs">
                     <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-white">
-                        {tr('Результаты комплаенс-проверки', 'Analysis Results')}
+                        {tr('Результаты комплаенс-проверки', 'Analysis Results', 'Komplayens-tekshiruv natijalari')}
                     </h2>
 
                     {!analysis ? (
                         <p className="text-slate-500 dark:text-slate-400">
-                            {tr('Настройте параметры и запустите анализ для отображения результатов', 'Configure and run analysis to see results')}
+                            {tr('Настройте параметры и запустите анализ для отображения результатов', 'Configure and run analysis to see results', 'Natijalarni ko‘rish uchun parametrlarni sozlang va tahlilni ishga tushiring')}
                         </p>
                     ) : (
                         <div className="space-y-4">
                             {/* Score */}
                             <div className="text-center p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
                                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-                                    {tr('Оценка налогового соответствия', 'Compliance Score')}
+                                    {tr('Оценка налогового соответствия', 'Compliance Score', 'Soliq muvofiqligi bahosi')}
                                 </p>
                                 <p className={`text-5xl font-bold ${getScoreColor(analysis.overall_score)}`}>
                                     {analysis.overall_score}%
@@ -523,45 +542,76 @@ export default function ReportAnalysisPage() {
                             {/* Stats */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="p-3 bg-emerald-50/80 dark:bg-emerald-950/30 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40">
-                                    <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">{tr('Пройдено', 'Passed')}</p>
+                                    <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">{tr('Пройдено', 'Passed', 'O‘tdi')}</p>
                                     <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{analysis.passed_checks}</p>
                                 </div>
                                 <div className="p-3 bg-red-50/80 dark:bg-red-950/30 rounded-lg border border-red-200/60 dark:border-red-900/40">
-                                    <p className="text-sm text-red-700 dark:text-red-400 font-medium">{tr('Ошибки', 'Errors')}</p>
+                                    <p className="text-sm text-red-700 dark:text-red-400 font-medium">{tr('Ошибки', 'Errors', 'Xatolar')}</p>
                                     <p className="text-2xl font-bold text-red-600 dark:text-red-400">{analysis.errors}</p>
                                 </div>
                                 <div className="p-3 bg-amber-50/80 dark:bg-amber-950/30 rounded-lg border border-amber-200/60 dark:border-amber-900/40">
-                                    <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">{tr('Предупреждения', 'Warnings')}</p>
+                                    <p className="text-sm text-amber-700 dark:text-amber-400 font-medium">{tr('Предупреждения', 'Warnings', 'Ogohlantirishlar')}</p>
                                     <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{analysis.warnings}</p>
                                 </div>
                                 <div className="p-3 bg-blue-50/80 dark:bg-blue-950/30 rounded-lg border border-blue-200/60 dark:border-blue-900/40">
-                                    <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">{tr('Всего проверок', 'Total Checks')}</p>
+                                    <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">{tr('Всего проверок', 'Total Checks', 'Jami tekshiruvlar')}</p>
                                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{analysis.total_checks}</p>
                                 </div>
                             </div>
 
                             {/* Errors List */}
-                            {Array.isArray(analysis?.error_details) && analysis.error_details.length > 0 && (
+                            {Array.isArray(analysis?.error_details) && analysis.error_details.length > 0 ? (
                                 <div>
                                     <h3 className="font-semibold mb-2 text-slate-900 dark:text-white">
-                                        {tr('Выявленные несоответствия и риски:', 'Issues Found:')}
+                                        {tr('Выявленные несоответствия и риски:', 'Issues Found:', 'Aniqlangan nomuvofiqliklar va xavflar:')}
                                     </h3>
                                     <div className="space-y-2 max-h-64 overflow-y-auto">
-                                        {analysis.error_details.map((error: any, idx: number) => (
-                                            <div key={idx} className="p-3 border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/70 dark:bg-slate-800/50">
-                                                <div className="flex items-start gap-2">
-                                                    {getSeverityIcon(error.severity)}
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-sm text-slate-900 dark:text-white">{error.type}</p>
-                                                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{error.location}</p>
-                                                        {error.expected && (
-                                                            <p className="text-xs text-slate-700 dark:text-slate-300 mt-1">
-                                                                {tr('Ожидалось', 'Expected')}: {error.expected}% | {tr('Найдено', 'Found')}: {error.found}%
-                                                            </p>
-                                                        )}
-                                                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">{error.recommendation}</p>
+                                        {analysis.error_details.map((error: any, idx: number) => {
+                                            const isMathErr = error.type === 'math_error';
+                                            const unitSuffix = isMathErr ? '' : '%';
+                                            return (
+                                                <div key={idx} className="p-3 border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/70 dark:bg-slate-800/50">
+                                                    <div className="flex items-start gap-2">
+                                                        {getSeverityIcon(error.severity)}
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-sm text-slate-900 dark:text-white">{error.type}</p>
+                                                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{error.location}</p>
+                                                            {error.expected !== undefined && error.expected !== null && (
+                                                                <p className="text-xs text-slate-700 dark:text-slate-300 mt-1 font-mono">
+                                                                    {tr('Ожидалось', 'Expected', 'Kutilgan')}: {error.expected}{unitSuffix} | {tr('Найдено', 'Found', 'Aniqlangan')}: {error.found}{unitSuffix}
+                                                                </p>
+                                                            )}
+                                                            <p className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-medium">{error.recommendation}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/70 dark:bg-emerald-950/30 flex items-center gap-3">
+                                    <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                    <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                                        {tr(
+                                            'Ошибок и налоговых расхождений по выбранным режимам не обнаружено!',
+                                            'No tax discrepancies or errors detected for the selected regimes!',
+                                            'Tanlangan rejimlar bo‘yicha xatolik va soliq tafovutlari aniqlanmadi!'
+                                        )}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Verified Findings List */}
+                            {Array.isArray(analysis?.findings) && analysis.findings.length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold mb-2 text-sm text-slate-900 dark:text-white">
+                                        {tr('Подтверждённые пункты аудита:', 'Verified Compliance Checks:', 'Tasdiqlangan audit bandlari:')}
+                                    </h3>
+                                    <div className="space-y-1.5">
+                                        {analysis.findings.map((finding: string, idx: number) => (
+                                            <div key={idx} className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
+                                                {finding}
                                             </div>
                                         ))}
                                     </div>

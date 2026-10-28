@@ -76,13 +76,14 @@ class ReportAnalyzer:
             errors = self._analyze_with_ai(text, tax_rates, country_code)
             errors.extend(convergence_errors)
             
-            # Calculate scores
-            total_checks = len(errors) + 20  # Base checks
-            passed = total_checks - len([e for e in errors if e['severity'] == 'critical'])
+            # Calculate scores (ensure passed + warnings + errors == total_checks)
             warnings_count = len([e for e in errors if e['severity'] == 'warning'])
             errors_count = len([e for e in errors if e['severity'] == 'critical'])
-            
-            score = int((passed / total_checks) * 100) if total_checks > 0 else 100
+            base_checks = max(12, len(tax_types) * 6 + 8)
+            total_checks = base_checks + len(errors)
+            passed = max(0, total_checks - errors_count - warnings_count)
+            weighted_passed = passed + (warnings_count * 0.5)
+            score = int(round((weighted_passed / total_checks) * 100)) if total_checks > 0 else 100
             
             # Update analysis
             analysis.status = "completed"

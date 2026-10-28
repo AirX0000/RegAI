@@ -3542,19 +3542,96 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const targetCompId = isSuperadmin 
             ? (body?.company_id || session?.company_id || '2727830ea39d470c917f1a1544ed5d0f')
             : (session?.company_id || '2727830ea39d470c917f1a1544ed5d0f');
-        const safeTitle = sanitizeMockText(body?.title, 'New Compliance Report');
-        const safeFileName = sanitizeMockText(body?.file_name, `${safeTitle.replace(/\s+/g, '_')}.pdf`)
+        const uploadedFileObj: File | null = (body?.file && typeof body.file === 'object' && 'name' in body.file) ? (body.file as File) : null;
+        const safeTitle = sanitizeMockText(body?.title || uploadedFileObj?.name?.replace(/\.[^/.]+$/, ''), 'New Compliance Report');
+        const rawFileName = uploadedFileObj?.name || body?.file_name || `${safeTitle.replace(/\s+/g, '_')}.pdf`;
+        const safeFileName = sanitizeMockText(rawFileName, `${safeTitle.replace(/\s+/g, '_')}.pdf`)
             .replace(/[\r\n"\\<>|:*?]/g, '_');
+
+        let extractedText = sanitizeMockText(body?.extracted_text, '');
+        const convergenceErrors: any[] = [];
+
+        if (uploadedFileObj) {
+            const lowerName = uploadedFileObj.name.toLowerCase();
+            try {
+                if (lowerName.endsWith('.xlsx') || lowerName.endsWith('.xls') || lowerName.endsWith('.csv')) {
+                    const ab = await uploadedFileObj.arrayBuffer();
+                    const wb = XLSX.read(ab, { type: 'array' });
+                    const textParts: string[] = [];
+                    wb.SheetNames.forEach((sheetName) => {
+                        const sheet = wb.Sheets[sheetName];
+                        const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                        textParts.push(`=== Sheet: ${sheetName} ===`);
+                        rows.forEach((r) => {
+                            const line = r.map((c) => String(c ?? '').trim()).filter(Boolean).join(' | ');
+                            if (line) textParts.push(line);
+                        });
+
+                        // Check mathematical convergence on Total / Итого rows
+                        const totalKeywords = ['total', 'итого', 'всего', 'баланс', 'subtotal', 'жами', 'jami'];
+                        for (let i = 0; i < rows.length; i++) {
+                            const firstCell = String(rows[i]?.[0] ?? '').trim().toLowerCase();
+                            if (totalKeywords.some((kw) => firstCell.includes(kw))) {
+                                let startRow = 0;
+                                for (let back = i - 1; back >= 0; back--) {
+                                    const prevFirst = String(rows[back]?.[0] ?? '').trim().toLowerCase();
+                                    if (totalKeywords.some((kw) => prevFirst.includes(kw))) {
+                                        startRow = back + 1;
+                                        break;
+                                    }
+                                }
+                                for (let col = 1; col < (rows[i]?.length || 0); col++) {
+                                    const rawTarget = Number(String(rows[i][col]).replace(/[,$\s]/g, ''));
+                                    if (!Number.isNaN(rawTarget) && rawTarget !== 0) {
+                                        let calcSum = 0;
+                                        let numericCount = 0;
+                                        for (let rIdx = startRow; rIdx < i; rIdx++) {
+                                            const cellVal = Number(String(rows[rIdx]?.[col] ?? '').replace(/[,$\s]/g, ''));
+                                            if (!Number.isNaN(cellVal) && String(rows[rIdx]?.[col] ?? '').trim() !== '') {
+                                                calcSum += cellVal;
+                                                numericCount++;
+                                            }
+                                        }
+                                        if (numericCount >= 2 && Math.abs(calcSum - rawTarget) > 1) {
+                                            convergenceErrors.push({
+                                                severity: 'critical',
+                                                type: 'math_error',
+                                                location: `${sheetName}, Row ${i + 1}`,
+                                                expected: Number(calcSum.toFixed(2)),
+                                                found: Number(rawTarget.toFixed(2)),
+                                                recommendation: tr(
+                                                    `Арифметическое расхождение итоговой строки: сумма по столбцу (${calcSum.toLocaleString()}) не совпадает с указанным итогом (${rawTarget.toLocaleString()}).`,
+                                                    `Arithmetic total discrepancy: calculated column sum (${calcSum.toLocaleString()}) does not match reported total (${rawTarget.toLocaleString()}).`,
+                                                    `Yakuniy satrda arifmetik tafovut: ustun bo‘yicha hisoblangan yig‘indi (${calcSum.toLocaleString()}) ko‘rsatilgan yakunga (${rawTarget.toLocaleString()}) mos kelmaydi.`
+                                                )
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    extractedText = textParts.join('\n');
+                } else {
+                    extractedText = await uploadedFileObj.text();
+                }
+            } catch (e) {
+                // ignore file read error in mock
+            }
+        }
+
         const newReport = {
             id: 'rep-' + Math.random().toString(36).substring(2, 9),
             title: safeTitle,
             description: sanitizeMockText(body?.description, ''),
             report_type: sanitizeMockText(body?.report_type, 'compliance'),
-            status: sanitizeMockText(body?.status, 'draft'),
+            status: sanitizeMockText(body?.status, uploadedFileObj ? 'under_review' : 'draft'),
             file_name: safeFileName,
-            file_size: body?.file_size || 2569011,
-            file_path: body?.file_path || '/uploads/reports/analysis-report.pdf',
+            file_size: uploadedFileObj?.size || body?.file_size || 2569011,
+            file_path: body?.file_path || `/uploads/reports/${safeFileName}`,
             financial_data: body?.financial_data || null,
+            extracted_text: extractedText,
+            convergence_errors: convergenceErrors,
             company_id: targetCompId,
             submitted_at: new Date().toISOString(),
             created_at: new Date().toISOString(),
@@ -3869,47 +3946,347 @@ Generated automatically by Axiaris RegAI Platform (https://axiaris.web.app)
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // 16. AI Report Analysis Engine
+    // 16. AI Report Analysis Engine (Dynamic, Tax-Type & Country-Aware, RU/EN/UZ)
     // ─────────────────────────────────────────────────────────────────────────
+    if (cleanPath.startsWith('/report-analysis/report/') && method === 'get') {
+        const repId = cleanPath.split('/').pop() || '';
+        const storedAnalyses = getStored<any[]>('regai_mock_report_analyses', []);
+        return storedAnalyses.filter((a: any) => String(a.report_id) === String(repId));
+    }
+
     if (cleanPath.includes('/report-analysis/analyze') || cleanPath.includes('/tax-analysis')) {
         const country = (body?.country_code || 'UZ').toUpperCase();
-        const types = Array.isArray(body?.tax_types) && body.tax_types.length > 0 ? body.tax_types : ['vat', 'corporate'];
-        return {
-            id: 'ana-' + Math.random().toString(36).substring(2, 9),
-            report_id: body?.report_id || 'rep-1',
-            country_code: country,
-            overall_score: 95,
-            summary: `Отчёт успешно верифицирован по налоговому законодательству ${country}. Выявлено 95% соответствия нормативам МСФО и местному налоговому кодексу.`,
-            total_checks: 28,
-            passed_checks: 26,
-            errors: 1,
-            warnings: 1,
-            tax_types: types,
-            error_details: [
-                {
-                    type: 'Зачёт НДС по инвестиционным затратам',
-                    location: 'Раздел 4.1 «Зачётный НДС по приобретённым ОС и оборудованию»',
+        const types: string[] = Array.isArray(body?.tax_types) && body.tax_types.length > 0 ? body.tax_types : ['vat', 'corporate'];
+        const reportId = body?.report_id || 'rep-oct-2026-ifrs';
+        const allReports = getReportsStore();
+        const targetReport = allReports.find((r: any) => String(r.id) === String(reportId)) || allReports[0];
+        const allRates = getTaxRatesStore();
+
+        // Canonical fallback rates per country & tax type if not in store
+        const FALLBACK_RATES: Record<string, Record<string, number>> = {
+            UZ: { vat: 12, vat_reduced: 0, corporate: 15, corporate_small: 4, income: 12, income_top: 12, social: 12, payroll: 12, withholding: 10, property: 1.5, consumption: 12, gst: 12 },
+            RU: { vat: 20, vat_reduced: 10, corporate: 25, corporate_small: 6, income: 13, income_top: 15, social: 30, payroll: 30, withholding: 15, property: 2.2, consumption: 20, gst: 20 },
+            KZ: { vat: 12, vat_reduced: 8, corporate: 20, corporate_small: 3, income: 10, income_top: 10, social: 9.5, payroll: 9.5, withholding: 15, property: 1.5, consumption: 12, gst: 12 },
+            AE: { vat: 5, vat_reduced: 0, corporate: 9, corporate_small: 0, income: 0, income_top: 0, social: 5, payroll: 5, withholding: 0, property: 0, consumption: 5, gst: 5 },
+            TR: { vat: 20, vat_reduced: 10, corporate: 25, corporate_small: 15, income: 15, income_top: 40, social: 20.5, payroll: 20.5, withholding: 15, property: 0.2, consumption: 20, gst: 20 },
+            GLOBAL: { vat: 15, vat_reduced: 5, corporate: 15, corporate_small: 15, income: 15, income_top: 25, social: 12, payroll: 12, withholding: 10, property: 1.5, consumption: 3, gst: 15 },
+        };
+
+        const getExpectedRate = (cCode: string, tType: string): number => {
+            const match = allRates.find((r: any) => String(r.country_code).toUpperCase() === cCode && r.tax_type === tType);
+            if (match && typeof match.rate === 'number') return match.rate;
+            return FALLBACK_RATES[cCode]?.[tType] ?? FALLBACK_RATES.UZ[tType] ?? 12;
+        };
+
+        const TAX_TITLES: Record<string, { ru: string; en: string; uz: string; sectionRu: string; sectionEn: string; sectionUz: string }> = {
+            vat: {
+                ru: 'НДС (VAT / QQS) — Налог на добавленную стоимость',
+                en: 'Value Added Tax (VAT — Standard Rate)',
+                uz: 'QQS (VAT) — Qo‘shilgan qiymat solig‘i',
+                sectionRu: 'Раздел 1.1 «Расчёт и сверка НДС по счетам-фактурам»',
+                sectionEn: 'Section 1.1 "VAT Calculation & E-Invoice Reconciliation"',
+                sectionUz: '1.1-bo‘lim «EHF bo‘yicha QQS hisob-kitobi va solishtiruvi»',
+            },
+            vat_reduced: {
+                ru: 'Льготная ставка НДС (Reduced VAT)',
+                en: 'Reduced Rate VAT (Concessional)',
+                uz: 'Imtiyozli QQS stavkasi (Reduced VAT)',
+                sectionRu: 'Раздел 1.2 «Обороты по пониженной ставке НДС»',
+                sectionEn: 'Section 1.2 "Concessional VAT Turnover"',
+                sectionUz: '1.2-bo‘lim «Pasaytirilgan QQS stavkasi bo‘yicha aylanmalar»',
+            },
+            corporate: {
+                ru: 'Налог на прибыль организаций (CIT)',
+                en: 'Corporate Income Tax (CIT)',
+                uz: 'Foyda solig‘i (CIT)',
+                sectionRu: 'Раздел 2.1 «Налогооблагаемая база по налогу на прибыль и корректировки МСФО»',
+                sectionEn: 'Section 2.1 "Corporate Taxable Base & IFRS Adjustments"',
+                sectionUz: '2.1-bo‘lim «Foyda solig‘i bazasi va MHXS tuzatishlari»',
+            },
+            corporate_small: {
+                ru: 'Налог с оборота / МСП (Turnover Tax)',
+                en: 'Turnover Tax / Small Business Regime',
+                uz: 'Aylanmadan olinadigan soliq (Turnover Tax)',
+                sectionRu: 'Раздел 2.2 «Расчёт налога с валовой выручки»',
+                sectionEn: 'Section 2.2 "Gross Revenue Turnover Tax Calculation"',
+                sectionUz: '2.2-bo‘lim «Yalpi tushumdan aylanma soliq hisob-kitobi»',
+            },
+            income: {
+                ru: 'НДФЛ (Personal Income Tax / PIT)',
+                en: 'Personal Income Tax (PIT)',
+                uz: 'JSHDS — Jismoniy shaxslar daromad solig‘i (PIT)',
+                sectionRu: 'Раздел 3.1 «Удержание НДФЛ с фонда оплаты труда»',
+                sectionEn: 'Section 3.1 "Payroll Personal Income Tax Withholding"',
+                sectionUz: '3.1-bo‘lim «Mehnatga haq to‘lash fondidan JSHDS ushlab qolish»',
+            },
+            income_top: {
+                ru: 'НДФЛ повышенная прогрессивная шкала',
+                en: 'High-Bracket Personal Income Tax',
+                uz: 'JSHDS yuqori progressiv stavkasi',
+                sectionRu: 'Раздел 3.2 «Прогрессивная шкала налогообложения доходов»',
+                sectionEn: 'Section 3.2 "Progressive High-Bracket Income Tax"',
+                sectionUz: '3.2-bo‘lim «Daromadlarni progressiv soliqqa tortish shkalasi»',
+            },
+            social: {
+                ru: 'Социальный налог (Social Tax)',
+                en: 'Social Tax / Employer Social Contributions',
+                uz: 'Ijtimoiy soliq (Social Tax)',
+                sectionRu: 'Раздел 3.3 «Начисления социального налога на ФОТ»',
+                sectionEn: 'Section 3.3 "Employer Social Tax Accruals"',
+                sectionUz: '3.3-bo‘lim «MHTFga ijtimoiy soliq hisoblash»',
+            },
+            payroll: {
+                ru: 'Страховые взносы работодателя (Payroll)',
+                en: 'Employer Payroll Insurance Contributions',
+                uz: 'Ish beruvchining sug‘urta badallari (Payroll)',
+                sectionRu: 'Раздел 3.4 «Обязательные страховые взносы в фонды»',
+                sectionEn: 'Section 3.4 "Mandatory Statutory Payroll Contributions"',
+                sectionUz: '3.4-bo‘lim «Jamg‘armalarga majburiy sug‘urta badallari»',
+            },
+            withholding: {
+                ru: 'Налог у источника выплат нерезидентам (WHT)',
+                en: 'Withholding Tax on Non-Resident Payments (WHT)',
+                uz: 'Norezidentlarga to‘lov manbaidan olinadigan soliq (WHT)',
+                sectionRu: 'Раздел 4.1 «Дивиденды, проценты и роялти нерезидентам»',
+                sectionEn: 'Section 4.1 "Cross-Border Dividends, Interest & Royalties (WHT)"',
+                sectionUz: '4.1-bo‘lim «Norezidentlarga dividendlar, foizlar va royalti»',
+            },
+            property: {
+                ru: 'Налог на имущество юридических лиц (Property Tax)',
+                en: 'Corporate Property Tax',
+                uz: 'Yuridik shaxslarning mol-mulk solig‘i (Property Tax)',
+                sectionRu: 'Раздел 5.1 «Среднегодовая остаточная стоимость основных средств»',
+                sectionEn: 'Section 5.1 "Average Annual Net Book Value of Fixed Assets"',
+                sectionUz: '5.1-bo‘lim «Asosiy vositalarning o‘rtacha yillik qoldiq qiymati»',
+            },
+            consumption: {
+                ru: 'Цифровой налог / Налог на цифровые услуги (DST)',
+                en: 'Digital Services Tax (DST)',
+                uz: 'Raqamli xizmatlar solig‘i (DST)',
+                sectionRu: 'Раздел 6.1 «Электронные и облачные сервисы (DST)»',
+                sectionEn: 'Section 6.1 "Cross-Border Electronic & Cloud Services (DST)"',
+                sectionUz: '6.1-bo‘lim «Elektron va bulutli xizmatlar (DST)»',
+            },
+            gst: {
+                ru: 'Налог на товары и услуги (GST)',
+                en: 'Goods and Services Tax (GST)',
+                uz: 'Tovarlar va xizmatlar solig‘i (GST)',
+                sectionRu: 'Раздел 6.2 «Косвенный налог GST»',
+                sectionEn: 'Section 6.2 "Indirect Goods and Services Tax (GST)"',
+                sectionUz: '6.2-bo‘lim «Bilvosita GST solig‘i»',
+            },
+        };
+
+        const errorDetails: any[] = [];
+        const findings: string[] = [];
+
+        // 1. Include any Excel / CSV mathematical convergence errors from uploaded files
+        if (Array.isArray(targetReport?.convergence_errors) && targetReport.convergence_errors.length > 0) {
+            errorDetails.push(...targetReport.convergence_errors);
+        }
+
+        // 2. Determine report's native jurisdiction and status
+        const reportStatus = String(targetReport?.status || 'approved').toLowerCase();
+        const reportTitleLower = String(targetReport?.title || '').toLowerCase();
+        const isGlobalReport = reportTitleLower.includes('gdpr') || reportTitleLower.includes('hipaa') || reportTitleLower.includes('amazon');
+        const reportNativeCountry = isGlobalReport ? 'GLOBAL' : 'UZ';
+        const extractedText = String(targetReport?.extracted_text || '');
+
+        // Keywords to detect rates inside uploaded text
+        const TEXT_KEYWORDS: Record<string, string[]> = {
+            vat: ['vat', 'ндс', 'qqs', 'ққс', 'добавленн'],
+            vat_reduced: ['reduced vat', 'льготн', 'imtiyozli'],
+            corporate: ['corporate', 'прибыль', 'cit', 'foyda', 'фойда', 'кпн'],
+            corporate_small: ['turnover', 'оборот', 'aylanma', 'уcн'],
+            income: ['pit', 'ндфл', 'jshds', 'доход', 'ипн'],
+            income_top: ['high bracket', 'повышенн', 'прогрессив'],
+            social: ['social', 'социальн', 'ijtimoiy'],
+            payroll: ['payroll', 'страхов', 'взнос', 'badal'],
+            withholding: ['withholding', 'wht', 'источник', 'manba', 'роялти', 'дивиденд'],
+            property: ['property', 'имуществ', 'mol-mulk'],
+            consumption: ['digital', 'dst', 'цифров', 'raqamli'],
+            gst: ['gst', 'goods and services'],
+        };
+
+        // 3. Evaluate ONLY the user-selected tax_types
+        types.forEach((tType) => {
+            const expectedRate = getExpectedRate(country, tType);
+            const meta = TAX_TITLES[tType] || {
+                ru: tType.toUpperCase(),
+                en: tType.toUpperCase(),
+                uz: tType.toUpperCase(),
+                sectionRu: `Раздел «${tType.toUpperCase()}»`,
+                sectionEn: `Section "${tType.toUpperCase()}"`,
+                sectionUz: `«${tType.toUpperCase()}» bo‘limi`,
+            };
+            const typeTitle = tr(meta.ru, meta.en, meta.uz);
+            const sectionLabel = tr(meta.sectionRu, meta.sectionEn, meta.sectionUz);
+
+            // Check if uploaded text explicitly mentions a rate for this tax type
+            let textDetectedRate: number | null = null;
+            if (extractedText) {
+                const lines = extractedText.split(/\r?\n/);
+                const kws = TEXT_KEYWORDS[tType] || [tType];
+                for (const line of lines) {
+                    const lLow = line.toLowerCase();
+                    if (kws.some((k) => lLow.includes(k))) {
+                        const pctMatch = line.match(/(\d+(?:\.\d+)?)\s*%/);
+                        if (pctMatch) {
+                            textDetectedRate = parseFloat(pctMatch[1]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (textDetectedRate !== null) {
+                if (Math.abs(textDetectedRate - expectedRate) > 0.4) {
+                    const isCrit = Math.abs(textDetectedRate - expectedRate) >= 2;
+                    errorDetails.push({
+                        type: typeTitle,
+                        location: sectionLabel,
+                        severity: isCrit ? 'critical' : 'warning',
+                        expected: expectedRate,
+                        found: textDetectedRate,
+                        recommendation: tr(
+                            `В загруженном документе применена ставка ${textDetectedRate}% вместо нормативной ставки ${expectedRate}% (${country}). Скорректируйте налоговый расчёт.`,
+                            `Uploaded document applies a ${textDetectedRate}% rate instead of the statutory ${expectedRate}% rate (${country}). Adjust the tax schedule.`,
+                            `Yuklangan hujjatda me’yoriy ${expectedRate}% (${country}) o‘rniga ${textDetectedRate}% stavka qo‘llanilgan. Soliq hisob-kitobini tuzating.`
+                        ),
+                    });
+                } else {
+                    findings.push(
+                        tr(
+                            `✓ ${meta.ru}: примененная в файле ставка ${textDetectedRate}% полностью соответствует нормативу ${country} (${expectedRate}%).`,
+                            `✓ ${meta.en}: applied rate of ${textDetectedRate}% in file matches ${country} statutory rate (${expectedRate}%).`,
+                            `✓ ${meta.uz}: faylda qo‘llanilgan ${textDetectedRate}% stavka ${country} me’yoriga (${expectedRate}%) to‘liq mos keladi.`
+                        )
+                    );
+                }
+                return;
+            }
+
+            // Otherwise, compare report's baseline jurisdiction rate against selected country's expected rate
+            const reportBaseRate = getExpectedRate(reportNativeCountry, tType);
+
+            if (country !== reportNativeCountry && Math.abs(reportBaseRate - expectedRate) > 0.4) {
+                // Country mismatch: e.g., UZ report (VAT 12%, CIT 15%) checked against RU (VAT 20%, CIT 25%) or AE (VAT 5%, CIT 9%)
+                errorDetails.push({
+                    type: typeTitle,
+                    location: sectionLabel,
+                    severity: Math.abs(reportBaseRate - expectedRate) >= 2 ? 'critical' : 'warning',
+                    expected: expectedRate,
+                    found: reportBaseRate,
+                    recommendation: tr(
+                        `Отчёт сформирован по ставкам юрисдикции ${reportNativeCountry} (${reportBaseRate}%), что отличается от норматива выбранной юрисдикции ${country} (${expectedRate}%). При трансграничной консолидации выполните пересчёт налогового резерва (IAS 12).`,
+                        `Report uses ${reportNativeCountry} statutory rate (${reportBaseRate}%), which differs from the selected ${country} statutory rate (${expectedRate}%). Recalculate deferred/current tax provision under IAS 12 for cross-border consolidation.`,
+                        `Hisobot ${reportNativeCountry} yurisdiksiyasi stavkasi (${reportBaseRate}%) bo‘yicha shakllantirilgan bo‘lib, tanlangan ${country} me’yoridan (${expectedRate}%) farq qiladi. Transchegaraviy konsolidatsiyada IAS 12 bo‘yicha soliq zaxirasini qayta hisoblang.`
+                    ),
+                });
+            } else if (reportStatus === 'under_review' || reportStatus === 'in_progress' || reportStatus === 'draft') {
+                // Unapproved / draft report has realistic pre-audit discrepancies strictly on the checked tax types
+                if (tType === 'vat' || tType === 'corporate' || types.indexOf(tType) === 0) {
+                    const effectiveFound = Number(Math.max(0, expectedRate - 1.5).toFixed(1));
+                    errorDetails.push({
+                        type: typeTitle,
+                        location: sectionLabel,
+                        severity: reportStatus === 'draft' ? 'critical' : 'warning',
+                        expected: expectedRate,
+                        found: effectiveFound,
+                        recommendation: tr(
+                            `Отчёт находится в статусе «${reportStatus === 'draft' ? 'Черновик' : 'На проверке'}»: эффективная ставка составила ${effectiveFound}% при нормативе ${expectedRate}% из-за неподтверждённых первичных ЭСФ / корректировок базы.`,
+                            `Report is currently "${reportStatus}": effective rate is ${effectiveFound}% vs statutory ${expectedRate}% due to pending e-invoice confirmations / base adjustments.`,
+                            `Hisobot «${reportStatus === 'draft' ? 'Qoralama' : 'Tekshiruvda'}» holatida: tasdiqlanmagan birlamchi EHF / baza tuzatishlari sababli effektiv stavka me’yoriy ${expectedRate}% o‘rniga ${effectiveFound}% ni tashkil etdi.`
+                        ),
+                    });
+                } else {
+                    findings.push(
+                        tr(
+                            `✓ ${meta.ru}: базовая ставка ${expectedRate}% (${country}) применена без арифметических отклонений.`,
+                            `✓ ${meta.en}: statutory rate of ${expectedRate}% (${country}) applied with zero arithmetic variance.`,
+                            `✓ ${meta.uz}: ${expectedRate}% (${country}) bazaviy stavkasi arifmetik tafovutlarsiz qo‘llanilgan.`
+                        )
+                    );
+                }
+            } else if (reportStatus === 'submitted' && tType === 'vat') {
+                // Submitted tax declaration: minor 0.4% timing warning on E-invoices
+                const effectiveFound = Number((expectedRate - 0.6).toFixed(1));
+                errorDetails.push({
+                    type: typeTitle,
+                    location: sectionLabel,
                     severity: 'warning',
-                    expected: country === 'UZ' ? 12 : (country === 'RU' ? 20 : 12),
-                    found: country === 'UZ' ? 12 : (country === 'RU' ? 20 : 12),
-                    recommendation: 'Рекомендуется подкрепить электронные счета-фактуры (ЭСФ) поставщиков выпиской из личного кабинета налогоплательщика.',
-                },
-                {
-                    type: 'Трансграничные лицензионные выплаты (WHT)',
-                    location: 'Строка 140 «Лицензионные и технические платежи нерезидентам»',
-                    severity: 'critical',
-                    expected: 10,
-                    found: 0,
-                    recommendation: 'Предоставить апостилированный сертификат налогового резидентства лицензиара для подтверждения применения льготной ставки СИДН.',
-                },
-            ],
-            findings: [
-                'Корректно сформирована налогооблагаемая база по корпоративному налогу на прибыль.',
-                'Ставки социального налога и взносов соответствуют нормативным актам текущего года.',
-                'Налоговые регистры сверены и согласованы с данными Главной книги (1С:Предприятие).'
-            ],
+                    expected: expectedRate,
+                    found: effectiveFound,
+                    recommendation: tr(
+                        `По 2 входящим ЭСФ за конец отчетного периода ожидается встречное подтверждение контрагентов (эффективная ставка с учетом отложенного зачёта ${effectiveFound}% при нормативе ${expectedRate}%).`,
+                        `2 incoming e-invoices at period-end await counterparty confirmation (effective rate with deferred credit is ${effectiveFound}% vs ${expectedRate}% statutory rate).`,
+                        `Hisobot davri oxiridagi 2 ta kiruvchi EHF bo‘yicha kontragentlar tasdig‘i kutilmoqda (kechiktirilgan hisobga olish bilan effektiv stavka ${effectiveFound}%, me’yor ${expectedRate}%).`
+                    ),
+                });
+            } else {
+                // Approved / Completed benchmark report (e.g. October 2026 IFRS Transformation, 2026 Annual Report): 100% pass!
+                findings.push(
+                    tr(
+                        `✓ ${meta.ru}: ставка ${expectedRate}% (${country}), налоговая база и контрольные соотношения полностью сошлись (расхождение 0.00).`,
+                        `✓ ${meta.en}: ${expectedRate}% statutory rate (${country}), taxable base, and control ratios reconciled with 0.00 variance.`,
+                        `✓ ${meta.uz}: ${expectedRate}% stavka (${country}), soliq bazasi va nazorat nisbatlari to‘liq mos keldi (tafovut 0.00).`
+                    )
+                );
+            }
+        });
+
+        // Always add general ledger & IFRS 9/16 equilibrium confirmation to findings if approved
+        if (errorDetails.length === 0) {
+            findings.push(
+                tr(
+                    '✓ Контрольное равенство баланса (Zero-Delta Guard) и сверка с Главной книгой (1С / ERP) подтверждены.',
+                    '✓ Balance sheet equilibrium (Zero-Delta Guard) and General Ledger (1C / ERP) reconciliation verified.',
+                    '✓ Balansning nazorat tengligi (Zero-Delta Guard) va Bosh daftar (1C / ERP) bilan solishtiruv tasdiqlandi.'
+                )
+            );
+        }
+
+        const warningsCount = errorDetails.filter((e) => e.severity === 'warning').length;
+        const errorsCount = errorDetails.filter((e) => e.severity === 'critical').length;
+        const baseChecks = Math.max(12, types.length * 8 + 8);
+        const totalChecks = baseChecks;
+        const passedChecks = Math.max(0, totalChecks - warningsCount - errorsCount);
+        const weightedPassed = passedChecks + warningsCount * 0.5;
+        const overallScore = Math.max(0, Math.min(100, Math.round((weightedPassed / totalChecks) * 100)));
+
+        const summary = errorDetails.length === 0
+            ? tr(
+                `Отчёт «${targetReport?.title || reportId}» успешно прошёл все ${totalChecks} проверок по законодательству ${country} для выбранных режимов (${types.length}). Ошибок и расхождений ставок не обнаружено (100%).`,
+                `Report "${targetReport?.title || reportId}" passed all ${totalChecks} checks under ${country} tax law for the ${types.length} selected regime(s). Zero rate or base discrepancies detected (100%).`,
+                `«${targetReport?.title || reportId}» hisoboti tanlangan rejimlar (${types.length}) bo‘yicha ${country} qonunchiligiga muvofiq barcha ${totalChecks} ta tekshiruvdan muvaffaqiyatli o‘tdi. Xatolik va stavka tafovutlari aniqlanmadi (100%).`
+            )
+            : tr(
+                `Проверка отчёта «${targetReport?.title || reportId}» по юрисдикции ${country} завершена (${overallScore}%). Пройдено: ${passedChecks} из ${totalChecks}, критических ошибок: ${errorsCount}, предупреждений: ${warningsCount}.`,
+                `Compliance check of "${targetReport?.title || reportId}" under ${country} jurisdiction completed (${overallScore}%). Passed: ${passedChecks} of ${totalChecks}, critical errors: ${errorsCount}, warnings: ${warningsCount}.`,
+                `«${targetReport?.title || reportId}» hisobotining ${country} yurisdiksiyasi bo‘yicha tekshiruvi yakunlandi (${overallScore}%). O‘tdi: ${totalChecks} tadan ${passedChecks} ta, kritik xatolar: ${errorsCount}, ogohlantirishlar: ${warningsCount}.`
+            );
+
+        const resultObj = {
+            id: 'ana-' + Math.random().toString(36).substring(2, 9),
+            report_id: reportId,
+            country_code: country,
+            overall_score: overallScore,
+            summary,
+            total_checks: totalChecks,
+            passed_checks: passedChecks,
+            errors: errorsCount,
+            warnings: warningsCount,
+            tax_types: types,
+            error_details: errorDetails,
+            findings,
             created_at: new Date().toISOString(),
         };
+
+        const storedAnalyses = getStored<any[]>('regai_mock_report_analyses', []);
+        storedAnalyses.unshift(resultObj);
+        setStored('regai_mock_report_analyses', storedAnalyses.slice(0, 50));
+
+        return resultObj;
     }
 
 
