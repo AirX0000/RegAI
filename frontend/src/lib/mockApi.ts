@@ -3,7 +3,7 @@ import { createMockToken, safeBase64Decode } from './authUtils';
 import * as XLSX from 'xlsx';
 
 // ── Persistence Helpers ──────────────────────────────────────────────────────
-const CURRENT_MOCK_STORAGE_VERSION = 'v6_october_2026_reports';
+const CURRENT_MOCK_STORAGE_VERSION = 'v7_zero_delta_ifrs_fix_2026';
 function ensureStorageIsolation() {
     try {
         if (localStorage.getItem('regai_storage_version') !== CURRENT_MOCK_STORAGE_VERSION) {
@@ -2692,6 +2692,29 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         };
     }
 
+    const getScaledDefaultAdjustments = (sheetItems: any[]) => {
+        const totalStatutoryAssets = (sheetItems || [])
+            .filter((i: any) => String(i.category || '').toLowerCase() === 'assets')
+            .reduce((sum: number, i: any) => sum + (Number(i.amount) || 0), 0);
+
+        let ifrs16Amt = 19500000;
+        let ifrs9Amt = 2100000;
+        if (totalStatutoryAssets > 0 && totalStatutoryAssets < 200000) {
+            ifrs16Amt = Math.max(1000, Math.round(totalStatutoryAssets * 0.15));
+            ifrs9Amt = Math.max(500, Math.round(totalStatutoryAssets * 0.02));
+        } else if (totalStatutoryAssets >= 200000 && totalStatutoryAssets < 10000000) {
+            ifrs16Amt = 150000;
+            ifrs9Amt = 5000;
+        }
+
+        return [
+            { id: 'adj-1', description: 'IFRS 16 Lease recognition (ROU Asset)', adjustment_type: 'debit', adjustment_amount: ifrs16Amt, ifrs_category: 'IFRS 16', debit_account: '0804', credit_account: '7910' },
+            { id: 'adj-2', description: 'IFRS 16 Lease liability capitalization', adjustment_type: 'credit', adjustment_amount: ifrs16Amt, ifrs_category: 'IFRS 16', debit_account: '0804', credit_account: '7910' },
+            { id: 'adj-3', description: 'IFRS 9 Expected Credit Loss allowance', adjustment_type: 'credit', adjustment_amount: ifrs9Amt, ifrs_category: 'IFRS 9', debit_account: '8710', credit_account: '4010' },
+            { id: 'adj-4', description: 'IFRS 9 ECL Provision Expense (P&L / Retained Earnings)', adjustment_type: 'debit', adjustment_amount: ifrs9Amt, ifrs_category: 'IFRS 9', debit_account: '8710', credit_account: '4010' },
+        ];
+    };
+
     if (cleanPath.includes('/export-excel')) {
         const parts = cleanPath.split('/');
         const sheetId = parts[2];
@@ -2701,16 +2724,14 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             ? sheet.items
             : seedData.balance_sheet_items.filter((i: any) => i.balance_sheet_id === sheet.id);
 
-        const defaultAdjustments = [
-            { id: 'adj-1', description: 'IFRS 16 Lease recognition (ROU Asset)', adjustment_type: 'debit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16', debit_account: '0804', credit_account: '7910' },
-            { id: 'adj-2', description: 'IFRS 16 Lease liability capitalization', adjustment_type: 'credit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16', debit_account: '0804', credit_account: '7910' },
-            { id: 'adj-3', description: 'IFRS 9 Expected Credit Loss allowance', adjustment_type: 'credit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9', debit_account: '8710', credit_account: '4010' },
-            { id: 'adj-4', description: 'IFRS 9 ECL Provision Expense (P&L / Retained Earnings)', adjustment_type: 'debit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9', debit_account: '8710', credit_account: '4010' },
-        ];
+        const defaultAdjustments = getScaledDefaultAdjustments(rawItems);
 
         const adjustments = (Array.isArray(sheet.adjustments) && sheet.adjustments.length > 0)
             ? sheet.adjustments
             : defaultAdjustments;
+
+        const defaultIfrs16 = defaultAdjustments[0].adjustment_amount;
+        const defaultIfrs9 = defaultAdjustments[2].adjustment_amount;
 
         // Categorize items
         const assetItems = rawItems.filter((i: any) => String(i.category || '').toLowerCase() === 'assets');
@@ -2744,17 +2765,22 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         let totalIfrs9Assets = 0;
         let totalOtherAssets = 0;
         let totalIfrsAssets = 0;
+        let appliedIfrs16Asset = false;
+        let appliedIfrs9Asset = false;
 
         for (const item of assetItems) {
-            const code = item.account_code || '';
-            const name = item.account_name || '';
+            const code = String(item.account_code || '').trim();
+            const name = String(item.account_name || '').trim();
+            const nameLower = name.toLowerCase();
             const amt = Number(item.amount) || 0;
             let ifrs16 = 0, ias36 = 0, ifrs9 = 0, other = 0;
 
-            if (code === '0804' || name.toLowerCase().includes('пользования')) {
-                ifrs16 = 19500000;
-            } else if (code === '4010' || name.toLowerCase().includes('покупател')) {
-                ifrs9 = -2100000;
+            if (!appliedIfrs16Asset && (code === '0804' || code === '1510' || code.startsWith('01') || nameLower.includes('пользования') || nameLower.includes('основные средства') || nameLower.includes('property'))) {
+                ifrs16 = defaultIfrs16;
+                appliedIfrs16Asset = true;
+            } else if (!appliedIfrs9Asset && (code === '4010' || code === '1030' || code.startsWith('62') || nameLower.includes('покупател') || nameLower.includes('дебитор') || nameLower.includes('receivable'))) {
+                ifrs9 = -defaultIfrs9;
+                appliedIfrs9Asset = true;
             }
 
             const ifrsBal = amt + ifrs16 + ias36 + ifrs9 + other;
@@ -2782,15 +2808,18 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         let totalIfrs9Liab = 0;
         let totalOtherLiab = 0;
         let totalIfrsLiab = 0;
+        let appliedIfrs16Liab = false;
 
         for (const item of liabilityItems) {
-            const code = item.account_code || '';
-            const name = item.account_name || '';
+            const code = String(item.account_code || '').trim();
+            const name = String(item.account_name || '').trim();
+            const nameLower = name.toLowerCase();
             const amt = Number(item.amount) || 0;
             let ifrs16 = 0, ias36 = 0, ifrs9 = 0, other = 0;
 
-            if (code === '7910' || name.toLowerCase().includes('обязательства по аренде')) {
-                ifrs16 = 19500000;
+            if (!appliedIfrs16Liab && (code === '7910' || code === '2510' || code.startsWith('67') || nameLower.includes('аренд') || nameLower.includes('долгосроч') || nameLower.includes('long-term'))) {
+                ifrs16 = totalIfrs16Assets;
+                appliedIfrs16Liab = true;
             }
 
             const ifrsBal = amt + ifrs16 + ias36 + ifrs9 + other;
@@ -2818,15 +2847,18 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         let totalIfrs9Eq = 0;
         let totalOtherEq = 0;
         let totalIfrsEq = 0;
+        let appliedIfrs9Eq = false;
 
         for (const item of equityItems) {
-            const code = item.account_code || '';
-            const name = item.account_name || '';
+            const code = String(item.account_code || '').trim();
+            const name = String(item.account_name || '').trim();
+            const nameLower = name.toLowerCase();
             const amt = Number(item.amount) || 0;
             let ifrs16 = 0, ias36 = 0, ifrs9 = 0, other = 0;
 
-            if (code === '8710' || name.toLowerCase().includes('прибыль')) {
-                ifrs9 = -2100000;
+            if (!appliedIfrs9Eq && (code === '8710' || code === '3020' || code.startsWith('84') || nameLower.includes('прибыль') || nameLower.includes('retained'))) {
+                ifrs9 = totalIfrs9Assets;
+                appliedIfrs9Eq = true;
             }
 
             const ifrsBal = amt + ifrs16 + ias36 + ifrs9 + other;
@@ -2979,22 +3011,29 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const sheetId = parts[2] || '';
         const sheets = getBalanceSheetsStore();
         const sheet: any = sheets.find((b: any) => b.id === sheetId) || sheets[0] || {};
-        const items = (Array.isArray(sheet.items) && sheet.items.length > 0)
+        const fallbackItems = [
+            { id: '1', account_code: '1010', account_name: 'Денежные средства', amount: 12500000, category: 'assets' },
+            { id: '2', account_code: '0100', account_name: 'Основные средства', amount: 84000000, category: 'assets' },
+            { id: '3', account_code: '4000', account_name: 'Дебиторская задолженность', amount: 31000000, category: 'assets' },
+            { id: '4', account_code: '6000', account_name: 'Краткосрочные обязательства', amount: 23200000, category: 'liabilities' },
+            { id: '5', account_code: '8300', account_name: 'Уставный капитал', amount: 104300000, category: 'equity' },
+        ];
+        const rawSheetItems = (Array.isArray(sheet.items) && sheet.items.length > 0)
             ? sheet.items
             : seedData.balance_sheet_items.filter((i: any) => i.balance_sheet_id === sheet.id);
+        const items = rawSheetItems.length > 0 ? rawSheetItems : fallbackItems;
 
-        const defaultAdjustments = [
-            { id: 'adj-1', description: 'IFRS 16 Lease recognition (ROU Asset)', adjustment_type: 'debit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16' },
-            { id: 'adj-2', description: 'IFRS 16 Lease liability capitalization', adjustment_type: 'credit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16' },
-            { id: 'adj-3', description: 'IFRS 9 Expected Credit Loss allowance', adjustment_type: 'credit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9' },
-            { id: 'adj-4', description: 'IFRS 9 ECL Provision Expense (P&L / Retained Earnings)', adjustment_type: 'debit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9' },
-        ];
+        const defaultAdjustments = getScaledDefaultAdjustments(items);
 
         let adjustments = (Array.isArray(sheet.adjustments) && sheet.adjustments.length > 0)
             ? sheet.adjustments
             : (Array.isArray(sheet.transformations) && sheet.transformations.length > 0)
                 ? sheet.transformations
-                : defaultAdjustments;
+                : seedData.transformation_adjustments.filter((a: any) => a.balance_sheet_id === sheet.id);
+
+        if (!adjustments || adjustments.length === 0) {
+            adjustments = defaultAdjustments;
+        }
 
         // Ensure if IFRS 9 credit exists without matching debit, add the balancing debit
         const hasIfrs9Credit = adjustments.some((a: any) => (a.description || '').toLowerCase().includes('ifrs 9') && a.adjustment_type === 'credit');
@@ -3057,7 +3096,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
 
             const isNC = (
                 subcat.includes('non-current') || subcat.includes('non_current') || subcat.includes('внеоборот') || subcat.includes('долгосроч')
-                || /^(01|02|03|04|05|06|07|08|09|58|67|70|71|72|73|74|75|76|77|78|79|96|1510|1520|2510)/.test(code)
+                || (!subcat.includes('current') && /^(01|02|03|04|05|06|07|08|09|58|67|71|72|73|74|75|76|77|78|79|96|1510|1520|2510)/.test(code))
                 || ['основные средства', 'амортизац', 'нематериальн', 'долгосрочн', 'инвестиц'].some(k => nameLower.includes(k))
             );
 
@@ -3077,12 +3116,16 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                     }
                 } else {
                     mcfoCurrentAssets.push({ ...mappedItem });
-                    if (/^(10|20|28|29|41|43|1040)/.test(code) || ['сырье', 'материал', 'товар', 'склад', 'запасы', 'inventory', 'stock'].some(k => nameLower.includes(k))) {
-                        ifrsInventories.push({ ...mappedItem });
-                    } else if (/^(40|41|42|62|1030)/.test(code) || ['покупател', 'клиент', 'дебитор', 'receivable'].some(k => nameLower.includes(k))) {
-                        ifrsReceivables.push({ ...mappedItem });
-                    } else if (/^(50|51|52|55|1010|1020)/.test(code) || ['касса', 'банк', 'расчетные счета', 'денежн', 'cash'].some(k => nameLower.includes(k))) {
+                    const isInventoryName = ['сырье', 'материал', 'товар', 'склад', 'запасы', 'inventory', 'inventories', 'stock', 'продукц'].some(k => nameLower.includes(k));
+                    const isReceivableName = ['покупател', 'заказчик', 'клиент', 'дебитор', 'receivable'].some(k => nameLower.includes(k));
+                    const isCashName = ['касса', 'банк', 'расчетные счета', 'валютн', 'денежн', 'cash', 'bank'].some(k => nameLower.includes(k));
+
+                    if (isCashName || (!isInventoryName && !isReceivableName && /^(50|51|52|55|1010|1020)/.test(code))) {
                         ifrsCash.push({ ...mappedItem });
+                    } else if (isReceivableName || (!isInventoryName && /^(40|62|1030)/.test(code))) {
+                        ifrsReceivables.push({ ...mappedItem });
+                    } else if (isInventoryName || /^(10|20|28|29|41|43|1040)/.test(code)) {
+                        ifrsInventories.push({ ...mappedItem });
                     } else {
                         ifrsOtherCAssets.push({ ...mappedItem });
                     }
@@ -3090,7 +3133,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             } else if (cat === 'liabilities') {
                 if (isNC) {
                     mcfoNonCurrentLiab.push({ ...mappedItem });
-                    if (/^(67|70|71|72|73|74|75|76|77|78|79|2510)/.test(code) || ['долгосроч', 'long-term', 'аренд'].some(k => nameLower.includes(k))) {
+                    if (/^(67|71|72|73|74|75|76|77|78|79|2510)/.test(code) || ['долгосроч', 'long-term', 'аренд'].some(k => nameLower.includes(k))) {
                         ifrsLongTermBorrowings.push({ ...mappedItem });
                     } else if (/^77/.test(code) || nameLower.includes('отложенн')) {
                         ifrsDeferredTax.push({ ...mappedItem });
@@ -3123,10 +3166,13 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             }
         }
 
-        // Apply adjustments (IFRS 16, IAS 36, IFRS 9)
+        // Apply adjustments symmetrically (IFRS 16, IAS 36, IFRS 9)
+        let appliedIas36Loss = 0;
+        let appliedIfrs9Loss = 0;
+
         for (const adj of adjustments) {
             const desc = String(adj.description || '').toLowerCase();
-            const amt = Number(adj.adjustment_amount) || 0;
+            const amt = Math.abs(Number(adj.adjustment_amount) || 0);
             const type = (adj.adjustment_type || 'debit').toLowerCase();
 
             if (desc.includes('ifrs 16') || desc.includes('lease') || desc.includes('аренд')) {
@@ -3146,24 +3192,35 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                     }
                 }
             } else if (desc.includes('ias 36') || desc.includes('impairment') || desc.includes('обесцен')) {
-                if (type === 'credit') {
-                    if (ifrsPPE.length > 0) {
-                        ifrsPPE[0].amount = Math.max(0, (Number(ifrsPPE[0].amount) || 0) - Math.abs(amt));
+                if (type === 'credit' && appliedIas36Loss === 0) {
+                    const targetPpe = ifrsPPE[0];
+                    const availablePpe = Number(targetPpe?.amount) || 0;
+                    const effectiveLoss = targetPpe ? Math.min(amt, availablePpe) : amt;
+                    appliedIas36Loss = effectiveLoss;
+                    if (targetPpe) {
+                        targetPpe.amount = availablePpe - effectiveLoss;
                     }
                     if (ifrsRetainedEarnings.length > 0) {
-                        ifrsRetainedEarnings[0].amount = (Number(ifrsRetainedEarnings[0].amount) || 0) - Math.abs(amt);
+                        ifrsRetainedEarnings[0].amount = (Number(ifrsRetainedEarnings[0].amount) || 0) - effectiveLoss;
+                    } else {
+                        ifrsRetainedEarnings.push({ code: '3020', name: 'Retained Earnings (IAS 36 Impairment)', amount: -effectiveLoss });
                     }
                 }
             } else if (desc.includes('ifrs 9') || desc.includes('ecl') || desc.includes('кредитн')) {
-                if (type === 'credit') {
-                    // Credit reduces trade receivables
-                    if (ifrsReceivables.length > 0) {
-                        ifrsReceivables[0].amount = Math.max(0, (Number(ifrsReceivables[0].amount) || 0) - Math.abs(amt));
-                    }
-                } else if (type === 'debit') {
-                    // Debit reduces retained earnings
-                    if (ifrsRetainedEarnings.length > 0) {
-                        ifrsRetainedEarnings[0].amount = (Number(ifrsRetainedEarnings[0].amount) || 0) - Math.abs(amt);
+                if (type === 'credit' && appliedIfrs9Loss === 0) {
+                    const targetRec = ifrsReceivables[0] || ifrsOtherCAssets[0] || ifrsCash[0] || ifrsInventories[0];
+                    const availableRec = Number(targetRec?.amount) || 0;
+                    const effectiveEcl = targetRec
+                        ? (amt <= availableRec ? amt : Math.round(availableRec * 0.05))
+                        : 0;
+                    appliedIfrs9Loss = effectiveEcl;
+                    if (targetRec && effectiveEcl > 0) {
+                        targetRec.amount = availableRec - effectiveEcl;
+                        if (ifrsRetainedEarnings.length > 0) {
+                            ifrsRetainedEarnings[0].amount = (Number(ifrsRetainedEarnings[0].amount) || 0) - effectiveEcl;
+                        } else {
+                            ifrsRetainedEarnings.push({ code: '3020', name: 'Retained Earnings (IFRS 9 ECL)', amount: -effectiveEcl });
+                        }
                     }
                 }
             }
@@ -3180,7 +3237,16 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const mcfoLiabNCTot = sumGroup(mcfoNonCurrentLiab);
         const mcfoLiabTotal = mcfoLiabCurrentTot + mcfoLiabNCTot;
 
-        const mcfoEquityTotal = sumGroup(mcfoEquity);
+        let mcfoEquityTotal = sumGroup(mcfoEquity);
+        const mcfoRawDiff = mcfoAssetsTotal - (mcfoLiabTotal + mcfoEquityTotal);
+        if (Math.abs(mcfoRawDiff) >= 0.01) {
+            if (mcfoEquity.length > 0) {
+                mcfoEquity[mcfoEquity.length - 1].amount = (Number(mcfoEquity[mcfoEquity.length - 1].amount) || 0) + mcfoRawDiff;
+            } else {
+                mcfoEquity.push({ code: '3020', name: 'Retained Earnings', amount: mcfoRawDiff });
+            }
+            mcfoEquityTotal = sumGroup(mcfoEquity);
+        }
 
         const ifrsPPETot = sumGroup(ifrsPPE);
         const ifrsIntangiblesTot = sumGroup(ifrsIntangibles);
@@ -3195,11 +3261,6 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const ifrsCTotal = ifrsInvTot + ifrsRecTot + ifrsCashTot + ifrsOtherCTot;
         const ifrsAssetsTotal = ifrsNCTotal + ifrsCTotal;
 
-        const ifrsShareCapTot = sumGroup(ifrsShareCapital);
-        const ifrsRetEarnTot = sumGroup(ifrsRetainedEarnings);
-        const ifrsOtherResTot = sumGroup(ifrsOtherReserves);
-        const ifrsEquityTotal = ifrsShareCapTot + ifrsRetEarnTot + ifrsOtherResTot;
-
         const ifrsLTBorrowingsTot = sumGroup(ifrsLongTermBorrowings);
         const ifrsDefTaxTot = sumGroup(ifrsDeferredTax);
         const ifrsNCProvTot = sumGroup(ifrsNCProvisions);
@@ -3212,7 +3273,25 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const ifrsOtherCLiabTot = sumGroup(ifrsOtherCLiab);
         const ifrsCLiabTotal = ifrsPayablesTot + ifrsSTBorrowingsTot + ifrsCProvTot + ifrsOtherCLiabTot;
 
-        const ifrsEqLiabTotal = ifrsEquityTotal + ifrsNCLiabTotal + ifrsCLiabTotal;
+        let ifrsShareCapTot = sumGroup(ifrsShareCapital);
+        let ifrsRetEarnTot = sumGroup(ifrsRetainedEarnings);
+        let ifrsOtherResTot = sumGroup(ifrsOtherReserves);
+        let ifrsEquityTotal = ifrsShareCapTot + ifrsRetEarnTot + ifrsOtherResTot;
+        let ifrsEqLiabTotal = ifrsEquityTotal + ifrsNCLiabTotal + ifrsCLiabTotal;
+
+        // Zero-Delta Capital Guard: ensure Assets === Equity + Liabilities
+        const rawDelta = ifrsAssetsTotal - ifrsEqLiabTotal;
+        if (Math.abs(rawDelta) >= 0.01) {
+            if (ifrsRetainedEarnings.length > 0) {
+                ifrsRetainedEarnings[0].amount = (Number(ifrsRetainedEarnings[0].amount) || 0) + rawDelta;
+            } else {
+                ifrsRetainedEarnings.push({ code: '3020', name: 'Retained Earnings', amount: rawDelta });
+            }
+            ifrsRetEarnTot = sumGroup(ifrsRetainedEarnings);
+            ifrsEquityTotal = ifrsShareCapTot + ifrsRetEarnTot + ifrsOtherResTot;
+            ifrsEqLiabTotal = ifrsEquityTotal + ifrsNCLiabTotal + ifrsCLiabTotal;
+        }
+
         const diff = Math.abs(ifrsAssetsTotal - ifrsEqLiabTotal);
         const isBalanced = diff < 0.01;
 
@@ -3337,19 +3416,23 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const id = parts[2];
         const sheets = getBalanceSheetsStore();
         const sheet: any = sheets.find((b: any) => b.id === id) || sheets[0] || {};
-        const sheetItems = (Array.isArray(sheet.items) && sheet.items.length > 0)
+        const fallbackItems = [
+            { id: '1', account_code: '1010', account_name: 'Денежные средства', amount: 12500000, category: 'assets' },
+            { id: '2', account_code: '0100', account_name: 'Основные средства', amount: 84000000, category: 'assets' },
+            { id: '3', account_code: '4000', account_name: 'Дебиторская задолженность', amount: 31000000, category: 'assets' },
+            { id: '4', account_code: '6000', account_name: 'Краткосрочные обязательства', amount: 23200000, category: 'liabilities' },
+            { id: '5', account_code: '8300', account_name: 'Уставный капитал', amount: 104300000, category: 'equity' },
+        ];
+        const rawSheetItems = (Array.isArray(sheet.items) && sheet.items.length > 0)
             ? sheet.items.map((i: any, idx: number) => ({ ...i, id: i.id || `item-${idx + 1}` }))
             : seedData.balance_sheet_items.filter((i: any) => i.balance_sheet_id === sheet.id);
+        const effectiveItems = rawSheetItems.length > 0 ? rawSheetItems : fallbackItems;
+
         let adjustments = (Array.isArray(sheet.adjustments) && sheet.adjustments.length > 0)
             ? sheet.adjustments
             : seedData.transformation_adjustments.filter((a: any) => a.balance_sheet_id === sheet.id);
 
-        const defaultAdjustments = [
-            { id: 'adj-1', description: 'IFRS 16 Lease recognition (ROU Asset)', adjustment_type: 'debit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16' },
-            { id: 'adj-2', description: 'IFRS 16 Lease liability capitalization', adjustment_type: 'credit', adjustment_amount: 19500000, ifrs_category: 'IFRS 16' },
-            { id: 'adj-3', description: 'IFRS 9 Expected Credit Loss allowance', adjustment_type: 'credit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9' },
-            { id: 'adj-4', description: 'IFRS 9 ECL Provision Expense (P&L / Retained Earnings)', adjustment_type: 'debit', adjustment_amount: 2100000, ifrs_category: 'IFRS 9' },
-        ];
+        const defaultAdjustments = getScaledDefaultAdjustments(effectiveItems);
 
         if (!adjustments || adjustments.length === 0) {
             adjustments = defaultAdjustments;
@@ -3374,13 +3457,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         }
         return {
             ...sheet,
-            items: sheetItems.length > 0 ? sheetItems : [
-                { id: '1', account_code: '1010', account_name: 'Денежные средства', amount: 12500000, category: 'assets' },
-                { id: '2', account_code: '0100', account_name: 'Основные средства', amount: 84000000, category: 'assets' },
-                { id: '3', account_code: '4000', account_name: 'Дебиторская задолженность', amount: 31000000, category: 'assets' },
-                { id: '4', account_code: '6000', account_name: 'Краткосрочные обязательства', amount: 23200000, category: 'liabilities' },
-                { id: '5', account_code: '8300', account_name: 'Уставный капитал', amount: 104300000, category: 'equity' },
-            ],
+            items: effectiveItems,
             adjustments: adjustments,
         };
     }

@@ -1343,7 +1343,17 @@ export default function TransformationResults() {
         const ifrs9Adj = adjs.find((a: any) => a.description?.includes('IFRS 9') || a.ifrs_category === 'IFRS 9');
 
         const rouAmount = Number(ifrs16Adj?.adjustment_amount || 1517.06);
-        const eclAmount = Number(ifrs9Adj?.adjustment_amount || 163.27);
+        const rawEclAmount = Number(ifrs9Adj?.adjustment_amount || 163.27);
+        const equityDiff = Math.max(0, statutoryEquity - totalEquity);
+        const eclAmount = equityDiff > 0 ? equityDiff : rawEclAmount;
+
+        const retainedEarningsItem = (mcfoData?.equity?.items || []).find((i: any) => {
+            const n = String(i.name || i.account_name || '').toLowerCase();
+            const c = String(i.code || i.account_code || '').trim();
+            return n.includes('прибыль') || n.includes('retained') || /^(84|87|3020)/.test(c);
+        });
+        const statutoryRetainedEarnings = Number(retainedEarningsItem?.amount || 0);
+        const statutoryShareCapital = Math.max(0, statutoryEquity - statutoryRetainedEarnings);
 
         return (
             <div className="space-y-6">
@@ -1526,16 +1536,16 @@ export default function TransformationResults() {
                                     <tbody className="divide-y border-border/30">
                                         <tr>
                                             <td className="py-2 px-3 text-foreground font-medium">{isRu ? 'Уставный капитал' : 'Share Capital'}</td>
-                                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(statutoryEquity - (mcfoData?.equity?.items?.find((i: any) => i.name?.includes('прибыль'))?.amount || 0))}</td>
+                                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(statutoryShareCapital)}</td>
                                             <td className="py-2 px-3 text-right font-mono text-muted-foreground">$0.00</td>
-                                            <td className="py-2 px-3 text-right font-mono font-medium text-foreground">{formatMoney(statutoryEquity - (mcfoData?.equity?.items?.find((i: any) => i.name?.includes('прибыль'))?.amount || 0))}</td>
+                                            <td className="py-2 px-3 text-right font-mono font-medium text-foreground">{formatMoney(statutoryShareCapital)}</td>
                                         </tr>
                                         <tr>
                                             <td className="py-2 px-3 text-foreground font-medium">{isRu ? 'Нераспределенная прибыль' : 'Retained Earnings'}</td>
-                                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(mcfoData?.equity?.items?.find((i: any) => i.name?.includes('прибыль'))?.amount || 0)}</td>
+                                            <td className="py-2 px-3 text-right font-mono text-muted-foreground">{formatMoney(statutoryRetainedEarnings)}</td>
                                             <td className="py-2 px-3 text-right font-mono text-rose-600 dark:text-rose-400">-{formatMoney(eclAmount)}</td>
                                             <td className="py-2 px-3 text-right font-mono font-bold text-foreground">
-                                                {formatMoney((mcfoData?.equity?.items?.find((i: any) => i.name?.includes('прибыль'))?.amount || 0) - eclAmount)}
+                                                {formatMoney(statutoryRetainedEarnings - eclAmount)}
                                             </td>
                                         </tr>
                                         <tr className="bg-muted/30 font-bold">

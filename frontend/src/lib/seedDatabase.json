@@ -1930,7 +1930,7 @@
       "balance_sheet_id": "d8dfd0b58b0b47e6b0bf8a3a2ed0013c",
       "account_code": "2001",
       "account_name": "Obligations to Suppliers",
-      "amount": 15000,
+      "amount": 25000,
       "category": "LIABILITIES",
       "subcategory": "Current Liabilities",
       "created_at": "2025-11-27 16:00:39.937132"

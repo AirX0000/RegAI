@@ -108,7 +108,7 @@ class TransformationService:
             
             is_non_current = (
                 "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
-                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "96", "1510", "1520", "2510"))
+                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "71", "72", "73", "74", "75", "77", "78", "79", "96", "1510", "1520", "2510"))
                 or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн", "инвестиц"])
             )
             
@@ -227,7 +227,7 @@ class TransformationService:
             
             is_non_current = (
                 "non-current" in subcat or "non_current" in subcat or "внеоборот" in subcat or "долгосроч" in subcat
-                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "70", "71", "72", "73", "74", "75", "76", "77", "78", "79", "96", "1510", "1520", "2510"))
+                or code.startswith(("01", "02", "03", "04", "05", "06", "07", "08", "09", "58", "67", "71", "72", "73", "74", "75", "77", "78", "79", "96", "1510", "1520", "2510"))
                 or any(k in name_lower for k in ["основные средства", "амортизац", "нематериальн", "долгосрочн", "инвестиц"])
             )
             
@@ -242,12 +242,18 @@ class TransformationService:
                     else:
                         ifrs_structure["statement_of_financial_position"]["assets"]["non_current_assets"]["other"].append(mapped_item)
                 else:
-                    if code.startswith(("10", "20", "28", "29", "41", "43", "1040")) or any(k in name_lower for k in ["сырье", "материал", "товар", "склад", "запасы", "inventory", "inventories", "goods", "stock", "продукц"]):
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["inventories"].append(mapped_item)
-                    elif code.startswith(("40", "41", "42", "62", "1030")) or any(k in name_lower for k in ["покупател", "заказчик", "клиент", "дебитор", "receivable"]):
-                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(mapped_item)
-                    elif code.startswith(("50", "51", "52", "55", "1010", "1020")) or any(k in name_lower for k in ["расчетные счета", "касса", "валютн", "денежн", "банк", "cash", "bank"]):
+                    if (
+                        code.startswith(("50", "51", "52", "55", "1010", "1020"))
+                        or any(k in name_lower for k in ["расчетные счета", "касса", "валютн", "денежн", "банк", "cash", "bank"])
+                    ) and not any(k in name_lower for k in ["сырье", "материал", "запасы", "inventory"]):
                         ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["cash_and_equivalents"].append(mapped_item)
+                    elif (
+                        code.startswith(("40", "62", "1030"))
+                        or any(k in name_lower for k in ["покупател", "заказчик", "клиент", "дебитор", "receivable"])
+                    ) and not any(k in name_lower for k in ["сырье", "материал", "запасы", "inventory"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["trade_receivables"].append(mapped_item)
+                    elif code.startswith(("10", "20", "28", "29", "41", "43", "1040")) or any(k in name_lower for k in ["сырье", "материал", "товар", "склад", "запасы", "inventory", "inventories", "goods", "stock", "продукц"]):
+                        ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["inventories"].append(mapped_item)
                     else:
                         ifrs_structure["statement_of_financial_position"]["assets"]["current_assets"]["other"].append(mapped_item)
                         
