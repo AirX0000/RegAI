@@ -52,17 +52,22 @@ export default function CompaniesPage() {
                                         </span>
                                     </td>
                                     <td className="p-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-2 w-24 rounded-full bg-gray-200">
-                                                <div
-                                                    className="h-2 rounded-full bg-blue-600"
-                                                    style={{ width: `${Math.random() * 100}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-xs text-gray-500">
-                                                {Math.floor(Math.random() * 100)}/100
-                                            </span>
-                                        </div>
+                                        {(() => {
+                                            const score = company.risk_score ?? (company.subscription_plan?.toLowerCase() === 'enterprise' ? 96 : 88);
+                                            return (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-2 w-24 rounded-full bg-slate-200 dark:bg-slate-700">
+                                                        <div
+                                                            className="h-2 rounded-full bg-emerald-600"
+                                                            style={{ width: `${score}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                        {score}/100
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="p-4 text-gray-500">{new Date(company.created_at).toLocaleDateString()}</td>
                                 </tr>

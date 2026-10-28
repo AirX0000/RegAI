@@ -22,7 +22,7 @@ export interface DocumentPreviewerProps {
 
 export const DocumentPreviewer: React.FC<DocumentPreviewerProps> = ({
     report,
-    companyName = 'FinBridge Capital',
+    companyName = 'TechCorp Ltd',
     companyLogo,
     isRu = true,
     onDownload,

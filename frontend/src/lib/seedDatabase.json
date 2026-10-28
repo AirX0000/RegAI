@@ -6,7 +6,7 @@
       "full_name": "Сардор Рахимов",
       "role": "company_owner",
       "company_id": "2727830ea39d470c917f1a1544ed5d0f",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
       "is_company_owner": "true",
       "is_active": 1,
       "is_superuser": 0,
@@ -20,7 +20,7 @@
       "full_name": "Елена Васильева",
       "role": "accountant",
       "company_id": "2727830ea39d470c917f1a1544ed5d0f",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -34,7 +34,7 @@
       "full_name": "Камилла Каримова",
       "role": "admin",
       "company_id": "2727830ea39d470c917f1a1544ed5d0f",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -48,7 +48,7 @@
       "full_name": "Дмитрий Ким",
       "role": "auditor",
       "company_id": "2727830ea39d470c917f1a1544ed5d0f",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -62,7 +62,7 @@
       "full_name": "Жасур Махмудов",
       "role": "company_owner",
       "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
       "is_company_owner": "true",
       "is_active": 1,
       "is_superuser": 0,
@@ -76,7 +76,7 @@
       "full_name": "Наргиза Саидова",
       "role": "accountant",
       "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -90,7 +90,7 @@
       "full_name": "Бахром Алиев",
       "role": "admin",
       "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -104,7 +104,7 @@
       "full_name": "Олег Новиков",
       "role": "auditor",
       "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -118,7 +118,7 @@
       "full_name": "Азиз Мирзаев",
       "role": "company_owner",
       "company_id": "c4d5e6f789014bcdef1234567890abcd",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
       "is_company_owner": "true",
       "is_active": 1,
       "is_superuser": 0,
@@ -132,7 +132,7 @@
       "full_name": "Зарина Юсупова",
       "role": "accountant",
       "company_id": "c4d5e6f789014bcdef1234567890abcd",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -146,7 +146,7 @@
       "full_name": "Тимур Саттаров",
       "role": "admin",
       "company_id": "c4d5e6f789014bcdef1234567890abcd",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -160,7 +160,7 @@
       "full_name": "Анвар Касымов",
       "role": "auditor",
       "company_id": "c4d5e6f789014bcdef1234567890abcd",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
       "is_company_owner": 0,
       "is_active": 1,
       "is_superuser": 0,
@@ -198,7 +198,7 @@
       "is_active": 1,
       "owner_id": "usr-demo-owner",
       "created_at": "2026-01-01 00:00:00",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba"
+      "tenant_id": "a7876fe64a094f8d862458625412e226"
     },
     {
       "id": "b968f7d7ffe04630a90aadde4d0d8e95",
@@ -214,7 +214,7 @@
       "is_active": 1,
       "owner_id": "usr-finserve-owner",
       "created_at": "2026-01-01 00:00:00",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba"
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95"
     },
     {
       "id": "c4d5e6f789014bcdef1234567890abcd",
@@ -230,7 +230,7 @@
       "is_active": 1,
       "owner_id": "usr-agroprom-owner",
       "created_at": "2026-01-01 00:00:00",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba"
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd"
     }
   ],
   "reports": [
@@ -1342,57 +1342,109 @@
       "ifrs_category": "IFRS 9 (Financial Instruments)",
       "balance_sheet_item_id": null,
       "created_at": "2026-10-02 12:30:04.298732"
+    },
+    {
+      "id": "adj-ap-1",
+      "balance_sheet_id": "bs-agroprom-oct-2026",
+      "description": "IFRS 16 Капитализация аренды элеваторов и сельхозземель (Активы в форме права пользования)",
+      "adjustment_amount": 14500000,
+      "adjustment_type": "debit",
+      "ifrs_category": "IFRS 16 (Leases)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-ap-2",
+      "balance_sheet_id": "bs-agroprom-oct-2026",
+      "description": "IFRS 16 Обязательства по долгосрочной аренде элеваторов и зернохранилищ",
+      "adjustment_amount": 14500000,
+      "adjustment_type": "credit",
+      "ifrs_category": "IFRS 16 (Leases)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-ap-3",
+      "balance_sheet_id": "bs-agroprom-oct-2026",
+      "description": "IAS 41 Переоценка биологических активов (КРС и молодняк) по справедливой стоимости",
+      "adjustment_amount": 3800000,
+      "adjustment_type": "debit",
+      "ifrs_category": "IAS 41 (Agriculture)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-ap-4",
+      "balance_sheet_id": "bs-agroprom-oct-2026",
+      "description": "IAS 41 Доход от переоценки биоактивов (в состав нераспределенной прибыли)",
+      "adjustment_amount": 3800000,
+      "adjustment_type": "credit",
+      "ifrs_category": "IAS 41 (Agriculture)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-fs-1",
+      "balance_sheet_id": "bs-finserve-oct-2026",
+      "description": "IFRS 9 Начисление оценочного резерва под ожидаемые кредитные убытки (ECL Stage 2) по портфелю лизинга",
+      "adjustment_amount": 12400000,
+      "adjustment_type": "credit",
+      "ifrs_category": "IFRS 9 (Financial Instruments)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-fs-2",
+      "balance_sheet_id": "bs-finserve-oct-2026",
+      "description": "IFRS 9 Расход по формированию резерва под обесценение финансовых активов (корректировка капитала)",
+      "adjustment_amount": 12400000,
+      "adjustment_type": "debit",
+      "ifrs_category": "IFRS 9 (Financial Instruments)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-fs-3",
+      "balance_sheet_id": "bs-finserve-oct-2026",
+      "description": "IFRS 16 Признание актива в форме права пользования офисами и филиальной сетью",
+      "adjustment_amount": 8500000,
+      "adjustment_type": "debit",
+      "ifrs_category": "IFRS 16 (Leases)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
+    },
+    {
+      "id": "adj-fs-4",
+      "balance_sheet_id": "bs-finserve-oct-2026",
+      "description": "IFRS 16 Дисконтированное обязательство по аренде филиалов",
+      "adjustment_amount": 8500000,
+      "adjustment_type": "credit",
+      "ifrs_category": "IFRS 16 (Leases)",
+      "balance_sheet_item_id": null,
+      "created_at": "2026-10-27 10:00:00"
     }
   ],
   "tenants": [
     {
-      "id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
-      "name": "Acme Inc",
-      "plan": "enterprise",
-      "created_at": "2025-11-23 07:00:39",
-      "updated_at": null
-    },
-    {
-      "id": "bbaab152a7b745fbb256ae41bbe59d20",
-      "name": "Phoenix",
-      "plan": "enterprise",
-      "created_at": "2025-11-24 16:42:15",
-      "updated_at": "2025-11-26 04:17:41"
-    },
-    {
-      "id": "717e3f99299d4e778067a7f9e63e935c",
-      "name": "Global Tenant",
-      "plan": "enterprise",
-      "created_at": "2025-11-26 13:57:04",
-      "updated_at": null
-    },
-    {
       "id": "a7876fe64a094f8d862458625412e226",
       "name": "TechCorp Group",
       "plan": "enterprise",
-      "created_at": "2026-08-30 13:37:09",
-      "updated_at": null
+      "created_at": "2026-01-15 09:00:00",
+      "updated_at": "2026-10-27 12:00:00"
     },
     {
-      "id": "0c4a6673109742cbb8c5204c5edaf858",
-      "name": "FinBridge Group",
+      "id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "name": "FinServe Holdings Group",
+      "plan": "premium",
+      "created_at": "2026-03-20 10:30:00",
+      "updated_at": "2026-10-27 12:00:00"
+    },
+    {
+      "id": "c4d5e6f789014bcdef1234567890abcd",
+      "name": "AgroProm Holding Group",
       "plan": "enterprise",
-      "created_at": "2026-09-02 17:13:49",
-      "updated_at": null
-    },
-    {
-      "id": "7896b7ac45b44b009af9bb2d6c01018f",
-      "name": "MediCorp International",
-      "plan": "professional",
-      "created_at": "2026-09-02 17:13:51",
-      "updated_at": null
-    },
-    {
-      "id": "535b0bda1b894f58a45aa3c1081ae347",
-      "name": "TechStart EU",
-      "plan": "startup",
-      "created_at": "2026-09-02 17:13:52",
-      "updated_at": null
+      "created_at": "2026-06-10 11:00:00",
+      "updated_at": "2026-10-27 12:00:00"
     }
   ],
   "audit_logs": [
@@ -3354,38 +3406,146 @@
     {
       "id": "al-tc-1",
       "company_id": "2727830ea39d470c917f1a1544ed5d0f",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
       "title": "Сверка льготы по налогу на прибыль резидента IT-Park (CIT 0% / 15%)",
       "message": "Требуется подтверждение экспортного контракта ПО для применения преференциальной ставки.",
-      "severity": "LOW",
-      "status": "RESOLVED",
+      "severity": "low",
+      "status": "resolved",
       "regulation": "НСБУ / IT-Park РУз",
       "created_at": "2026-10-15 10:00:00",
       "resolved_at": "2026-10-16 11:30:00"
     },
     {
+      "id": "al-tc-2",
+      "company_id": "2727830ea39d470c917f1a1544ed5d0f",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
+      "title": "Ежегодный аудит лицензионных прав на ПО (IAS 38 Нематериальные активы)",
+      "message": "Сверка графика амортизации капитализированных затрат на разработку SaaS-платформы.",
+      "severity": "medium",
+      "status": "in_progress",
+      "regulation": "IAS 38 Нематериальные активы",
+      "created_at": "2026-10-24 14:15:00",
+      "resolved_at": null
+    },
+    {
+      "id": "al-tc-3",
+      "company_id": "2727830ea39d470c917f1a1544ed5d0f",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
+      "title": "Локализация баз данных и персональных данных пользователей (ЗРУ-547)",
+      "message": "Подтверждение размещения первичных серверов на территории Республики Узбекистан.",
+      "severity": "critical",
+      "status": "open",
+      "regulation": "Закон РУз № ЗРУ-547",
+      "created_at": "2026-10-26 09:00:00",
+      "resolved_at": null
+    },
+    {
+      "id": "al-tc-4",
+      "company_id": "2727830ea39d470c917f1a1544ed5d0f",
+      "tenant_id": "a7876fe64a094f8d862458625412e226",
+      "title": "Аренда офисного дата-центра и серверных стоек (IFRS 16)",
+      "message": "График дисконтированных арендных платежей актуализирован на 4 квартал 2026.",
+      "severity": "low",
+      "status": "resolved",
+      "regulation": "IFRS 16 Аренда",
+      "created_at": "2026-10-20 16:30:00",
+      "resolved_at": "2026-10-21 18:00:00"
+    },
+    {
       "id": "al-fs-1",
       "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
       "title": "Контроль достаточного покрытия резервов кредитных убытков (IFRS 9 Stage 2)",
       "message": "Доля просрочки по лизинговому портфелю свыше 30 дней требует доначисления ECL на 4.2M UZS.",
-      "severity": "MEDIUM",
-      "status": "RESOLVED",
+      "severity": "high",
+      "status": "in_progress",
       "regulation": "IFRS 9 / ЦБ РУз",
       "created_at": "2026-10-18 12:00:00",
-      "resolved_at": "2026-10-20 14:00:00"
+      "resolved_at": null
+    },
+    {
+      "id": "al-fs-2",
+      "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "title": "Пруденциальные нормативы ликвидности и достаточности собственного капитала",
+      "message": "Коэффициент мгновенной ликвидности H2 составляет 34.2% при нормативе ЦБ РУз не менее 25%.",
+      "severity": "low",
+      "status": "resolved",
+      "regulation": "Инструкция ЦБ РУз № 2680",
+      "created_at": "2026-10-21 11:00:00",
+      "resolved_at": "2026-10-22 17:30:00"
+    },
+    {
+      "id": "al-fs-3",
+      "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "title": "Сверка трансфертного ценообразования по внутригрупповым займам",
+      "message": "Проверка процентных ставок по займам на рыночный интервал в соответствии со ст. 180 НК РУз.",
+      "severity": "critical",
+      "status": "open",
+      "regulation": "НК РУз ст. 180",
+      "created_at": "2026-10-25 10:20:00",
+      "resolved_at": null
+    },
+    {
+      "id": "al-fs-4",
+      "company_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "tenant_id": "b968f7d7ffe04630a90aadde4d0d8e95",
+      "title": "Раскрытие финансовых рисков и чувствительности портфеля (IFRS 7)",
+      "message": "Таблица чувствительности к процентному и валютному риску проверена внешним аудитором.",
+      "severity": "medium",
+      "status": "resolved",
+      "regulation": "IFRS 7 Финансовые инструменты: раскрытия",
+      "created_at": "2026-10-19 15:40:00",
+      "resolved_at": "2026-10-20 18:00:00"
     },
     {
       "id": "al-ap-1",
       "company_id": "c4d5e6f789014bcdef1234567890abcd",
-      "tenant_id": "b4e63cbc5d5348c5bfddf1c35a9886ba",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
       "title": "Инвентаризация и оценка справедливой стоимости биоактивов (IAS 41)",
-      "message": "Осенний прирост биомассы и поголовья КРС успешно переоценен независимым оценщиком.",
-      "severity": "LOW",
-      "status": "RESOLVED",
+      "message": "Осенний прирост биомассы и поголовья КРС успешно переоценен независимым оценщиком (+3.8M UZS).",
+      "severity": "low",
+      "status": "resolved",
       "regulation": "IAS 41 Сельское хозяйство",
       "created_at": "2026-10-22 09:30:00",
       "resolved_at": "2026-10-23 15:00:00"
+    },
+    {
+      "id": "al-ap-2",
+      "company_id": "c4d5e6f789014bcdef1234567890abcd",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
+      "title": "Контроль норм технологических потерь и естественной убыли при хранении зерна (IAS 2)",
+      "message": "Сверка актов сушки и очистки зерновых на элеваторах Самаркандского кластера.",
+      "severity": "high",
+      "status": "in_progress",
+      "regulation": "IAS 2 Запасы",
+      "created_at": "2026-10-25 11:30:00",
+      "resolved_at": null
+    },
+    {
+      "id": "al-ap-3",
+      "company_id": "c4d5e6f789014bcdef1234567890abcd",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
+      "title": "Аудит договоров долгосрочной аренды земельных угодий и элеваторов (IFRS 16)",
+      "message": "Капитализированы права пользования (ППА) 14.5M UZS со сроком аренды 15 лет.",
+      "severity": "medium",
+      "status": "resolved",
+      "regulation": "IFRS 16 Аренда",
+      "created_at": "2026-10-20 10:00:00",
+      "resolved_at": "2026-10-21 16:00:00"
+    },
+    {
+      "id": "al-ap-4",
+      "company_id": "c4d5e6f789014bcdef1234567890abcd",
+      "tenant_id": "c4d5e6f789014bcdef1234567890abcd",
+      "title": "Санитарно-экологический комплаенс пищевой безопасности (HACCP / ISO 22000)",
+      "message": "Требуется завершение плановой аттестации цеха фасовки муки и крупы до конца месяца.",
+      "severity": "critical",
+      "status": "open",
+      "regulation": "ISO 22000 / Узстандарт",
+      "created_at": "2026-10-26 08:30:00",
+      "resolved_at": null
     }
   ],
   "tax_rates": [

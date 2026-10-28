@@ -254,7 +254,7 @@ export const DirectIfrsReportModal: React.FC<DirectIfrsReportModalProps> = ({
         try {
             setIsSubmitting(true);
             const targetCompany = companies.find(c => c.id === companyId) || companies[0];
-            const compName = targetCompany?.name || 'FinBridge Capital';
+            const compName = targetCompany?.name || 'TechCorp Ltd';
 
             const payloadFinancialData = {
                 total_assets: totalAssets,

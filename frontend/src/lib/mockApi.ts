@@ -4,7 +4,7 @@ import { createMockToken, safeBase64Decode } from './authUtils';
 import * as XLSX from 'xlsx';
 
 // ── Persistence Helpers ──────────────────────────────────────────────────────
-const CURRENT_MOCK_STORAGE_VERSION = 'v8_agroprom_finserve_rich_seed_2026';
+const CURRENT_MOCK_STORAGE_VERSION = 'v9_complete_destub_all_pages_2026';
 function ensureStorageIsolation() {
     try {
         if (localStorage.getItem('regai_storage_version') !== CURRENT_MOCK_STORAGE_VERSION) {
@@ -1664,10 +1664,24 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const userCompanyId = session?.company_id || '2727830ea39d470c917f1a1544ed5d0f';
         const scopedSheets = isSuperadmin ? sheets : sheets.filter((s: any) => s.company_id === userCompanyId);
 
+        const isAgro = userCompanyId === 'c4d5e6f789014bcdef1234567890abcd';
+        const isFinServe = userCompanyId === 'b968f7d7ffe04630a90aadde4d0d8e95';
+
+        const deferredTax = isAgro ? -2150000 : isFinServe ? 4200000 : 1450000;
+        const taxDesc = isAgro 
+            ? "IAS 12 ОНО по переоценке биоактивов (IAS 41): -2.15M UZS" 
+            : isFinServe 
+            ? "IAS 12 ОНА по резервам ECL (IFRS 9): +4.20M UZS" 
+            : "IAS 12 Отложенный налоговый актив: +1.45M UZS";
+
+        const companyAssets = isAgro ? 342500000 : isFinServe ? 512000000 : 248200000;
+        const companyLiab = isAgro ? 112000000 : isFinServe ? 186000000 : 96300000;
+        const companyEquity = companyAssets - companyLiab;
+
         return {
-            compliance: { score: 96, status: "Good", pending_tasks: 2 },
-            one_c_status: { connected: true, last_sync: "12 минут назад", errors: 0 },
-            transformation: { total_processed: Math.max(scopedSheets.length, 10), saved_hours: 42.5 },
+            compliance: { score: isAgro ? 94 : isFinServe ? 95 : 96, status: "Good", pending_tasks: 2 },
+            one_c_status: { connected: true, last_sync: "15 минут назад", errors: 0 },
+            transformation: { total_processed: Math.max(scopedSheets.length, 2), saved_hours: 42.5 },
             consolidation: isSuperadmin ? {
                 total_entities: 4,
                 consolidated_assets: 248200000,
@@ -1679,9 +1693,9 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                 delta: 0,
             } : {
                 total_entities: 1,
-                consolidated_assets: 145000000,
-                consolidated_liabilities: 40000000,
-                consolidated_equity: 105000000,
+                consolidated_assets: companyAssets,
+                consolidated_liabilities: companyLiab,
+                consolidated_equity: companyEquity,
                 eliminations_count: 0,
                 eliminations_amount: 0,
                 is_balanced: true,
@@ -1690,11 +1704,26 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             tax_compliance: {
                 cit_rate: "15%",
                 vat_rate: "12%",
-                deferred_tax_asset: 1450000,
+                deferred_tax_asset: deferredTax,
                 status: "Сверено с Soliq.uz",
                 last_verification: "Сегодня, 18:30",
+                description: taxDesc
             },
-            chart_data: [
+            chart_data: isAgro ? [
+                { month: "Май", statements: 4, volume_uzs: 75000000, ifrs16: 14000000, ifrs9: 8200000 },
+                { month: "Июн", statements: 6, volume_uzs: 112000000, ifrs16: 19000000, ifrs9: 12500000 },
+                { month: "Июл", statements: 8, volume_uzs: 168000000, ifrs16: 22000000, ifrs9: 18000000 },
+                { month: "Авг", statements: 10, volume_uzs: 220000000, ifrs16: 25000000, ifrs9: 24300000 },
+                { month: "Сен", statements: 12, volume_uzs: 285000000, ifrs16: 27000000, ifrs9: 32100000 },
+                { month: "Окт", statements: 14, volume_uzs: 342500000, ifrs16: 28500000, ifrs9: 42000000 },
+            ] : isFinServe ? [
+                { month: "Май", statements: 5, volume_uzs: 120000000, ifrs16: 8000000, ifrs9: 22000000 },
+                { month: "Июн", statements: 8, volume_uzs: 195000000, ifrs16: 11000000, ifrs9: 31000000 },
+                { month: "Июл", statements: 10, volume_uzs: 260000000, ifrs16: 13000000, ifrs9: 39000000 },
+                { month: "Авг", statements: 12, volume_uzs: 340000000, ifrs16: 15000000, ifrs9: 46000000 },
+                { month: "Сен", statements: 14, volume_uzs: 430000000, ifrs16: 16000000, ifrs9: 50000000 },
+                { month: "Окт", statements: 16, volume_uzs: 512000000, ifrs16: 16500000, ifrs9: 54200000 },
+            ] : [
                 { month: "Май", statements: 4, volume_uzs: 48000000, ifrs16: 12000000, ifrs9: 3500000 },
                 { month: "Июн", statements: 7, volume_uzs: 82000000, ifrs16: 18500000, ifrs9: 6200000 },
                 { month: "Июл", statements: 9, volume_uzs: 115000000, ifrs16: 24000000, ifrs9: 8100000 },
@@ -1708,6 +1737,18 @@ export async function handleMockApiRequest(config: any): Promise<any> {
                 { id: "act-3", action: "review", timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), details: "IFRS 9 Резерв под обесценение ECL Stage 2 утвержден аудитором (15.6 млн UZS)" },
                 { id: "act-4", action: "consolidation", timestamp: new Date(Date.now() - 1000 * 60 * 180).toISOString(), details: "Консолидация группы по IFRS 10 сведена (4 компании, дельта 0.00 UZS)" },
                 { id: "act-5", action: "compliance", timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(), details: "Налоговый протокол проверен: ставка CIT 15%, VAT 12%, ОНА 1.45 млн UZS" },
+            ] : isAgro ? [
+                { id: "act-1", action: "sync", timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), details: "1C:Enterprise ОСВ агропромышленного комплекса синхронизирована (24 счёта)" },
+                { id: "act-2", action: "transform", timestamp: new Date(Date.now() - 1000 * 60 * 50).toISOString(), details: "IAS 41 Переоценка биологических активов (КРС) проведена успешно (+3.8M UZS)" },
+                { id: "act-3", action: "review", timestamp: new Date(Date.now() - 1000 * 60 * 110).toISOString(), details: "IFRS 16 Долгосрочная аренда элеваторов и сельхозземель капитализирована (14.5M UZS)" },
+                { id: "act-4", action: "transform", timestamp: new Date(Date.now() - 1000 * 60 * 170).toISOString(), details: "Трансформация ОСВ по МСФО завершена (Zero Delta = 0.00 UZS)" },
+                { id: "act-5", action: "compliance", timestamp: new Date(Date.now() - 1000 * 60 * 230).toISOString(), details: "Налоговый аудит Soliq.uz: CIT 15%, VAT 12%, ОНО по биоактивам: -2.15M UZS" },
+            ] : isFinServe ? [
+                { id: "act-1", action: "sync", timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), details: "1C:Enterprise ОСВ лизингового портфеля синхронизирована (20 счетов)" },
+                { id: "act-2", action: "transform", timestamp: new Date(Date.now() - 1000 * 60 * 50).toISOString(), details: "IFRS 9 Начисление резервов под кредитные убытки ECL Stage 2 проведено (12.4M UZS)" },
+                { id: "act-3", action: "review", timestamp: new Date(Date.now() - 1000 * 60 * 110).toISOString(), details: "IFRS 7 Раскрытие кредитного и процентного риска утверждено аудитором" },
+                { id: "act-4", action: "transform", timestamp: new Date(Date.now() - 1000 * 60 * 170).toISOString(), details: "Трансформация ОСВ по МСФО завершена (Zero Delta = 0.00 UZS)" },
+                { id: "act-5", action: "compliance", timestamp: new Date(Date.now() - 1000 * 60 * 230).toISOString(), details: "Налоговый аудит Soliq.uz: CIT 15%, VAT 12%, ОНА по резервам ECL: +4.20M UZS" },
             ] : [
                 { id: "act-1", action: "sync", timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(), details: "1C:Enterprise Trial Balance синхронизирован (24 счёта, 120 млн UZS)" },
                 { id: "act-2", action: "transform", timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(), details: "IFRS 16 Капитализация прав аренды проведена успешно (41.2 млн UZS)" },
@@ -1726,7 +1767,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const alerts = getAlertsStore();
         const idx = alerts.findIndex((a: any) => a.id === alertId);
         if (idx !== -1) {
-            alerts[idx] = { ...alerts[idx], status: body?.status || 'resolved' };
+            alerts[idx] = { ...alerts[idx], status: (body?.status || 'resolved').toLowerCase() };
             saveAlertsStore(alerts);
             return { status: 'success', data: alerts[idx] };
         }
@@ -1736,7 +1777,7 @@ export async function handleMockApiRequest(config: any): Promise<any> {
     if (cleanPath.includes('/compliance/alerts/bulk-update') && method === 'post') {
         const alerts = getAlertsStore();
         const ids = new Set(body?.alert_ids || []);
-        const newStatus = body?.status || 'resolved';
+        const newStatus = (body?.status || 'resolved').toLowerCase();
         alerts.forEach((a: any) => {
             if (ids.has(a.id)) a.status = newStatus;
         });
@@ -1748,15 +1789,44 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const allAlerts = getAlertsStore();
         const session = getCurrentSessionUser(config);
         const isSuperadmin = session?.role === 'superadmin';
-        if (isSuperadmin) {
-            const requestedCompanyId = config.params?.company_id;
-            if (requestedCompanyId) {
-                return allAlerts.filter((a: any) => a.company_id === requestedCompanyId);
-            }
-            return allAlerts;
-        }
         const userCompId = session?.company_id || '2727830ea39d470c917f1a1544ed5d0f';
-        return allAlerts.filter((a: any) => a.company_id === userCompId);
+        const scoped = isSuperadmin 
+            ? (config.params?.company_id ? allAlerts.filter((a: any) => a.company_id === config.params?.company_id) : allAlerts)
+            : allAlerts.filter((a: any) => a.company_id === userCompId);
+
+        let list = scoped.map((a: any) => ({
+            ...a,
+            severity: (a.severity || 'medium').toLowerCase(),
+            status: (a.status || 'open').toLowerCase(),
+        }));
+
+        const statusParam = config.params?.status;
+        if (statusParam) {
+            const allowed = statusParam.split(',').map((s: string) => s.trim().toLowerCase());
+            list = list.filter((a: any) => allowed.includes(a.status));
+        }
+
+        const severityParam = config.params?.severity;
+        if (severityParam) {
+            list = list.filter((a: any) => a.severity === severityParam.toLowerCase());
+        }
+
+        const regParam = config.params?.regulation;
+        if (regParam) {
+            list = list.filter((a: any) => (a.regulation || '').toLowerCase().includes(regParam.toLowerCase()));
+        }
+
+        const searchParam = config.params?.search;
+        if (searchParam) {
+            const q = searchParam.toLowerCase();
+            list = list.filter((a: any) => 
+                (a.title || '').toLowerCase().includes(q) || 
+                (a.message || '').toLowerCase().includes(q) ||
+                (a.regulation || '').toLowerCase().includes(q)
+            );
+        }
+
+        return list;
     }
 
     if (cleanPath.includes('/compliance/stats')) {
@@ -1764,9 +1834,13 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         const session = getCurrentSessionUser(config);
         const isSuperadmin = session?.role === 'superadmin';
         const userCompId = session?.company_id || '2727830ea39d470c917f1a1544ed5d0f';
-        const alerts = isSuperadmin 
+        const alerts = (isSuperadmin 
             ? allAlerts 
-            : allAlerts.filter((a: any) => a.company_id === userCompId);
+            : allAlerts.filter((a: any) => a.company_id === userCompId)).map((a: any) => ({
+                ...a,
+                severity: (a.severity || 'medium').toLowerCase(),
+                status: (a.status || 'open').toLowerCase(),
+            }));
 
         const total = alerts.length;
         const critical = alerts.filter((a: any) => a.severity === 'critical').length;

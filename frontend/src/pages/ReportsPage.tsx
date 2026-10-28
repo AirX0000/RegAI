@@ -1106,7 +1106,7 @@ export default function ReportsPage() {
                                 <div className="truncate">
                                     <div className="text-[10px] uppercase font-semibold text-slate-400">{tr('Организация', 'Company')}</div>
                                     <div className="font-medium text-slate-800 dark:text-slate-200 truncate">
-                                        {companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
+                                        {companies.find(c => c.id === selectedReport.company_id)?.name || user?.company_name || 'TechCorp Ltd'}
                                     </div>
                                 </div>
                             </div>
@@ -1371,7 +1371,7 @@ export default function ReportsPage() {
                                             <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Загрузка превью документа...</div>}>
                                                 <DocumentPreviewer
                                                     report={selectedReport}
-                                                    companyName={companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
+                                                    companyName={companies.find(c => c.id === selectedReport.company_id)?.name || user?.company_name || 'TechCorp Ltd'}
                                                     companyLogo={companies.find(c => c.id === selectedReport.company_id)?.logo_url}
                                                     isRu={isRu}
                                                     onDownload={() => handleDownload(selectedReport.id, selectedReport.title)}
@@ -1820,7 +1820,7 @@ export default function ReportsPage() {
                             <Suspense fallback={<div className="p-8 text-center text-xs text-slate-400">Загрузка превью документа...</div>}>
                                 <DocumentPreviewer
                                     report={selectedReport}
-                                    companyName={companies.find(c => c.id === selectedReport.company_id)?.name || 'FinBridge Capital'}
+                                    companyName={companies.find(c => c.id === selectedReport.company_id)?.name || user?.company_name || 'TechCorp Ltd'}
                                     companyLogo={companies.find(c => c.id === selectedReport.company_id)?.logo_url}
                                     isRu={isRu}
                                     onDownload={() => handleDownload(selectedReport.id, selectedReport.title)}
