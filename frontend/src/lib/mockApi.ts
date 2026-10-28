@@ -322,6 +322,7 @@ const EXCLUDED_NON_WORK_CATS = new Set(['healthcare', 'labor', 'environmental', 
 
 function isWorkRelatedRegulation(r: any): boolean {
     if (!r) return false;
+    if (r.is_new) return true;
     const code = (r.code || r.metadata?.code || '').trim().toUpperCase();
     if (EXCLUDED_NON_WORK_CODES.has(code)) return false;
     const cat = (r.category || r.metadata?.category || '').toLowerCase();
@@ -1892,7 +1893,48 @@ export async function handleMockApiRequest(config: any): Promise<any> {
         }));
     }
 
-    if (cleanPath.includes('/regulations/crawler/start') || cleanPath.includes('/regulations/crawl')) {
+    // ── Dedicated Crawler Import Endpoint ──────────────────────────────────
+    if (cleanPath.includes('/regulations/crawler/import') && method === 'post') {
+        const codesToImport = new Set((body?.codes || []).map((c: string) => (c || '').trim().toUpperCase()));
+        const payloadItems = (Array.isArray(body?.items) ? body.items : (body?.item ? [body.item] : [])) as any[];
+        const regs = getRegulationsStore();
+        const existingCodes = new Set(regs.map((r: any) => (r.code || r.metadata?.code || '').trim().toUpperCase()));
+
+        const candidatePool = [...payloadItems, ...MOCK_WEB_DISCOVERIES];
+        let importedCount = 0;
+        candidatePool.forEach(item => {
+            const itemCode = (item.code || item.metadata?.code || '').trim().toUpperCase();
+            if ((codesToImport.has(itemCode) || codesToImport.size === 0) && !existingCodes.has(itemCode)) {
+                regs.unshift({
+                    id: 'reg-' + Math.random().toString(36).substring(2, 9),
+                    code: item.code,
+                    title: item.title,
+                    jurisdiction: item.jurisdiction || 'UZ',
+                    category: item.category || 'General',
+                    content: item.content || item.summary || '',
+                    workflow_steps: item.workflow_steps || [],
+                    source_url: item.source_url || '',
+                    effective_date: item.effective_date || new Date().toISOString().split('T')[0],
+                    is_new: true,
+                    created_at: new Date().toISOString()
+                });
+                existingCodes.add(itemCode);
+                importedCount++;
+            }
+        });
+
+        saveRegulationsStore(regs);
+        logAuditAction('regulation_import', `Импортировано ${importedCount} нормативов из веб-краулера`);
+
+        return {
+            status: "success",
+            imported: importedCount,
+            total_in_db: regs.length,
+            message: `Успешно импортировано ${importedCount} новых нормативов из сети интернет.`
+        };
+    }
+
+    if (cleanPath.includes('/regulations/crawler/start') || cleanPath === '/regulations/crawl' || cleanPath === '/regulations/crawl/') {
         const regs = getRegulationsStore();
         const existingCodes = new Set(regs.map((r: any) => (r.code || '').trim().toUpperCase()));
         const jurFilter = body?.jurisdiction || config?.params?.jurisdiction;
@@ -1990,44 +2032,6 @@ export async function handleMockApiRequest(config: any): Promise<any> {
             })),
             telemetry_logs: telemetryLogs,
             crawled_at: new Date().toISOString()
-        };
-    }
-
-    if (cleanPath.includes('/regulations/crawler/import') && method === 'post') {
-        const codesToImport = new Set((body?.codes || []).map((c: string) => c.trim().toUpperCase()));
-        const regs = getRegulationsStore();
-        const existingCodes = new Set(regs.map((r: any) => (r.code || '').trim().toUpperCase()));
-
-        let importedCount = 0;
-        MOCK_WEB_DISCOVERIES.forEach(item => {
-            const itemCode = (item.code || '').trim().toUpperCase();
-            if (codesToImport.has(itemCode) && !existingCodes.has(itemCode)) {
-                regs.unshift({
-                    id: 'reg-' + Math.random().toString(36).substring(2, 9),
-                    code: item.code,
-                    title: item.title,
-                    jurisdiction: item.jurisdiction,
-                    category: item.category,
-                    content: item.content,
-                    workflow_steps: item.workflow_steps,
-                    source_url: item.source_url,
-                    effective_date: item.effective_date,
-                    is_new: true,
-                    created_at: new Date().toISOString()
-                });
-                existingCodes.add(itemCode);
-                importedCount++;
-            }
-        });
-
-        saveRegulationsStore(regs);
-        logAuditAction('regulation_import', `Импортировано ${importedCount} нормативов из веб-краулера`);
-
-        return {
-            status: "success",
-            imported: importedCount,
-            total_in_db: regs.length,
-            message: `Успешно импортировано ${importedCount} новых нормативов из сети интернет.`
         };
     }
 

@@ -829,18 +829,27 @@ export default function RegulationsPage() {
 
     const onAddRegulation = async (data: any) => {
         try {
-            await api.post('/regulations/ingest', {
+            const res = await api.post('/regulations/ingest', {
                 ...data,
                 // Ensure effective_date is in ISO format if provided
                 effective_date: data.effective_date ? new Date(data.effective_date).toISOString().split('T')[0] : null
             });
+            const created = res.data;
+            if (created) {
+                const normalized = normalizeRegulation(created);
+                if (normalized) {
+                    setResults(prev => [normalized, ...prev]);
+                }
+            }
             toast({
                 title: t('success'),
                 description: t('regulation_added_successfully'),
             });
             setIsAddModalOpen(false);
             resetAdd();
-            fetchRegulations();
+            setActiveTab('All');
+            setSearchQuery('');
+            await fetchRegulations();
         } catch (error) {
             toast({
                 variant: "destructive",
@@ -1071,8 +1080,38 @@ export default function RegulationsPage() {
     const handleImportRegulation = async (code: string) => {
         setIsImporting(code);
         try {
-            const res = await api.post('/regulations/crawler/import', { codes: [code] });
+            const itemToImport = discoveredRegulations.find(d => d.code === code);
+            const res = await api.post('/regulations/crawler/import', { 
+                codes: [code],
+                items: itemToImport ? [itemToImport] : []
+            });
             const totalInDb = res.data?.total_in_db;
+
+            // Optimistically update discoveredRegulations list
+            setDiscoveredRegulations(prev => prev.map(d => d.code === code ? { ...d, is_imported: true } : d));
+
+            // Optimistically prepend to results and switch tab to 'All' so user immediately sees it
+            if (itemToImport) {
+                const normalizedNewItem = normalizeRegulation({
+                    id: 'reg-' + Math.random().toString(36).substring(2, 9),
+                    code: itemToImport.code,
+                    title: itemToImport.title,
+                    jurisdiction: itemToImport.jurisdiction || 'UZ',
+                    category: itemToImport.category || 'General',
+                    content: itemToImport.content || itemToImport.summary,
+                    workflow_steps: itemToImport.workflow_steps || [],
+                    source_url: itemToImport.source_url || '',
+                    effective_date: itemToImport.effective_date || new Date().toISOString().split('T')[0],
+                    is_new: true,
+                    created_at: new Date().toISOString()
+                });
+                if (normalizedNewItem) {
+                    setResults(prev => [normalizedNewItem, ...prev.filter(r => (r.code || '').toUpperCase() !== code.toUpperCase())]);
+                }
+            }
+            setActiveTab('All');
+            setSearchQuery('');
+
             toast({
                 title: t('success'),
                 description: tr(
@@ -1080,7 +1119,6 @@ export default function RegulationsPage() {
                     `Regulation ${code} added to registry! ${totalInDb ? `Total regulations in registry: ${totalInDb}.` : ''}`
                 ),
             });
-            setDiscoveredRegulations(prev => prev.map(d => d.code === code ? { ...d, is_imported: true } : d));
             await fetchRegulations();
         } catch (error) {
             toast({
@@ -1096,7 +1134,8 @@ export default function RegulationsPage() {
     const handleImportAllDiscovered = async () => {
         setIsImporting('all');
         try {
-            const pendingCodes = discoveredRegulations.filter(d => !d.is_imported).map(d => d.code);
+            const pendingItems = discoveredRegulations.filter(d => !d.is_imported);
+            const pendingCodes = pendingItems.map(d => d.code);
             if (pendingCodes.length === 0) {
                 toast({
                     title: tr("Информация", "Info"),
@@ -1104,8 +1143,34 @@ export default function RegulationsPage() {
                 });
                 return;
             }
-            const res = await api.post('/regulations/crawler/import', { codes: pendingCodes });
+            const res = await api.post('/regulations/crawler/import', { 
+                codes: pendingCodes,
+                items: pendingItems
+            });
             const totalInDb = res.data?.total_in_db;
+
+            setDiscoveredRegulations(prev => prev.map(d => ({ ...d, is_imported: true })));
+
+            // Optimistic prepend of all imported regulations
+            const newNormItems = pendingItems.map(item => normalizeRegulation({
+                id: 'reg-' + Math.random().toString(36).substring(2, 9),
+                code: item.code,
+                title: item.title,
+                jurisdiction: item.jurisdiction || 'UZ',
+                category: item.category || 'General',
+                content: item.content || item.summary,
+                workflow_steps: item.workflow_steps || [],
+                source_url: item.source_url || '',
+                effective_date: item.effective_date || new Date().toISOString().split('T')[0],
+                is_new: true,
+                created_at: new Date().toISOString()
+            })).filter(Boolean);
+
+            const pendingSet = new Set(pendingCodes.map(c => c.toUpperCase()));
+            setResults(prev => [...newNormItems, ...prev.filter(r => !pendingSet.has((r.code || '').toUpperCase()))]);
+            setActiveTab('All');
+            setSearchQuery('');
+
             toast({
                 title: t('success'),
                 description: tr(
@@ -1113,7 +1178,6 @@ export default function RegulationsPage() {
                     `Successfully imported ${res.data?.imported ?? pendingCodes.length} regulations! ${totalInDb ? `Total in registry: ${totalInDb}.` : ''}`
                 ),
             });
-            setDiscoveredRegulations(prev => prev.map(d => ({ ...d, is_imported: true })));
             await fetchRegulations();
         } catch (error) {
             toast({
@@ -1536,6 +1600,12 @@ export default function RegulationsPage() {
                                                         <span className="inline-flex items-center rounded-md bg-purple-50 dark:bg-purple-950/70 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60">
                                                             {category}
                                                         </span>
+                                                        {item.is_new && (
+                                                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 animate-pulse">
+                                                                <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                                                {tr("НОВЫЙ", "NEW", "YANGI")}
+                                                            </span>
+                                                        )}
                                                     </div>
 
                                                     {/* Matched Fields Badges */}

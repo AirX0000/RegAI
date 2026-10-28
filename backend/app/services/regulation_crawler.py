@@ -936,14 +936,15 @@ class RegulationCrawlerService:
             "crawled_at": datetime.now(timezone.utc).isoformat()
         }
 
-    def import_regulations(self, codes: List[str]) -> Dict[str, Any]:
+    def import_regulations(self, codes: List[str], items: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
         Imports selected discovered regulations directly into the database.
         """
-        if not codes:
+        codes_set = {c.strip().upper() for c in codes} if codes else set()
+        candidate_pool = list(items or []) + EXPANDED_WEB_DISCOVERIES
+        if not codes_set and not items:
             return {"status": "success", "imported": 0, "message": "No codes provided"}
 
-        codes_set = {c.strip().upper() for c in codes}
         imported = 0
 
         try:
@@ -954,9 +955,9 @@ class RegulationCrawlerService:
                 for r in existing_regs
             }
 
-            for item in EXPANDED_WEB_DISCOVERIES:
+            for item in candidate_pool:
                 code_norm = (item.get("code") or "").strip().upper()
-                if code_norm not in codes_set:
+                if codes_set and code_norm not in codes_set:
                     continue
 
                 content = item.get("content", "")

@@ -528,9 +528,10 @@ def import_crawled_regulations(
     Import selected discovered regulations into the database registry.
     """
     codes = data.get("codes", [])
+    items = data.get("items")
     from app.services.regulation_crawler import RegulationCrawlerService
     crawler = RegulationCrawlerService(db)
-    result = crawler.import_regulations(codes)
+    result = crawler.import_regulations(codes, items=items)
     return result
 
 @router.post("/{regulation_id}/analyze-impact")
