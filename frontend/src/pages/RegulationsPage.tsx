@@ -8,7 +8,6 @@ import { useToast } from '@/components/ui/use-toast';
 import {
     Download,
     Calendar,
-    MapPin,
     ExternalLink,
     Copy,
     Check,
@@ -29,7 +28,16 @@ import {
     FileSpreadsheet,
     FileText,
     FileCode,
-    Search
+    Search,
+    Building2,
+    ShieldAlert,
+    Bell,
+    BellOff,
+    CheckSquare,
+    Square,
+    Scale,
+    ChevronRight,
+    ShieldCheck
 } from 'lucide-react';
 import {
     Dialog,
@@ -173,6 +181,218 @@ export default function RegulationsPage() {
                 ...meta,
             }
         };
+    };
+
+    const [checkedWorkflowSteps, setCheckedWorkflowSteps] = useState<Record<string, boolean>>({});
+
+    const toggleStepCheck = (regId: string, stepIndex: number) => {
+        const key = `${regId}_step_${stepIndex}`;
+        setCheckedWorkflowSteps(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const getRegulationCategoryInfo = (rawCategory?: string, code?: string) => {
+        let cat = (rawCategory || '').trim();
+        // If category is a jurisdiction code or generic code, infer from code
+        if (!cat || ['UZ', 'EU', 'US', 'RU', 'GLOBAL', 'REG', 'GENERAL'].includes(cat.toUpperCase())) {
+            const upperCode = (code || '').toUpperCase();
+            if (upperCode.includes('GREEN') || upperCode.includes('CSRD') || upperCode.includes('ESG') || upperCode.includes('TAXONOMY')) {
+                cat = 'ESG';
+            } else if (upperCode.includes('TAX') || upperCode.includes('NK') || upperCode.includes('VAT')) {
+                cat = 'Tax';
+            } else if (upperCode.includes('IFRS') || upperCode.includes('IAS') || upperCode.includes('GAAP')) {
+                cat = 'IFRS';
+            } else if (upperCode.includes('CRYPTO') || upperCode.includes('NAPP') || upperCode.includes('VASP') || upperCode.includes('TOKEN')) {
+                cat = 'Crypto';
+            } else if (upperCode.includes('BANK') || upperCode.includes('CB') || upperCode.includes('BASEL')) {
+                cat = 'Banking';
+            } else if (upperCode.includes('LABOR') || upperCode.includes('TK')) {
+                cat = 'Labor';
+            } else {
+                cat = 'Регламент';
+            }
+        }
+
+        const upper = cat.toUpperCase();
+        if (upper === 'ESG' || upper.includes('GREEN') || upper.includes('ЭКОЛОГ')) {
+            return {
+                label: tr('🌿 ESG и Зеленая таксономия', '🌿 ESG & Green Taxonomy', '🌿 ESG va Yashil taksonomiya'),
+                short: 'ESG',
+                icon: Sparkles,
+                colorClass: 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60'
+            };
+        }
+        if (upper === 'TAX' || upper.includes('НАЛОГ') || upper.includes('SOLIQ')) {
+            return {
+                label: tr('💼 Налоговое регулирование', '💼 Tax Regulations', '💼 Soliq tartibga solish'),
+                short: 'Tax',
+                icon: FileSpreadsheet,
+                colorClass: 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/60'
+            };
+        }
+        if (upper === 'IFRS' || upper.includes('МСФО') || upper.includes('IAS')) {
+            return {
+                label: tr('📊 Стандарты МСФО', '📊 IFRS Standards', '📊 MHXS standartlari'),
+                short: 'IFRS',
+                icon: Layers,
+                colorClass: 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/60'
+            };
+        }
+        if (upper === 'CRYPTO' || upper.includes('КРИПТО') || upper.includes('NAPP')) {
+            return {
+                label: tr('🪙 Криптоактивы и Финтех', '🪙 Crypto & FinTech', '🪙 Kripto-aktivlar va Fintex'),
+                short: 'Crypto',
+                icon: Cpu,
+                colorClass: 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60'
+            };
+        }
+        if (upper === 'BANKING' || upper.includes('БАНК') || upper.includes('BANK')) {
+            return {
+                label: tr('🏛️ Банковский надзор', '🏛️ Banking Supervision', '🏛️ Bank nazorati'),
+                short: 'Banking',
+                icon: Building2,
+                colorClass: 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/60'
+            };
+        }
+        if (upper.includes('КОРП') || upper === 'CORPORATE') {
+            return {
+                label: tr('⚖️ Корпоративное право', '⚖️ Corporate Law', '⚖️ Korporativ huquq'),
+                short: 'Corporate',
+                icon: Scale,
+                colorClass: 'bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-800/60'
+            };
+        }
+
+        return {
+            label: cat,
+            short: cat,
+            icon: FileText,
+            colorClass: 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+        };
+    };
+
+    const getJurisdictionDetails = (jur?: string) => {
+        const code = (jur || 'GLOBAL').toUpperCase();
+        switch (code) {
+            case 'UZ':
+                return {
+                    flag: '🇺🇿',
+                    name: tr('Узбекистан', 'Uzbekistan', "O'zbekiston"),
+                    full: tr('Республика Узбекистан (UZ)', 'Republic of Uzbekistan (UZ)', "O'zbekiston Respublikasi (UZ)"),
+                    code: 'UZ'
+                };
+            case 'EU':
+                return {
+                    flag: '🇪🇺',
+                    name: tr('Европейский Союз', 'European Union', 'Yevropa Ittifoqi'),
+                    full: tr('Европейский Союз (EU)', 'European Union (EU)', 'Yevropa Ittifoqi (EU)'),
+                    code: 'EU'
+                };
+            case 'US':
+                return {
+                    flag: '🇺🇸',
+                    name: tr('США', 'United States', 'AQSh'),
+                    full: tr('Соединенные Штаты (US)', 'United States (US)', 'AQSh (US)'),
+                    code: 'US'
+                };
+            case 'RU':
+                return {
+                    flag: '🇷🇺',
+                    name: tr('Россия', 'Russian Federation', 'Rossiya'),
+                    full: tr('Российская Федерация (RU)', 'Russian Federation (RU)', 'Rossiya Federatsiyasi (RU)'),
+                    code: 'RU'
+                };
+            case 'GLOBAL':
+            default:
+                return {
+                    flag: '🌐',
+                    name: jur || tr('Международный', 'Global', 'Xalqaro'),
+                    full: jur ? `${jur} (Global)` : tr('Международный норматив', 'International Standard', 'Xalqaro standart'),
+                    code: jur || 'GLOBAL'
+                };
+        }
+    };
+
+    const getImpactLevelInfo = (impact?: string) => {
+        const val = (impact || 'MEDIUM').toUpperCase();
+        switch (val) {
+            case 'CRITICAL':
+                return {
+                    label: tr('Критический уровень', 'Critical Impact', 'Kritik ta’sir'),
+                    badgeClass: 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80',
+                    dotClass: 'bg-rose-500 animate-ping'
+                };
+            case 'HIGH':
+                return {
+                    label: tr('Высокий приоритет', 'High Priority', 'Yuqori ustuvorlik'),
+                    badgeClass: 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80',
+                    dotClass: 'bg-amber-500'
+                };
+            case 'MEDIUM':
+                return {
+                    label: tr('Умеренное влияние', 'Moderate Impact', 'O‘rtacha ta’sir'),
+                    badgeClass: 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/80',
+                    dotClass: 'bg-blue-500'
+                };
+            case 'LOW':
+            default:
+                return {
+                    label: tr('Информационный', 'Informational', 'Axborotiy'),
+                    badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+                    dotClass: 'bg-slate-400'
+                };
+        }
+    };
+
+    const getEffectiveDateDetails = (dateStr?: string) => {
+        if (!dateStr) {
+            return {
+                formattedDate: tr('Не указана', 'Not specified', 'Ko‘rsatilmagan'),
+                statusText: tr('Бессрочный регламент', 'Permanent Regulation', 'Muddatsiz reglament'),
+                isFuture: false,
+                badgeClass: 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700'
+            };
+        }
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            return {
+                formattedDate: dateStr,
+                statusText: tr('Срок уточняется', 'Date pending', 'Sana aniqlanmoqda'),
+                isFuture: false,
+                badgeClass: 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700'
+            };
+        }
+
+        const formattedDate = d.toLocaleDateString(isEn ? 'en-US' : 'ru-RU', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diffTime = target.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 0) {
+            return {
+                formattedDate,
+                statusText: tr(
+                    `Вступает в силу через ${diffDays} дн.`,
+                    `Takes effect in ${diffDays} days`,
+                    `${diffDays} kundan keyin kuchga kiradi`
+                ),
+                isFuture: true,
+                badgeClass: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 border-amber-200 dark:border-amber-800'
+            };
+        } else {
+            return {
+                formattedDate,
+                statusText: tr('Действующий норматив', 'Currently in force', 'Amaldagi normativ'),
+                isFuture: false,
+                badgeClass: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border-emerald-200 dark:border-emerald-800'
+            };
+        }
     };
 
     const openDetailModal = async (regulation: any) => {
@@ -674,7 +894,7 @@ export default function RegulationsPage() {
                 meta.title || item.title || '',
                 meta.jurisdiction || 'N/A',
                 meta.effective_date ? new Date(meta.effective_date).toLocaleDateString() : 'N/A',
-                code.split('-')[0] || meta.category || 'General',
+                getRegulationCategoryInfo(meta.category || item.category, code).short,
                 item.is_subscribed ? 'Yes' : 'No'
             ];
         });
@@ -708,7 +928,7 @@ export default function RegulationsPage() {
                 title: meta.title || item.title || '',
                 jurisdiction: meta.jurisdiction || 'GLOBAL',
                 effective_date: meta.effective_date || '',
-                category: code.split('-')[0] || meta.category || 'General',
+                category: getRegulationCategoryInfo(meta.category || item.category, code).short,
                 content: item.content || meta.content || '',
                 is_subscribed: item.is_subscribed,
                 relevance_score: item.distance
@@ -1580,7 +1800,8 @@ export default function RegulationsPage() {
                                     {(() => {
                                         const meta = item.metadata || item || {};
                                         const code = meta.code || 'REG';
-                                        const category = meta.category || item.category || code.split('-')[0] || 'General';
+                                        const catInfo = getRegulationCategoryInfo(meta.category || item.category, code);
+                                        const jurInfo = getJurisdictionDetails(meta.jurisdiction || item.jurisdiction);
                                         return (
                                             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                                 <div className="space-y-1.5 flex-1">
@@ -1593,12 +1814,12 @@ export default function RegulationsPage() {
                                                         </span>
                                                         {meta.jurisdiction && (
                                                             <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                                                <MapPin className="h-3 w-3 mr-1 text-slate-400" />
-                                                                {meta.jurisdiction}
+                                                                <span className="mr-1">{jurInfo.flag}</span>
+                                                                {jurInfo.code}
                                                             </span>
                                                         )}
-                                                        <span className="inline-flex items-center rounded-md bg-purple-50 dark:bg-purple-950/70 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60">
-                                                            {category}
+                                                        <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium border ${catInfo.colorClass}`}>
+                                                            {catInfo.label}
                                                         </span>
                                                         {item.is_new && (
                                                             <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 animate-pulse">
@@ -1722,89 +1943,192 @@ export default function RegulationsPage() {
 
             {/* Detail Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100">
+                <DialogContent className="max-w-4xl max-h-[88vh] overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 p-0 rounded-2xl shadow-2xl">
                     {selectedRegulation && (() => {
                         const selMeta = selectedRegulation.metadata || selectedRegulation || {};
                         const code = selMeta.code || 'REG';
-                        const category = code.split('-')[0] || selMeta.category || 'General';
+                        const catInfo = getRegulationCategoryInfo(selMeta.category, code);
+                        const jurInfo = getJurisdictionDetails(selMeta.jurisdiction);
+                        const impactInfo = getImpactLevelInfo(selMeta.impact_level);
+                        const dateInfo = getEffectiveDateDetails(selMeta.effective_date);
+
                         return (
-                            <>
-                                <DialogHeader>
-                                    <DialogTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug">
+                            <div className="flex flex-col">
+                                {/* Header Section */}
+                                <div className="p-6 pb-5 border-b border-slate-200/80 dark:border-slate-800/80 bg-gradient-to-b from-slate-50/80 via-white to-white dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-900">
+                                    <div className="flex items-center gap-2 flex-wrap mb-3">
+                                        <span className="inline-flex items-center rounded-lg bg-blue-50 dark:bg-blue-950/70 px-2.5 py-1 text-xs font-bold text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 font-mono tracking-wide">
+                                            <HighlightedText text={code} query={searchQuery} />
+                                        </span>
+                                        <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                            <span className="mr-1.5">{jurInfo.flag}</span>
+                                            {jurInfo.full}
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold border ${catInfo.colorClass}`}>
+                                            {catInfo.label}
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold border ${impactInfo.badgeClass}`}>
+                                            <span className={`h-2 w-2 rounded-full ${impactInfo.dotClass}`} />
+                                            {impactInfo.label}
+                                        </span>
+                                        {selMeta.match_score && (
+                                            <span className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60">
+                                                <Sparkles className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                                {selMeta.match_score}% {tr('совпадение', 'match')}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <DialogTitle className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-snug tracking-tight">
                                         <HighlightedText text={selMeta.title || 'Untitled'} query={searchQuery} />
                                     </DialogTitle>
-                                    <DialogDescription className="text-slate-500 dark:text-slate-400">
-                                        <div className="flex items-center gap-2 flex-wrap mt-2">
-                                            <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/60 font-mono">
-                                                <HighlightedText text={code} query={searchQuery} />
-                                            </span>
-                                            {selMeta.jurisdiction && (
-                                                <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                                    <MapPin className="h-3 w-3 mr-1 text-slate-400" />
-                                                    {selMeta.jurisdiction}
-                                                </span>
-                                            )}
-                                            <span className="inline-flex items-center rounded-md bg-purple-50 dark:bg-purple-950/70 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-300 border border-purple-200/80 dark:border-purple-800/60">
-                                                {category}
-                                            </span>
-                                        </div>
-                                    </DialogDescription>
-                                </DialogHeader>
 
-                                <div className="space-y-4 mt-4">
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-800 rounded-lg">
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('effective_date')}</p>
-                                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 mt-1">
-                                                <Calendar className="h-4 w-4 text-slate-400" />
-                                                {selMeta.effective_date
-                                                    ? new Date(selMeta.effective_date).toLocaleDateString()
-                                                    : 'N/A'}
+                                    {selMeta.authority && (
+                                        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                                            <Building2 className="h-4 w-4 text-slate-400 shrink-0" />
+                                            <span>{tr('Орган нормотворчества:', 'Issuing Authority:', 'Norma ijodkori:')} <strong>{selMeta.authority}</strong></span>
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Body Content */}
+                                <div className="p-6 space-y-6">
+                                    {/* 4-Card Bento Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                        {/* Card 1: Effective Date */}
+                                        <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-1.5">
+                                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                <Calendar className="h-3.5 w-3.5 text-blue-500" />
+                                                <span>{tr('Дата вступления в силу', 'Effective Date', 'Kuchga kirish sanasi')}</span>
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                                {dateInfo.formattedDate}
                                             </p>
+                                            <div className="pt-0.5">
+                                                <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-md border ${dateInfo.badgeClass}`}>
+                                                    {dateInfo.statusText}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{t('subscription_status')}</p>
-                                            <p className="text-sm font-semibold mt-1">
+
+                                        {/* Card 2: Authority & Jurisdiction */}
+                                        <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-1.5">
+                                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                <Building2 className="h-3.5 w-3.5 text-purple-500" />
+                                                <span>{tr('Орган и юрисдикция', 'Authority & Jurisdiction', 'Organ va yurisdiksiya')}</span>
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate" title={selMeta.authority || jurInfo.full}>
+                                                {selMeta.authority || jurInfo.full}
+                                            </p>
+                                            <div className="pt-0.5">
+                                                <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                                    <span className="mr-1">{jurInfo.flag}</span>
+                                                    {jurInfo.code} • {jurInfo.name}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 3: Regulatory Impact */}
+                                        <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-1.5">
+                                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                                                <span>{tr('Уровень влияния', 'Regulatory Impact', 'Ta’sir darajasi')}</span>
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                                                <span className={`h-2 w-2 rounded-full ${impactInfo.dotClass}`} />
+                                                {impactInfo.label}
+                                            </p>
+                                            <div className="pt-0.5">
+                                                <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-md border ${impactInfo.badgeClass}`}>
+                                                    {selMeta.match_score ? `${selMeta.match_score}% ${tr('соответствие', 'match')}` : tr('Обязательно для соблюдения', 'Mandatory Compliance')}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 4: Monitoring Status */}
+                                        <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/70 space-y-1.5">
+                                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                                                 {selectedRegulation.is_subscribed ? (
-                                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                                    <Bell className="h-3.5 w-3.5 text-emerald-500" />
+                                                ) : (
+                                                    <BellOff className="h-3.5 w-3.5 text-slate-400" />
+                                                )}
+                                                <span>{tr('Мониторинг обновлений', 'Change Tracking', 'O‘zgarishlar monitoringi')}</span>
+                                            </div>
+                                            <p className="text-sm font-bold mt-1">
+                                                {selectedRegulation.is_subscribed ? (
+                                                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                                                         <Check className="h-4 w-4" />
-                                                        {t('subscribed')}
+                                                        {tr('Отслеживается', 'Tracked', 'Kuzatilmoqda')}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-slate-500 dark:text-slate-400">{t('not_subscribed')}</span>
+                                                    <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                                        <BellOff className="h-3.5 w-3.5 text-slate-400" />
+                                                        {tr('Не отслеживается', 'Not Tracked', 'Kuzatilmayapti')}
+                                                    </span>
                                                 )}
                                             </p>
+                                            <div className="pt-0.5">
+                                                <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-md border ${
+                                                    selectedRegulation.is_subscribed
+                                                        ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                                }`}>
+                                                    {selectedRegulation.is_subscribed
+                                                        ? tr('Уведомления активны', 'Live alerts active', 'Bildirishnomalar faol')
+                                                        : tr('Оповещения отключены', 'Alerts disabled', 'Bildirishnomalar o‘chiq')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div>
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{t('full_content')}</h4>
+                                    {/* Executive Summary Callout (if available) */}
+                                    {selMeta.summary && (
+                                        <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-slate-50 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-slate-900/40 border border-blue-200/80 dark:border-blue-800/60 shadow-xs space-y-1.5">
+                                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
+                                                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                <span>{tr('Краткая выжимка и суть регулирования', 'Executive Summary & Key Takeaways', 'Qisqacha mazmun va asosiy qoidalar')}</span>
+                                            </div>
+                                            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+                                                <HighlightedText text={selMeta.summary} query={searchQuery} />
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Official Legal Text & Provisions */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+                                                <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                                                    {tr('Официальный текст и положения акта', 'Official Regulatory Provisions & Articles', 'Rasmiy qonunchilik matni va moddalari')}
+                                                </h4>
+                                            </div>
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => copyToClipboard(selectedRegulation.content, selectedRegulation.id)}
-                                                className="gap-1.5 h-8 text-xs border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                                                className="gap-1.5 h-8 text-xs border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                                             >
                                                 {copiedId === selectedRegulation.id ? (
                                                     <>
                                                         <Check className="h-3.5 w-3.5 text-emerald-500" />
-                                                        {t('copied')}
+                                                        <span>{tr('Скопировано!', 'Copied!')}</span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <Copy className="h-3.5 w-3.5" />
-                                                        {t('copy')}
+                                                        <span>{tr('Скопировать текст', 'Copy Text')}</span>
                                                     </>
                                                 )}
                                             </Button>
                                         </div>
-                                        <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm leading-relaxed max-h-96 overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-line font-normal">
+                                        <div className="p-4 bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 border-l-4 border-l-blue-500 dark:border-l-blue-500 rounded-xl text-xs sm:text-sm leading-relaxed max-h-80 overflow-y-auto text-slate-800 dark:text-slate-200 whitespace-pre-line font-normal selection:bg-blue-100 dark:selection:bg-blue-900/60">
                                             <HighlightedText text={selectedRegulation.content} query={searchQuery} />
                                         </div>
                                     </div>
 
-                                    {/* Compliance Workflow Steps & Checklists with Search Highlighting */}
+                                    {/* Compliance Workflow Steps & Checklists with Interactive Toggles */}
                                     {(() => {
                                         let stepsList: any[] = [];
                                         try {
@@ -1821,46 +2145,143 @@ export default function RegulationsPage() {
 
                                         if (!stepsList || stepsList.length === 0) return null;
 
+                                        const regId = selectedRegulation.id || code;
+                                        const completedCount = stepsList.filter((_, idx) => checkedWorkflowSteps[`${regId}_step_${idx}`]).length;
+                                        const progressPercent = Math.round((completedCount / stepsList.length) * 100);
+
                                         return (
-                                            <div className="space-y-2.5 pt-2">
-                                                <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
-                                                    <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                                    <span>{tr("Чеклист требований и этапы соответствия", "Compliance Requirements Checklist", "Muvofiqlik talablari va bosqichlari")}</span>
-                                                </h4>
-                                                <div className="space-y-2">
+                                            <div className="space-y-3 pt-1">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-7 w-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center">
+                                                            <CheckCircle2 className="h-4 w-4" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+                                                                {tr("Чеклист требований и этапы соответствия", "Compliance Requirements & Workflow Checklist", "Muvofiqlik talablari va amaliy bosqichlar")}
+                                                            </h4>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                                {tr("Интерактивная дорожная карта внедрения регуляторных требований", "Interactive roadmap for regulatory implementation")}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                            {tr(`Выполнено: ${completedCount} из ${stepsList.length}`, `Completed: ${completedCount} of ${stepsList.length}`, `Bajarildi: ${completedCount}/${stepsList.length}`)}
+                                                        </span>
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                                                            progressPercent === 100
+                                                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
+                                                                : 'bg-blue-50 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300 border-blue-200 dark:border-blue-800'
+                                                        }`}>
+                                                            {progressPercent}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Mini Progress Bar */}
+                                                <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full transition-all duration-300 rounded-full ${
+                                                            progressPercent === 100 ? 'bg-emerald-500' : 'bg-blue-600'
+                                                        }`}
+                                                        style={{ width: `${progressPercent}%` }}
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2.5 pt-1">
                                                     {stepsList.map((step: any, sIdx: number) => {
+                                                        const stepKey = `${regId}_step_${sIdx}`;
+                                                        const isCompleted = !!checkedWorkflowSteps[stepKey];
                                                         const sTitle = typeof step === 'string' ? step : (step?.title || `Этап ${step?.step || sIdx + 1}`);
                                                         const sDesc = step?.description;
                                                         const sResp = step?.responsible;
                                                         const checklists: string[] = Array.isArray(step?.checklist) ? step.checklist : [];
 
                                                         return (
-                                                            <div key={sIdx} className="p-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 text-xs sm:text-sm space-y-1.5">
-                                                                <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-between gap-2">
-                                                                    <span>
-                                                                        {sIdx + 1}. <HighlightedText text={sTitle} query={searchQuery} />
+                                                            <div
+                                                                key={sIdx}
+                                                                onClick={() => toggleStepCheck(regId, sIdx)}
+                                                                className={`group p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
+                                                                    isCompleted
+                                                                        ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/80 shadow-xs'
+                                                                        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xs'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    {/* Interactive Checkbox */}
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            toggleStepCheck(regId, sIdx);
+                                                                        }}
+                                                                        className={`mt-0.5 shrink-0 rounded-md p-0.5 transition-colors ${
+                                                                            isCompleted
+                                                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                                                : 'text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                                                        }`}
+                                                                    >
+                                                                        {isCompleted ? (
+                                                                            <CheckSquare className="h-5 w-5" />
+                                                                        ) : (
+                                                                            <Square className="h-5 w-5" />
+                                                                        )}
+                                                                    </button>
+
+                                                                    {/* Step Number Pill */}
+                                                                    <span className={`shrink-0 inline-flex items-center justify-center h-6 w-6 rounded-md text-xs font-mono font-bold border ${
+                                                                        isCompleted
+                                                                            ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700'
+                                                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                                                                    }`}>
+                                                                        {String(sIdx + 1).padStart(2, '0')}
                                                                     </span>
-                                                                    {sResp && (
-                                                                        <span className="text-[11px] px-2 py-0.5 rounded bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-normal shrink-0">
-                                                                            {sResp}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
-                                                                {sDesc && (
-                                                                    <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
-                                                                        <HighlightedText text={sDesc} query={searchQuery} />
-                                                                    </p>
-                                                                )}
-                                                                {checklists.length > 0 && (
-                                                                    <div className="pt-1.5 space-y-1">
-                                                                        {checklists.map((checkItem, cIdx) => (
-                                                                            <div key={cIdx} className="flex items-start gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                                                                                <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
-                                                                                <span><HighlightedText text={checkItem} query={searchQuery} /></span>
+
+                                                                    <div className="flex-1 min-w-0 space-y-1">
+                                                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                                                            <h5 className={`font-semibold text-sm leading-snug transition-colors ${
+                                                                                isCompleted
+                                                                                    ? 'line-through text-slate-500 dark:text-slate-400'
+                                                                                    : 'text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                                                                            }`}>
+                                                                                <HighlightedText text={sTitle} query={searchQuery} />
+                                                                            </h5>
+
+                                                                            <div className="flex items-center gap-1.5 shrink-0">
+                                                                                {sResp && (
+                                                                                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
+                                                                                        {sResp}
+                                                                                    </span>
+                                                                                )}
+                                                                                {isCompleted && (
+                                                                                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                                                                        {tr('Выполнено', 'Completed', 'Bajarildi')}
+                                                                                    </span>
+                                                                                )}
                                                                             </div>
-                                                                        ))}
+                                                                        </div>
+
+                                                                        {sDesc && (
+                                                                            <p className={`text-xs leading-relaxed ${
+                                                                                isCompleted ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-400'
+                                                                            }`}>
+                                                                                <HighlightedText text={sDesc} query={searchQuery} />
+                                                                            </p>
+                                                                        )}
+
+                                                                        {checklists.length > 0 && (
+                                                                            <div className="pt-2 space-y-1.5 border-t border-slate-100 dark:border-slate-800/60 mt-2">
+                                                                                {checklists.map((checkItem, cIdx) => (
+                                                                                    <div key={cIdx} className="flex items-start gap-2 text-xs text-slate-700 dark:text-slate-300">
+                                                                                        <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                                                                                        <span><HighlightedText text={checkItem} query={searchQuery} /></span>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                )}
+                                                                </div>
                                                             </div>
                                                         );
                                                     })}
@@ -1869,26 +2290,36 @@ export default function RegulationsPage() {
                                         );
                                     })()}
 
+                                    {/* Related Regulations */}
                                     {isLoadingRelated ? (
-                                        <div className="text-xs text-slate-500 dark:text-slate-400 animate-pulse py-2">Loading related regulations...</div>
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 py-3">
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+                                            <span>{tr('Поиск связанных нормативов в базе...', 'Finding related regulations...', 'Tegishli me’yoriy hujjatlar qidirilmoqda...')}</span>
+                                        </div>
                                     ) : relatedRegulations.length > 0 && (
-                                        <div>
-                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 mb-2">{t('related_regulations') || 'Related Regulations'}</h4>
-                                            <div className="grid grid-cols-1 gap-2">
+                                        <div className="space-y-2.5 pt-1">
+                                            <h4 className="font-semibold text-sm text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                                <Layers className="h-4 w-4 text-purple-500" />
+                                                <span>{tr('Связанные нормативы и перекрестные ссылки', 'Related Regulations & Cross-References', 'Bog‘liq me’yoriy hujjatlar')}</span>
+                                            </h4>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                                 {relatedRegulations.map(related => {
                                                     const relMeta = related?.metadata || related || {};
                                                     return (
                                                         <div
                                                             key={related.id}
-                                                            className="p-3 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors bg-white dark:bg-slate-900"
+                                                            className="group p-3 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xs cursor-pointer transition-all bg-white dark:bg-slate-900/70"
                                                             onClick={() => openDetailModal(related)}
                                                         >
                                                             <div className="flex justify-between items-start gap-2">
-                                                                <h5 className="font-medium text-xs sm:text-sm text-blue-600 dark:text-blue-400">{relMeta.title || 'Related'}</h5>
-                                                                <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
-                                                                    {relMeta.code || ''}
+                                                                <span className="text-[11px] font-mono font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/70 px-2 py-0.5 rounded border border-blue-200/80 dark:border-blue-800/60 shrink-0">
+                                                                    {relMeta.code || 'REG'}
                                                                 </span>
+                                                                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition-all shrink-0" />
                                                             </div>
+                                                            <h5 className="font-medium text-xs sm:text-sm text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 mt-1.5 leading-snug">
+                                                                {relMeta.title || 'Related'}
+                                                            </h5>
                                                         </div>
                                                     );
                                                 })}
@@ -1896,53 +2327,77 @@ export default function RegulationsPage() {
                                         </div>
                                     )}
 
+                                    {/* Official Source Link */}
                                     {selMeta.source_url && (
-                                        <div>
+                                        <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="h-8 w-8 rounded-lg bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 flex items-center justify-center shrink-0">
+                                                    <Globe className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                                                        {tr('Официальный первоисточник публикации', 'Official Source Portal', 'Rasmiy manba')}
+                                                    </p>
+                                                    <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                                        {selMeta.source_name || 'Lex.uz (Национальная база законодательства РУз)'}
+                                                    </p>
+                                                </div>
+                                            </div>
                                             <a
                                                 href={selMeta.source_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs sm:text-sm font-medium"
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-750 transition-colors shadow-2xs shrink-0"
                                             >
-                                                <ExternalLink className="h-4 w-4" />
-                                                {t('view_original_source')}
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                <span>{tr('Открыть в первоисточнике ↗', 'Open Original Document ↗', 'Asl manbada ochish ↗')}</span>
                                             </a>
                                         </div>
                                     )}
+                                </div>
 
-                                    <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-800">
+                                {/* Modal Footer */}
+                                <div className="p-6 pt-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 self-start sm:self-center">
+                                        <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
+                                        <span>{tr('Верифицировано правовым сканером RegAI', 'Verified by RegAI Regulatory Spider', 'RegAI huquqiy skaneri tomonidan tasdiqlangan')}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2.5 w-full sm:w-auto">
                                         {selectedRegulation.is_subscribed ? (
                                             <Button
                                                 variant="outline"
                                                 onClick={() => {
                                                     handleUnsubscribe(selectedRegulation.id);
-                                                    setIsModalOpen(false);
+                                                    setSelectedRegulation({ ...selectedRegulation, is_subscribed: false });
                                                 }}
-                                                className="flex-1 border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                                className="flex-1 sm:flex-none border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 h-9 text-xs sm:text-sm font-medium"
                                             >
-                                                {t('unsubscribe')}
+                                                <BellOff className="h-4 w-4" />
+                                                {tr('Отключить мониторинг', 'Disable Tracking', 'Kuzatuvni o‘chirish')}
                                             </Button>
                                         ) : (
                                             <Button
                                                 onClick={() => {
                                                     handleSubscribe(selectedRegulation.id);
-                                                    setIsModalOpen(false);
+                                                    setSelectedRegulation({ ...selectedRegulation, is_subscribed: true });
                                                 }}
-                                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                                                className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-medium gap-1.5 h-9 text-xs sm:text-sm shadow-xs"
                                             >
-                                                {t('subscribe')}
+                                                <Bell className="h-4 w-4" />
+                                                {tr('Отслеживать изменения', 'Track Changes', 'O‘zgarishlarni kuzatish')}
                                             </Button>
                                         )}
                                         <Button
                                             variant="outline"
                                             onClick={() => setIsModalOpen(false)}
-                                            className="border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                                            className="border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 h-9 text-xs sm:text-sm px-4"
                                         >
-                                            {t('close')}
+                                            {t('close') || tr('Закрыть', 'Close', 'Yopish')}
                                         </Button>
                                     </div>
                                 </div>
-                            </>
+                            </div>
                         );
                     })()}
                 </DialogContent>
